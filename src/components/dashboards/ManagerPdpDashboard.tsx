@@ -59,7 +59,7 @@ export const ManagerPdpDashboard: React.FC<ManagerPdpDashboardProps> = ({ onOpen
             <CheckSquare className="w-4 h-4" />
             <span>
               {status === 'PENDING_MANAGER_REVIEW'
-                ? 'Review Tariq’s Evaluation'
+                ? `Review ${employee.name}’s Evaluation`
                 : status === 'PDP_PLANNING_MANAGER'
                 ? 'Plan Development Roadmap'
                 : 'Open Active PDP'}
@@ -80,8 +80,8 @@ export const ManagerPdpDashboard: React.FC<ManagerPdpDashboardProps> = ({ onOpen
               <h3 className="font-extrabold text-sm text-white">Line Manager Task Pending</h3>
               <p className="text-slate-300 mt-0.5">
                 {status === 'PENDING_MANAGER_REVIEW'
-                  ? `Evaluate Tariq Al-Mansoor across all 14 competencies and select 5 priority development areas.`
-                  : `HR has initiated Tariq Al-Mansoor's PDP. Please define practical development activities and phase timelines.`}
+                  ? `Evaluate ${employee.name} across all 14 competencies and select 5 priority development areas.`
+                  : `HR has initiated ${employee.name}'s PDP. Please define practical development activities and phase timelines.`}
               </p>
             </div>
           </div>
@@ -166,7 +166,7 @@ export const ManagerPdpDashboard: React.FC<ManagerPdpDashboardProps> = ({ onOpen
             </thead>
 
             <tbody className="divide-y divide-slate-800 text-slate-300">
-              {/* Primary Tariq row reflecting live state */}
+              {/* Primary Ravi row reflecting live state */}
               <tr className="bg-indigo-950/30 hover:bg-indigo-950/50 transition-colors">
                 <td className="py-3 px-3 font-mono font-bold text-indigo-400">1</td>
                 <td className="py-3 px-4">

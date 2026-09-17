@@ -44,11 +44,11 @@ const STAGES: StageDef[] = [
   {
     status: 'PENDING_MANAGER_REVIEW',
     order: 2,
-    label: 'Manager Review & Selection',
-    shortLabel: 'Manager Eval',
+    label: 'Manager Review',
+    shortLabel: 'Manager Review',
     role: 'MANAGER',
     roleLabel: 'Manager',
-    description: 'Evaluate 14 competencies & select 5 with objectives',
+    description: 'Evaluate competencies & select 5 with objectives',
   },
   {
     status: 'PENDING_HR_INITIATION',
@@ -135,7 +135,7 @@ export const StageProgressBar: React.FC = () => {
             className="text-xs font-semibold bg-slate-800 text-indigo-300 border border-slate-700 rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
           >
             <option value="PENDING_EMPLOYEE_EVALUATION">1. Employee Evaluation</option>
-            <option value="PENDING_MANAGER_REVIEW">2. Manager Review (Select 5)</option>
+            <option value="PENDING_MANAGER_REVIEW">2. Manager Review</option>
             <option value="PENDING_HR_INITIATION">3. HR Initiation</option>
             <option value="PDP_PLANNING_MANAGER">4. Manager Roadmap Plan</option>
             <option value="PENDING_LNA_TEAM">5. LNA Training Assignment</option>

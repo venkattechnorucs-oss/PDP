@@ -37,6 +37,14 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
     currentRole === 'MANAGER' && status === 'PENDING_MANAGER_REVIEW';
   const showManagerColumn = status !== 'PENDING_EMPLOYEE_EVALUATION' && status !== 'NOT_STARTED';
 
+  // Only show 14 Competencies Proficiency Evaluation during Employee Evaluation and Manager Review
+  const showEvaluationTable =
+    status === 'PENDING_EMPLOYEE_EVALUATION' ||
+    status === 'PENDING_MANAGER_REVIEW' ||
+    status === 'NOT_STARTED';
+
+  if (!showEvaluationTable) return null;
+
   const functionalComps = competencies.filter((c) => c.category === 'Functional');
   const behaviouralComps = competencies.filter((c) => c.category === 'Behavioural');
 
@@ -170,14 +178,9 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
   return (
     <section className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-xs">
       {/* Section Header */}
-      <div className="bg-[#153f5e] text-white py-2.5 px-4 font-bold text-xs uppercase tracking-wider flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Award className="w-3.5 h-3.5 text-sky-300" />
-          <span>Competency Proficiency Evaluation</span>
-        </div>
-        <span className="text-[10px] text-sky-200 font-mono tracking-normal">
-          14 Competencies
-        </span>
+      <div className="bg-[#153f5e] text-white py-2.5 px-4 font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+        <Award className="w-3.5 h-3.5 text-sky-300" />
+        <span>Competency Proficiency Evaluation</span>
       </div>
 
       {/* Table */}

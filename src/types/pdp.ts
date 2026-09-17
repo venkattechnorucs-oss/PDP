@@ -50,11 +50,13 @@ export interface EmployeeProfile {
   position: string;
   division: string;
   department: string;
+  functionDept: string;
   lineManager: string;
   lineManagerTitle: string;
   dateOfJoining: string;
   serviceLength: string;
   programDuration: string;
+  year: string;
   email: string;
   avatarInitials: string;
 }

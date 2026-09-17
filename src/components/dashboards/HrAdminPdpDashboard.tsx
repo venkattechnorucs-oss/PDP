@@ -192,7 +192,7 @@ export const HrAdminPdpDashboard: React.FC<HrAdminPdpDashboardProps> = ({ onOpen
             </thead>
 
             <tbody className="divide-y divide-slate-800 text-slate-300">
-              {/* Primary Tariq row reflecting live state */}
+              {/* Primary Ravi row reflecting live state */}
               <tr className="bg-indigo-950/30 hover:bg-indigo-950/50 transition-colors">
                 <td className="py-3 px-3 font-mono font-bold text-indigo-400">1</td>
                 <td className="py-3 px-4">

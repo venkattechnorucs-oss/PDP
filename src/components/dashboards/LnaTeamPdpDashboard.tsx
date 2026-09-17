@@ -54,7 +54,7 @@ export const LnaTeamPdpDashboard: React.FC<LnaTeamPdpDashboardProps> = ({ onOpen
           >
             <GraduationCap className="w-4 h-4" />
             <span>
-              {isLnaPending ? 'Assign Tariq’s Training Plan' : 'Open Training Plan Editor'}
+              {isLnaPending ? `Assign ${employee.name}’s Training Plan` : 'Open Training Plan Editor'}
             </span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>

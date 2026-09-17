@@ -10,7 +10,7 @@ import { PdpStatus } from '../types/pdp';
 
 const STAGES: { key: PdpStatus; label: string; num: number; category?: string }[] = [
   { key: 'PENDING_EMPLOYEE_EVALUATION', label: 'Employee Evaluation', num: 1 },
-  { key: 'PENDING_MANAGER_REVIEW', label: 'Manager Review (5 Priorities)', num: 2 },
+  { key: 'PENDING_MANAGER_REVIEW', label: 'Manager Review', num: 2 },
   { key: 'PENDING_HR_INITIATION', label: 'HR Initiation', num: 3 },
   { key: 'PDP_PLANNING_MANAGER', label: 'Manager Roadmap', num: 4 },
   { key: 'PENDING_LNA_TEAM', label: 'LNA Training Plan', num: 5 },

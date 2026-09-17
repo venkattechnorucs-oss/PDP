@@ -61,13 +61,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExport }) => {
     {
       role: 'EMPLOYEE',
       label: 'Employee View',
-      subLabel: 'Tariq Al-Mansoor (Lead Engineer)',
+      subLabel: 'Ravi Kumar (Store Manager)',
       icon: <User className="w-4 h-4" />,
     },
     {
       role: 'MANAGER',
       label: 'Manager View',
-      subLabel: 'Eng. Khalid Al-Amri (Line Manager)',
+      subLabel: 'Suresh Nair (Line Manager)',
       icon: <Users className="w-4 h-4" />,
     },
     {

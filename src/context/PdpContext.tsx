@@ -66,7 +66,7 @@ interface PdpContextType {
 
 const PdpContext = createContext<PdpContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'enterprise_pdp_state_v1';
+const STORAGE_KEY = 'enterprise_pdp_state_v3';
 
 export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentRole, setCurrentRole] = useState<Role>('EMPLOYEE');
@@ -82,7 +82,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       role: 'HR_ADMIN',
       actor: 'L&D Talent Operations',
       action: 'Cycle Released',
-      details: '2026-2027 Annual PDP Cycle released to Operations & Engineering Division.',
+      details: '2026 Annual PDP Cycle released to Retail Operations Division.',
     },
   ]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -536,38 +536,60 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       'comp-b-3': '6 Months',
     };
 
-    // Prepare competencies with realistic mock values
+    // Stage-specific presets:
+    const isStage1 = targetStatus === 'PENDING_EMPLOYEE_EVALUATION';
+    const isStage2 = targetStatus === 'PENDING_MANAGER_REVIEW'; // Clean for manager to select and write objectives
+
+    // Prepare competencies:
     const mockCompetencies: CompetencyItem[] = INITIAL_COMPETENCIES.map((c) => {
-      const isSelected = selectedIds.includes(c.id);
+      // In Stage 1, employee has not evaluated yet
+      const empEval = isStage1
+        ? undefined
+        : c.idealProficiency === 'Expert'
+        ? 'Advanced'
+        : 'Intermediate';
+
+      // In Stage 1 & Stage 2, manager has NOT evaluated or selected yet
+      const mgrEval = isStage1 || isStage2
+        ? undefined
+        : c.idealProficiency === 'Expert'
+        ? 'Advanced'
+        : 'Advanced';
+
+      const isSelected = (!isStage1 && !isStage2) && selectedIds.includes(c.id);
+      const obj = isSelected ? objectives[c.id] : '';
+
       return {
         ...c,
-        employeeEvaluation: c.idealProficiency === 'Expert' ? 'Advanced' : 'Intermediate',
-        managerEvaluation: targetStatus !== 'PENDING_EMPLOYEE_EVALUATION' ? (c.idealProficiency === 'Expert' ? 'Advanced' : 'Advanced') : undefined,
-        isSelectedForPdp: targetStatus !== 'PENDING_EMPLOYEE_EVALUATION' && isSelected,
-        managerObjective: targetStatus !== 'PENDING_EMPLOYEE_EVALUATION' && isSelected ? objectives[c.id] : '',
+        employeeEvaluation: empEval,
+        managerEvaluation: mgrEval,
+        isSelectedForPdp: isSelected,
+        managerObjective: obj,
       };
     });
 
-    const mockRoadmaps: DevelopmentRoadmapItem[] = selectedIds.map((id) => {
-      const comp = mockCompetencies.find((c) => c.id === id)!;
-      return {
-        competencyId: comp.id,
-        code: comp.code,
-        competencyName: comp.name,
-        category: comp.category,
-        objective: objectives[id] || '',
-        developmentActivities:
-          ['PDP_PLANNING_MANAGER', 'PENDING_LNA_TEAM', 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus)
-            ? activities[id]
-            : '',
-        learningTrainingPlan:
-          ['PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus)
-            ? trainingPlans[id]
-            : 'Pending LNA Team',
-        phaseMonths: phases[id] || '6 Months',
-        statusRemarks: targetStatus === 'ACTIVE' ? 'Active In-Progress' : 'Scheduled for 2026/27 Cycle',
-      };
-    });
+    const mockRoadmaps: DevelopmentRoadmapItem[] = (isStage1 || isStage2)
+      ? []
+      : selectedIds.map((id) => {
+          const comp = mockCompetencies.find((c) => c.id === id)!;
+          return {
+            competencyId: comp.id,
+            code: comp.code,
+            competencyName: comp.name,
+            category: comp.category,
+            objective: objectives[id] || '',
+            developmentActivities:
+              ['PDP_PLANNING_MANAGER', 'PENDING_LNA_TEAM', 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus)
+                ? activities[id]
+                : '',
+            learningTrainingPlan:
+              ['PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus)
+                ? trainingPlans[id]
+                : 'Pending LNA Team',
+            phaseMonths: phases[id] || '6 Months',
+            statusRemarks: targetStatus === 'ACTIVE' ? 'Active In-Progress' : 'Scheduled for 2026/27 Cycle',
+          };
+        });
 
     setCompetencies(mockCompetencies);
     setRoadmapItems(mockRoadmaps);

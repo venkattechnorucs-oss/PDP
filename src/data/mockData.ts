@@ -1,21 +1,23 @@
 import { CompetencyItem, EmployeeProfile, CycleConfig } from '../types/pdp';
 
 export const INITIAL_EMPLOYEE: EmployeeProfile = {
-  id: 'EMP-84920',
-  name: 'Tariq Al-Mansoor',
-  staffId: 'EMP-84920',
-  erpNo: 'ERP-77291',
-  grade: '8',
-  position: 'Lead Reliability & Asset Integrity Engineer',
-  division: 'Upstream Operations & Technical Services',
-  department: 'Plant Asset Integrity & Reliability Engineering',
-  lineManager: 'Eng. Khalid Al-Amri',
-  lineManagerTitle: 'Operations & Maintenance Division Manager',
-  dateOfJoining: '14 Mar 2018',
-  serviceLength: '8 Years, 5 Months',
-  programDuration: '12 Months (Oct 2026 - Sep 2027)',
-  email: 'tariq.almansoor@enterprise-energy.com',
-  avatarInitials: 'TM',
+  id: 'EMP00123',
+  name: 'Ravi Kumar',
+  staffId: 'EMP00123',
+  erpNo: 'EMP00123',
+  grade: 'Grade 8',
+  position: 'Store Manager',
+  division: 'Retail',
+  department: 'Operations',
+  functionDept: 'Operations',
+  lineManager: 'Suresh Nair',
+  lineManagerTitle: 'Operations Manager',
+  dateOfJoining: '12/May/2021',
+  serviceLength: '5 Years',
+  programDuration: '12 Months (2026)',
+  year: '2026',
+  email: 'ravi.kumar@enterprise.com',
+  avatarInitials: 'RK',
 };
 
 export const INITIAL_COMPETENCIES: CompetencyItem[] = [
@@ -193,12 +195,12 @@ export const INITIAL_COMPETENCIES: CompetencyItem[] = [
 ];
 
 export const INITIAL_CYCLE_CONFIG: CycleConfig = {
-  cycleYear: '2026 - 2027',
-  assessmentName: 'Annual Strategic Personal Development Plan (PDP) Cycle 2026/27',
+  cycleYear: '2026',
+  assessmentName: 'Annual Strategic Personal Development Plan (PDP) Cycle 2026',
   employeeDeadline: '15 Sep 2026',
   managerDeadline: '30 Sep 2026',
   lnaDeadline: '15 Oct 2026',
-  targetGroup: 'Operations & Engineering Division - Professional Grades (Grades 6 to 10)',
+  targetGroup: 'Retail Operations Division - Professional Grades (Grades 6 to 10)',
   isReleased: true,
   status: 'Released',
   releaseDate: '01 Aug 2026',
@@ -281,13 +283,13 @@ export const LNA_RECOMMENDED_COURSES: Record<string, string[]> = {
 // Additional mock peers for Manager/HR/LNA multi-employee lists
 export const TEAM_MEMBERS_OVERVIEW = [
   {
-    id: 'EMP-84920',
-    name: 'Tariq Al-Mansoor',
-    role: 'Lead Reliability & Asset Integrity Engineer',
-    grade: '8',
-    department: 'Plant Asset Integrity',
-    manager: 'Eng. Khalid Al-Amri',
-    pdpCycle: '2026 - 2027',
+    id: 'EMP00123',
+    name: 'Ravi Kumar',
+    role: 'Store Manager',
+    grade: 'Grade 8',
+    department: 'Operations',
+    manager: 'Suresh Nair',
+    pdpCycle: '2026',
     status: 'PENDING_EMPLOYEE_EVALUATION',
     completionRate: 15,
     selectedCompetenciesCount: 0,

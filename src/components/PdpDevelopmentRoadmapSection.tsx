@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { usePdp } from '../context/PdpContext';
-import { BookOpen, Send, UserCheck, CheckCircle2, AlertCircle, Plus, Compass } from 'lucide-react';
-import { LNA_RECOMMENDED_COURSES } from '../data/mockData';
+import {
+  Send,
+  UserCheck,
+  CheckCircle2,
+  AlertCircle,
+  GraduationCap,
+} from 'lucide-react';
 
 const PHASE_OPTIONS = [
   '1 Month',
@@ -35,8 +40,6 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
     isLnaPlanComplete,
   } = usePdp();
 
-  const [activeCoursePickerCompId, setActiveCoursePickerCompId] = useState<string | null>(null);
-
   // HR should NOT see the Development Roadmap table
   if (currentRole === 'HR_ADMIN') return null;
 
@@ -60,60 +63,62 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
     currentRole === 'EMPLOYEE' && status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
 
   return (
-    <section className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-xs">
-      {/* Section Header */}
-      <div className="bg-[#153f5e] text-white py-2.5 px-4 font-bold text-xs uppercase tracking-wider flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Compass className="w-3.5 h-3.5 text-sky-300" />
-          <span>Development Roadmap</span>
-        </div>
-        <span className="text-[11px] text-sky-200 font-semibold bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
-          {roadmapItems.length} Priority Areas
-        </span>
+    <section className="border-2 border-[#153f5e] rounded-xl overflow-hidden bg-white shadow-xs">
+      {/* Centered Blue Header Bar - Exact Match to Official Template */}
+      <div className="bg-[#153f5e] text-white py-2.5 px-4 font-bold text-sm tracking-wider uppercase text-center border-b border-[#0f2e46]">
+        DEVELOPMENT ROADMAP
       </div>
 
-      {/* 6-Column Roadmap Table */}
+      {/* Exact 6-Column Table Format */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="bg-[#153f5e] text-white font-bold border-b border-[#0f2e46] text-[10px] uppercase tracking-wider">
-              <th className="py-2.5 px-3.5 w-44 border-r border-white/15">
-                1. Competency
+            <tr className="bg-[#1e4e73] text-white font-bold text-[11px] tracking-wide border-b border-[#0f2e46]">
+              {/* Column 1: Competency */}
+              <th className="py-2.5 px-3.5 w-44 border-r border-[#2d648f] text-center">
+                Competency
               </th>
-              <th className="py-2.5 px-3.5 w-60 border-r border-white/15">
-                2. Objectives
+
+              {/* Column 2: Objectives */}
+              <th className="py-2.5 px-3.5 min-w-[200px] border-r border-[#2d648f] text-center">
+                Objectives
               </th>
-              <th className="py-2.5 px-3.5 min-w-[200px] border-r border-white/15">
-                3. Development Activities / Projects
+
+              {/* Column 3: Development Activities / Projects */}
+              <th className="py-2.5 px-3.5 min-w-[240px] border-r border-[#2d648f] text-center">
+                Development Activities / Projects
               </th>
-              <th className="py-2.5 px-3.5 min-w-[220px] border-r border-white/15">
-                4. Learning / Training Plan
+
+              {/* Column 4: Learning / Training Plan */}
+              <th className="py-2.5 px-3.5 min-w-[220px] border-r border-[#2d648f] text-center">
+                Learning / Training Plan
               </th>
-              <th className="py-2.5 px-2 text-center w-28 border-r border-white/15">
-                5. Phase (Months)
+
+              {/* Column 5: Phase (Months) */}
+              <th className="py-2.5 px-3 w-32 border-r border-[#2d648f] text-center whitespace-nowrap">
+                Phase<br />(Months)
               </th>
-              <th className="py-2.5 px-3.5 w-40">
-                6. Status / Remarks
+
+              {/* Column 6: Status/Remarks */}
+              <th className="py-2.5 px-3.5 w-36 text-center">
+                Status/Remarks
               </th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-200/70">
+          <tbody className="divide-y divide-slate-300">
             {roadmapItems.map((item, idx) => {
-              const recommendedCourses =
-                LNA_RECOMMENDED_COURSES[item.competencyId] || [];
-
               return (
                 <tr
                   key={item.competencyId}
-                  className={`text-xs transition-colors ${
-                    idx % 2 === 0 ? 'bg-white' : 'bg-[#f9fbfd]'
-                  } hover:bg-sky-50/50`}
+                  className={`transition-colors ${
+                    idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'
+                  } hover:bg-sky-50/30`}
                 >
                   {/* 1. Competency */}
-                  <td className="py-3 px-3.5 border-r border-slate-200/80 align-top">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-md bg-[#153f5e] text-white font-mono font-bold text-[10px] flex items-center justify-center shrink-0 shadow-xs">
+                  <td className="py-3 px-3.5 border-r border-slate-300 align-top">
+                    <div className="flex items-start gap-2">
+                      <span className="w-5 h-5 rounded bg-[#153f5e] text-white font-mono font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                         {idx + 1}
                       </span>
                       <span className="font-bold text-slate-900 leading-snug">
@@ -122,8 +127,8 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                     </div>
                   </td>
 
-                  {/* 2. Objectives (Editable by Manager) */}
-                  <td className="py-3 px-3.5 border-r border-slate-200/80 align-top">
+                  {/* 2. Objectives */}
+                  <td className="py-2.5 px-3 border-r border-slate-300 align-top">
                     {isManagerPlanning ? (
                       <textarea
                         rows={3}
@@ -132,19 +137,19 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                           updateRoadmapObjective(item.competencyId, e.target.value)
                         }
                         placeholder="Enter developmental objective..."
-                        className="w-full text-xs p-2.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-[#153f5e] transition-all"
+                        className="w-full text-xs p-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-[#153f5e] transition-all leading-relaxed"
                       />
                     ) : (
-                      <div className="text-slate-800 leading-relaxed font-medium">
+                      <div className="text-xs text-slate-800 leading-relaxed font-normal p-1">
                         {item.objective || (
-                          <span className="text-slate-400 italic font-normal">No objective recorded</span>
+                          <span className="text-slate-400 italic">No objective recorded</span>
                         )}
                       </div>
                     )}
                   </td>
 
                   {/* 3. Development Activities / Projects */}
-                  <td className="py-3 px-3.5 border-r border-slate-200/80 align-top">
+                  <td className="py-2.5 px-3 border-r border-slate-300 align-top">
                     {isManagerPlanning ? (
                       <textarea
                         rows={3}
@@ -152,99 +157,56 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                         onChange={(e) =>
                           updateRoadmapActivity(item.competencyId, e.target.value)
                         }
-                        placeholder="Enter practical on-the-job activities, projects, or mentoring..."
-                        className="w-full text-xs p-2.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-[#153f5e] transition-all"
+                        placeholder="Specify on-the-job tasks, assignments, or rotation..."
+                        className="w-full text-xs p-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-[#153f5e] transition-all leading-relaxed"
                       />
                     ) : (
-                      <div className="text-slate-800 leading-relaxed font-medium">
+                      <div className="text-xs text-slate-800 leading-relaxed font-normal p-1">
                         {item.developmentActivities || (
-                          <span className="text-slate-400 italic font-normal">Pending manager entry</span>
+                          <span className="text-slate-400 italic">Pending manager entry</span>
                         )}
                       </div>
                     )}
                   </td>
 
                   {/* 4. Learning / Training Plan */}
-                  <td className="py-3 px-3.5 border-r border-slate-200/80 align-top">
+                  <td className="py-2.5 px-3 border-r border-slate-300 align-top">
                     {isLnaEditing ? (
-                      <div className="space-y-2">
-                        <textarea
-                          rows={2}
-                          value={
-                            item.learningTrainingPlan === 'Pending LNA Team'
-                              ? ''
-                              : item.learningTrainingPlan || ''
-                          }
-                          onChange={(e) =>
-                            updateLnaTrainingPlan(item.competencyId, e.target.value)
-                          }
-                          placeholder="Enter training program or select below..."
-                          className="w-full text-xs p-2.5 border border-sky-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-[#153f5e] transition-all shadow-xs"
-                        />
-
-                        {recommendedCourses.length > 0 && (
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setActiveCoursePickerCompId(
-                                  activeCoursePickerCompId === item.competencyId
-                                    ? null
-                                    : item.competencyId
-                                )
-                              }
-                              className="text-[11px] font-bold text-[#153f5e] hover:text-[#0f2e46] bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-md border border-sky-200 flex items-center gap-1.5 cursor-pointer transition-colors"
-                            >
-                              <BookOpen className="w-3.5 h-3.5 text-sky-700" />
-                              <span>
-                                {activeCoursePickerCompId === item.competencyId
-                                  ? 'Close Catalog'
-                                  : 'Select from Course Catalog'}
-                              </span>
-                            </button>
-
-                            {activeCoursePickerCompId === item.competencyId && (
-                              <div className="mt-1.5 p-2 bg-slate-900 text-white rounded-xl shadow-xl border border-slate-700 space-y-1 z-30 animate-in fade-in zoom-in-95 duration-150">
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 py-0.5">
-                                  Recommended Courses:
-                                </div>
-                                {recommendedCourses.map((crs, cIdx) => (
-                                  <button
-                                    key={cIdx}
-                                    type="button"
-                                    onClick={() => {
-                                      updateLnaTrainingPlan(item.competencyId, crs);
-                                      setActiveCoursePickerCompId(null);
-                                    }}
-                                    className="w-full text-left p-1.5 rounded-lg text-[11px] bg-slate-800 hover:bg-[#153f5e] border border-slate-700/60 text-slate-100 flex items-center justify-between cursor-pointer transition-colors"
-                                  >
-                                    <span className="truncate pr-2">{crs}</span>
-                                    <Plus className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <textarea
+                        rows={3}
+                        value={
+                          item.learningTrainingPlan === 'Pending LNA Team'
+                            ? ''
+                            : item.learningTrainingPlan || ''
+                        }
+                        onChange={(e) =>
+                          updateLnaTrainingPlan(item.competencyId, e.target.value)
+                        }
+                        placeholder="Assign formal courses, certifications, workshops..."
+                        className="w-full text-xs p-2 bg-white border border-purple-300 rounded-md text-slate-900 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-600 transition-all leading-relaxed"
+                      />
                     ) : (
-                      <div className="font-semibold text-slate-800 leading-relaxed">
-                        {item.learningTrainingPlan || (
-                          <span className="text-slate-400 italic font-normal">Pending LNA Team</span>
+                      <div className="text-xs text-slate-800 leading-relaxed p-1">
+                        {item.learningTrainingPlan && item.learningTrainingPlan !== 'Pending LNA Team' ? (
+                          <span className="font-medium text-purple-900">
+                            {item.learningTrainingPlan}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic">Pending LNA Team</span>
                         )}
                       </div>
                     )}
                   </td>
 
                   {/* 5. Phase (Months) */}
-                  <td className="py-3 px-2 text-center border-r border-slate-200/80 align-top">
+                  <td className="py-2.5 px-2.5 border-r border-slate-300 align-top text-center">
                     {isManagerPlanning ? (
                       <select
                         value={item.phaseMonths || '6 Months'}
                         onChange={(e) =>
                           updateRoadmapPhase(item.competencyId, e.target.value)
                         }
-                        className="w-full text-xs font-semibold py-1.5 px-1 bg-white border border-slate-300 rounded-lg text-slate-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-[#153f5e] transition-all"
+                        className="w-full text-xs py-1.5 px-2 bg-white border border-slate-300 rounded-md text-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-[#153f5e] cursor-pointer"
                       >
                         {PHASE_OPTIONS.map((ph) => (
                           <option key={ph} value={ph}>
@@ -253,14 +215,14 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                         ))}
                       </select>
                     ) : (
-                      <span className="inline-block px-2.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                      <span className="inline-block font-medium text-xs text-slate-700 bg-slate-100 border border-slate-200 px-2 py-1 rounded">
                         {item.phaseMonths || '6 Months'}
                       </span>
                     )}
                   </td>
 
-                  {/* 6. Status / Remarks */}
-                  <td className="py-3 px-3.5 align-top">
+                  {/* 6. Status/Remarks */}
+                  <td className="py-2.5 px-2.5 align-top text-center">
                     {isManagerPlanning ? (
                       <input
                         type="text"
@@ -268,11 +230,11 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                         onChange={(e) =>
                           updateRoadmapRemarks(item.competencyId, e.target.value)
                         }
-                        placeholder="Planned / In Progress..."
-                        className="w-full text-xs p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-[#153f5e] transition-all"
+                        placeholder="e.g. Scheduled"
+                        className="w-full text-xs py-1.5 px-2 bg-white border border-slate-300 rounded-md text-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-[#153f5e]"
                       />
                     ) : (
-                      <span className="text-xs font-medium text-slate-700">
+                      <span className="inline-block text-xs font-semibold px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
                         {item.statusRemarks || 'Scheduled'}
                       </span>
                     )}
@@ -284,83 +246,67 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
         </table>
       </div>
 
-      {/* Stage Actions */}
-      {isManagerPlanning && (
-        <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-xs text-slate-600">
-            {isManagerRoadmapComplete ? (
-              <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> All 5 development activities and timelines defined.
-              </span>
-            ) : (
-              <span className="text-amber-700 font-medium flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4 text-amber-600" /> Enter development activities for all 5 competencies.
+      {/* Role Actions Footer Bar */}
+      <div className="bg-slate-50 border-t border-slate-300 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="text-xs text-slate-600 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <span>
+            {roadmapItems.length} Core priorities assigned to developmental roadmap.
+          </span>
+        </div>
+
+        {/* Manager Action: Submit Roadmap to LNA */}
+        {isManagerPlanning && (
+          <div className="flex items-center gap-2">
+            {!isManagerRoadmapComplete && (
+              <span className="text-xs text-amber-600 flex items-center gap-1 font-medium">
+                <AlertCircle className="w-3.5 h-3.5" /> Please complete all objectives
               </span>
             )}
+            <button
+              type="button"
+              disabled={!isManagerRoadmapComplete}
+              onClick={submitManagerRoadmap}
+              className="px-4 py-2 bg-[#153f5e] hover:bg-[#0f2e46] disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Submit Roadmap to LNA Team</span>
+            </button>
           </div>
+        )}
 
-          <button
-            type="button"
-            onClick={submitManagerRoadmap}
-            disabled={!isManagerRoadmapComplete}
-            className={`px-6 py-2 font-bold text-xs rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
-              isManagerRoadmapComplete
-                ? 'bg-[#153f5e] hover:bg-[#0f2e46] active:scale-[0.99] text-white shadow-xs'
-                : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-            }`}
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Submit</span>
-          </button>
-        </div>
-      )}
-
-      {isLnaEditing && (
-        <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-xs text-slate-600">
-            {isLnaPlanComplete ? (
-              <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Training plans assigned for all 5 competencies.
-              </span>
-            ) : (
-              <span className="text-amber-700 font-medium flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4 text-amber-600" /> Assign learning interventions for each competency.
+        {/* LNA Action: Submit Training Plan to Employee */}
+        {isLnaEditing && (
+          <div className="flex items-center gap-2">
+            {!isLnaPlanComplete && (
+              <span className="text-xs text-amber-600 flex items-center gap-1 font-medium">
+                <AlertCircle className="w-3.5 h-3.5" /> Assign all training plans
               </span>
             )}
+            <button
+              type="button"
+              disabled={!isLnaPlanComplete}
+              onClick={submitLnaPlan}
+              className="px-4 py-2 bg-purple-700 hover:bg-purple-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Submit LNA Plan to Employee</span>
+            </button>
           </div>
+        )}
 
-          <button
-            type="button"
-            onClick={submitLnaPlan}
-            disabled={!isLnaPlanComplete}
-            className={`px-6 py-2 font-bold text-xs rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
-              isLnaPlanComplete
-                ? 'bg-[#153f5e] hover:bg-[#0f2e46] active:scale-[0.99] text-white shadow-xs'
-                : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-            }`}
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Submit</span>
-          </button>
-        </div>
-      )}
-
-      {isEmployeeSigning && (
-        <div className="p-3.5 bg-amber-50/90 border-t border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-xs text-amber-900 font-medium">
-            Development plan is ready for your formal review and acknowledgement.
-          </div>
-
+        {/* Employee Action: Acknowledge & Sign */}
+        {isEmployeeSigning && (
           <button
             type="button"
             onClick={onOpenAcknowledgementModal}
-            className="px-6 py-2 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.99] text-white font-bold text-xs rounded-lg transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-2 cursor-pointer"
           >
             <UserCheck className="w-3.5 h-3.5" />
-            <span>Acknowledge PDP</span>
+            <span>Acknowledge & Sign Development Roadmap</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 };
