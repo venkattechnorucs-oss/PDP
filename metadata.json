@@ -1,6 +1,6 @@
 {
   "name": "Personal Development Plan (PDP) Portal",
-  "description": "Enterprise Personal Development Plan (PDP) interactive application with full end-to-end multi-role simulation across HR/Admin, Employee, Manager, and LNA Team workflows.",
+  "description": "Enterprise Personal Development Plan (PDP) interactive application with full end-to-end multi-role simulation across HR/Admin, Employee, Manager, and Talent Management workflows.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

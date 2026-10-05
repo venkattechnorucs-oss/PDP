@@ -75,7 +75,7 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
         if (currentPdpStatus === 'PENDING_EMPLOYEE_EVALUATION') cat = 'EMPLOYEE_PENDING';
         else if (currentPdpStatus === 'PENDING_MANAGER_REVIEW') cat = 'EMPLOYEE_SUBMITTED';
         else if (currentPdpStatus === 'PENDING_HR_INITIATION' || currentPdpStatus === 'PDP_PLANNING_MANAGER') cat = 'MANAGER_PENDING';
-        else if (currentPdpStatus === 'PENDING_LNA_TEAM') cat = 'LNA_PENDING';
+        else if (currentPdpStatus === 'PENDING_TALENT_MANAGEMENT' || currentPdpStatus === 'PENDING_LNA_TEAM') cat = 'LNA_PENDING';
         else if (currentPdpStatus === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' || currentPdpStatus === 'ACTIVE') cat = 'ACTIVE_PDP';
         else if (currentPdpStatus === 'COMPLETED') cat = 'PDP_COMPLETED';
 
@@ -113,7 +113,10 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
     ).length;
 
     const lnaPending = employeeList.filter(
-      (m) => m.category === 'LNA_PENDING' || m.status === 'PENDING_LNA_TEAM'
+      (m) =>
+        m.category === 'LNA_PENDING' ||
+        m.status === 'PENDING_TALENT_MANAGEMENT' ||
+        m.status === 'PENDING_LNA_TEAM'
     ).length;
 
     const activePdp = employeeList.filter(
@@ -162,7 +165,7 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
         filterKey: 'MANAGER_PENDING',
       },
       {
-        name: 'Pending with LNA Team',
+        name: 'Pending with Talent Management',
         value: metrics.lnaPending,
         color: '#8b5cf6',
         filterKey: 'LNA_PENDING',
@@ -290,7 +293,7 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
     else if (memberStatus === 'PENDING_MANAGER_REVIEW') targetPreset = 'PENDING_MANAGER_REVIEW';
     else if (memberStatus === 'PENDING_HR_INITIATION') targetPreset = 'PENDING_HR_INITIATION';
     else if (memberStatus === 'PDP_PLANNING_MANAGER') targetPreset = 'PDP_PLANNING_MANAGER';
-    else if (memberStatus === 'PENDING_LNA_TEAM') targetPreset = 'PENDING_LNA_TEAM';
+    else if (memberStatus === 'PENDING_TALENT_MANAGEMENT' || memberStatus === 'PENDING_LNA_TEAM') targetPreset = 'PENDING_TALENT_MANAGEMENT';
     else if (memberStatus === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT') targetPreset = 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
     else if (memberStatus === 'ACTIVE') targetPreset = 'ACTIVE';
 
@@ -603,7 +606,7 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                 </div>
               </div>
 
-              {/* 5. Pending with LNA Team */}
+              {/* 5. Pending with Talent Management */}
               <div
                 onClick={() =>
                   setActiveFilter(
@@ -624,7 +627,7 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                         : 'text-purple-800'
                     }`}
                   >
-                    Pending with LNA Team
+                    Pending with Talent Management
                   </span>
                   <GraduationCap
                     className={`w-3.5 h-3.5 ${
@@ -795,10 +798,10 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                   </select>
                 </div>
 
-                {/* 4. LNA Status */}
+                {/* 4. Talent Management Status */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    LNA Status
+                    Talent Management Status
                   </label>
                   <select
                     value={selectedLnaStatus}
@@ -806,7 +809,7 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                     className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-[#153f5e] cursor-pointer"
                   >
                     <option value="ALL">All Statuses</option>
-                    <option value="PENDING">Pending LNA Team</option>
+                    <option value="PENDING">Pending Talent Management</option>
                     <option value="ASSIGNED">Assigned / Active</option>
                   </select>
                 </div>
@@ -941,7 +944,7 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                               )}
                               {member.category === 'LNA_PENDING' && (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                  <GraduationCap className="w-3 h-3" /> LNA Pending
+                                  <GraduationCap className="w-3 h-3" /> Talent Management
                                 </span>
                               )}
                               {member.category === 'ACTIVE_PDP' && (

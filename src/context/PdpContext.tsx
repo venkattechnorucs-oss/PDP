@@ -5,6 +5,7 @@ import {
   PdpStatus,
   CompetencyItem,
   DevelopmentRoadmapItem,
+  RoadmapSubRow,
   EmployeeProfile,
   CycleConfig,
   AuditLog,
@@ -14,6 +15,7 @@ import {
   INITIAL_EMPLOYEE,
   INITIAL_COMPETENCIES,
   INITIAL_CYCLE_CONFIG,
+  COMPETENCY_4_ROW_PRESETS,
 } from '../data/mockData';
 
 interface PdpContextType {
@@ -40,6 +42,12 @@ interface PdpContextType {
   
   initiatePdpByHr: (remarks?: string) => { success: boolean; error?: string };
   
+  updateRoadmapSubRow: (
+    competencyId: string,
+    rowNumber: number,
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks',
+    value: string
+  ) => void;
   updateRoadmapActivity: (competencyId: string, activities: string) => void;
   updateRoadmapObjective: (competencyId: string, objective: string) => void;
   updateRoadmapPhase: (competencyId: string, phase: string) => void;
@@ -257,20 +265,37 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }))
     );
 
-    // Populate initial roadmap items based on 5 selected competencies
+    // Populate initial roadmap items based on 5 selected competencies with 4 rows each
     const initialRoadmaps: DevelopmentRoadmapItem[] = selectedCompetencies.map((comp) => {
-      // Find existing if already partially created
-      const existing = roadmapItems.find((r) => r.competencyId === comp.id);
+      const preset = COMPETENCY_4_ROW_PRESETS[comp.id] || {
+        objective: comp.managerObjective || '',
+        rows: [
+          { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 1 (1 - 3 Months)', statusRemarks: 'Planned' },
+          { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 2 (3 - 6 Months)', statusRemarks: 'Planned' },
+          { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 3 (6 - 9 Months)', statusRemarks: 'Planned' },
+          { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 4 (9 - 12 Months)', statusRemarks: 'Planned' },
+        ],
+      };
+
+      const rows: RoadmapSubRow[] = preset.rows.map((r) => ({
+        rowNumber: r.rowNumber,
+        activity: r.activity || '',
+        trainingPath: 'Pending LNA Team',
+        phase: r.phase || `Phase ${r.rowNumber}`,
+        statusRemarks: r.statusRemarks || 'Planned',
+      }));
+
       return {
         competencyId: comp.id,
         code: comp.code,
         competencyName: comp.name,
         category: comp.category,
-        objective: comp.managerObjective || '',
-        developmentActivities: existing?.developmentActivities || '',
-        learningTrainingPlan: existing?.learningTrainingPlan || 'Pending LNA Team',
-        phaseMonths: existing?.phaseMonths || '6 Months',
-        statusRemarks: existing?.statusRemarks || 'Planned for 2026/27 Cycle',
+        objective: comp.managerObjective || preset.objective || '',
+        rows,
+        developmentActivities: rows[0]?.activity || '',
+        learningTrainingPlan: 'Pending LNA Team',
+        phaseMonths: '12 Months (4 Phases)',
+        statusRemarks: 'Planned for 2026/27 Cycle',
       };
     });
 
@@ -323,43 +348,73 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const updateRoadmapActivity = (competencyId: string, activities: string) => {
+  const updateRoadmapSubRow = (
+    competencyId: string,
+    rowNumber: number,
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks',
+    value: string
+  ) => {
     setRoadmapItems((prev) =>
-      prev.map((r) => (r.competencyId === competencyId ? { ...r, developmentActivities: activities } : r))
+      prev.map((r) => {
+        if (r.competencyId !== competencyId) return r;
+        const currentRows = r.rows && r.rows.length === 4
+          ? r.rows
+          : [
+              { rowNumber: 1, activity: r.developmentActivities || '', trainingPath: r.learningTrainingPlan || 'Pending LNA Team', phase: 'Phase 1 (1 - 3 Months)', statusRemarks: r.statusRemarks || 'Planned' },
+              { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 2 (3 - 6 Months)', statusRemarks: 'Planned' },
+              { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 3 (6 - 9 Months)', statusRemarks: 'Planned' },
+              { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 4 (9 - 12 Months)', statusRemarks: 'Planned' },
+            ];
+
+        const updatedRows = currentRows.map((row) =>
+          row.rowNumber === rowNumber ? { ...row, [field]: value } : row
+        );
+
+        return {
+          ...r,
+          rows: updatedRows,
+          developmentActivities: field === 'activity' && rowNumber === 1 ? value : (r.developmentActivities || updatedRows[0]?.activity || ''),
+          learningTrainingPlan: field === 'trainingPath' && rowNumber === 1 ? value : (r.learningTrainingPlan || updatedRows[0]?.trainingPath || ''),
+          phaseMonths: field === 'phase' && rowNumber === 1 ? value : (r.phaseMonths || updatedRows[0]?.phase || ''),
+          statusRemarks: field === 'statusRemarks' && rowNumber === 1 ? value : (r.statusRemarks || updatedRows[0]?.statusRemarks || ''),
+        };
+      })
     );
+  };
+
+  const updateRoadmapActivity = (competencyId: string, activities: string) => {
+    updateRoadmapSubRow(competencyId, 1, 'activity', activities);
   };
 
   const updateRoadmapPhase = (competencyId: string, phase: string) => {
-    setRoadmapItems((prev) =>
-      prev.map((r) => (r.competencyId === competencyId ? { ...r, phaseMonths: phase } : r))
-    );
+    updateRoadmapSubRow(competencyId, 1, 'phase', phase);
   };
 
   const updateRoadmapRemarks = (competencyId: string, remarks: string) => {
-    setRoadmapItems((prev) =>
-      prev.map((r) => (r.competencyId === competencyId ? { ...r, statusRemarks: remarks } : r))
-    );
+    updateRoadmapSubRow(competencyId, 1, 'statusRemarks', remarks);
   };
 
   const isManagerRoadmapComplete =
     roadmapItems.length === 5 &&
     roadmapItems.every(
       (r) =>
-        r.developmentActivities &&
-        r.developmentActivities.trim().length >= 10 &&
-        r.phaseMonths &&
-        r.statusRemarks
+        r.rows &&
+        r.rows.length === 4 &&
+        r.rows.some((row) => row.activity && row.activity.trim().length >= 8)
     );
 
   const submitManagerRoadmap = () => {
     const incomplete = roadmapItems.filter(
-      (r) => !r.developmentActivities || r.developmentActivities.trim().length < 10
+      (r) =>
+        !r.rows ||
+        r.rows.length !== 4 ||
+        !r.rows.some((row) => row.activity && row.activity.trim().length >= 8)
     );
     if (incomplete.length > 0) {
       addToast(
         'error',
         'Incomplete Development Roadmap',
-        `Please specify detailed Development Activities / Projects for all 5 competencies (${incomplete.length} incomplete).`
+        `Please specify detailed Development Activities / Projects across the 4 rows for all 5 competencies (${incomplete.length} incomplete).`
       );
       return { success: false, error: 'All 5 competencies require development activities.' };
     }
@@ -370,7 +425,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       'MANAGER',
       employee.lineManager,
       'Development Roadmap Submitted to LNA',
-      'Manager defined practical development activities, project assignments, and phase timelines for all 5 competencies.'
+      'Manager defined practical development activities across 4 rows and phase timelines for all 5 competencies.'
     );
     addToast(
       'success',
@@ -382,32 +437,40 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // 5. LNA Team Learning / Training Plan Updates
   const updateLnaTrainingPlan = (competencyId: string, trainingPlan: string) => {
-    setRoadmapItems((prev) =>
-      prev.map((r) => (r.competencyId === competencyId ? { ...r, learningTrainingPlan: trainingPlan } : r))
-    );
+    updateRoadmapSubRow(competencyId, 1, 'trainingPath', trainingPlan);
   };
 
   const isLnaPlanComplete =
     roadmapItems.length === 5 &&
     roadmapItems.every(
       (r) =>
-        r.learningTrainingPlan &&
-        r.learningTrainingPlan.trim().length >= 5 &&
-        r.learningTrainingPlan !== 'Pending LNA Team'
+        r.rows &&
+        r.rows.length === 4 &&
+        r.rows.some(
+          (row) =>
+            row.trainingPath &&
+            row.trainingPath.trim().length >= 5 &&
+            row.trainingPath !== 'Pending LNA Team'
+        )
     );
 
   const submitLnaPlan = () => {
     const incomplete = roadmapItems.filter(
       (r) =>
-        !r.learningTrainingPlan ||
-        r.learningTrainingPlan.trim().length < 5 ||
-        r.learningTrainingPlan === 'Pending LNA Team'
+        !r.rows ||
+        r.rows.length !== 4 ||
+        !r.rows.some(
+          (row) =>
+            row.trainingPath &&
+            row.trainingPath.trim().length >= 5 &&
+            row.trainingPath !== 'Pending LNA Team'
+        )
     );
     if (incomplete.length > 0) {
       addToast(
         'error',
         'Incomplete Training Plan',
-        `Please assign formal Learning & Training interventions for all 5 competencies (${incomplete.length} pending).`
+        `Please assign formal Learning & Training interventions across the 4 rows for all 5 competencies (${incomplete.length} pending).`
       );
       return { success: false, error: 'All 5 competencies require learning and training programs.' };
     }
@@ -505,36 +568,8 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Quick Preset Loader to test any stage seamlessly
   const loadStagePreset = (targetStatus: PdpStatus) => {
-    // 5 Selected default competencies
-    const selectedIds = ['comp-f-1', 'comp-f-2', 'comp-f-4', 'comp-b-1', 'comp-b-3'];
-    const objectives: Record<string, string> = {
-      'comp-f-1': 'Develop independent capability to perform high-criticality asset degradation assessments without vendor oversight.',
-      'comp-f-2': 'Master spectral vibration diagnostics on high-speed turbo-expanders to prevent unplanned plant trips.',
-      'comp-f-4': 'Lead complex multi-disciplinary Root Cause Failure Analyses (RCFA) for upstream gas compression facilities.',
-      'comp-b-1': 'Enhance executive technical presentation skills for board-level risk reviews and statutory audits.',
-      'comp-b-3': 'Strengthen structured decision-making protocols during emergency plant shutdowns and operational turnarounds.',
-    };
-    const activities: Record<string, string> = {
-      'comp-f-1': 'Lead the Q4 2026 Pressure Vessel Inspection Audit & author integrity mitigation plan for Train-2.',
-      'comp-f-2': 'Implement weekly vibration spectral monitoring on 4 main gas booster compressors with condition monitoring lead.',
-      'comp-f-4': 'Facilitate 3 comprehensive Root Cause Investigations (RCFA) for rotating equipment anomalies during turnaround.',
-      'comp-b-1': 'Deliver monthly executive asset risk briefings to Operations VP and prepare statutory audit dossier.',
-      'comp-b-3': 'Shadow Plant Crisis Incident Commander during bi-annual emergency scenario simulation drill.',
-    };
-    const trainingPlans: Record<string, string> = {
-      'comp-f-1': 'Certified Asset Management Assessor (CAMA) & ISO 55000 Masterclass (5 Days) + API 580/581 Certification',
-      'comp-f-2': 'ISO 18436-2 Vibration Analyst Category III Advanced Certification (5 Days Intensive)',
-      'comp-f-4': 'Sologic / Apollo Root Cause Analysis Master Facilitator Certification & Incident Investigation Lab',
-      'comp-b-1': 'Executive Presence & High-Stakes Technical Communication Program (C-Suite Lab, 3 Days)',
-      'comp-b-3': 'Strategic Decision-Making Under Operational Uncertainty (Harvard Business Publishing Executive Module)',
-    };
-    const phases: Record<string, string> = {
-      'comp-f-1': '6 Months',
-      'comp-f-2': '9 Months',
-      'comp-f-4': '6 Months',
-      'comp-b-1': '3 Months',
-      'comp-b-3': '6 Months',
-    };
+    // 5 Selected default competencies (Behavioural first: comp-b-1, comp-b-3, then functional: comp-f-1, comp-f-2, comp-f-4)
+    const selectedIds = ['comp-b-1', 'comp-b-3', 'comp-f-1', 'comp-f-2', 'comp-f-4'];
 
     // Stage-specific presets:
     const isStage1 = targetStatus === 'PENDING_EMPLOYEE_EVALUATION';
@@ -557,7 +592,8 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         : 'Advanced';
 
       const isSelected = (!isStage1 && !isStage2) && selectedIds.includes(c.id);
-      const obj = isSelected ? objectives[c.id] : '';
+      const preset = COMPETENCY_4_ROW_PRESETS[c.id];
+      const obj = isSelected ? (preset?.objective || '') : '';
 
       return {
         ...c,
@@ -572,21 +608,39 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ? []
       : selectedIds.map((id) => {
           const comp = mockCompetencies.find((c) => c.id === id)!;
+          const preset = COMPETENCY_4_ROW_PRESETS[id] || {
+            objective: '',
+            rows: [
+              { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 1 (1 - 3 Months)', statusRemarks: 'Planned' },
+              { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 2 (3 - 6 Months)', statusRemarks: 'Planned' },
+              { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 3 (6 - 9 Months)', statusRemarks: 'Planned' },
+              { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 4 (9 - 12 Months)', statusRemarks: 'Planned' },
+            ],
+          };
+
+          const rows: RoadmapSubRow[] = preset.rows.map((r) => {
+            const hasActivities = ['PDP_PLANNING_MANAGER', 'PENDING_LNA_TEAM', 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus);
+            const hasTraining = ['PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus);
+
+            return {
+              rowNumber: r.rowNumber,
+              activity: hasActivities ? r.activity : '',
+              trainingPath: hasTraining ? r.trainingPath : 'Pending LNA Team',
+              phase: r.phase,
+              statusRemarks: targetStatus === 'ACTIVE' ? 'Active In-Progress' : (r.statusRemarks || 'Scheduled for 2026/27 Cycle'),
+            };
+          });
+
           return {
             competencyId: comp.id,
             code: comp.code,
             competencyName: comp.name,
             category: comp.category,
-            objective: objectives[id] || '',
-            developmentActivities:
-              ['PDP_PLANNING_MANAGER', 'PENDING_LNA_TEAM', 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus)
-                ? activities[id]
-                : '',
-            learningTrainingPlan:
-              ['PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus)
-                ? trainingPlans[id]
-                : 'Pending LNA Team',
-            phaseMonths: phases[id] || '6 Months',
+            objective: comp.managerObjective || preset.objective || '',
+            rows,
+            developmentActivities: rows[0]?.activity || '',
+            learningTrainingPlan: rows[0]?.trainingPath || 'Pending LNA Team',
+            phaseMonths: '12 Months (4 Phases)',
             statusRemarks: targetStatus === 'ACTIVE' ? 'Active In-Progress' : 'Scheduled for 2026/27 Cycle',
           };
         });
@@ -630,6 +684,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateManagerObjective,
         submitManagerEvaluation,
         initiatePdpByHr,
+        updateRoadmapSubRow,
         updateRoadmapObjective,
         updateRoadmapActivity,
         updateRoadmapPhase,

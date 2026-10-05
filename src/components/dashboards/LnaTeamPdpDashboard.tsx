@@ -21,8 +21,10 @@ interface LnaTeamPdpDashboardProps {
 }
 
 export const LnaTeamPdpDashboard: React.FC<LnaTeamPdpDashboardProps> = ({ onOpenPdpForm }) => {
-  const { employee, status, cycleConfig, roadmapItems } = usePdp();
-  const isLnaPending = status === 'PENDING_LNA_TEAM';
+  const { employee, status, cycleConfig } = usePdp();
+  const isTalentPending = status === 'PENDING_TALENT_MANAGEMENT' || status === 'PENDING_LNA_TEAM';
+  const pdpYears = cycleConfig.pdpDurationYears || 1;
+  const checkInMilestone = pdpYears === 1 ? '6-Month Mid-Year Check-In' : '1-Year Mid-Cycle Check-In';
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -35,15 +37,15 @@ export const LnaTeamPdpDashboard: React.FC<LnaTeamPdpDashboardProps> = ({ onOpen
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="bg-white/20 text-white text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full backdrop-blur-xs">
-                Learning Needs & Training Lead
+                Talent Management & Training Solutions Lead
               </span>
               <span className="text-cyan-200 text-xs font-mono">Cycle {cycleConfig.cycleYear}</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white drop-shadow-xs">
-              LNA Learning & Training Solutions Portal
+              Talent Management & Progress Check-In Portal
             </h1>
             <p className="text-xs text-sky-100/90 mt-0.5 font-light">
-              Competency-to-Curriculum Alignment • Certified Training Intervention Assignment
+              Competency Alignment • Learning Interventions • {checkInMilestone} Progress Feedback
             </p>
           </div>
 
@@ -54,24 +56,24 @@ export const LnaTeamPdpDashboard: React.FC<LnaTeamPdpDashboardProps> = ({ onOpen
           >
             <GraduationCap className="w-4 h-4" />
             <span>
-              {isLnaPending ? `Assign ${employee.name}’s Training Plan` : 'Open Training Plan Editor'}
+              {isTalentPending ? `Assign ${employee.name}’s Plan` : 'Open Training & Check-In Plan'}
             </span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* LNA Pending Notification */}
-      {isLnaPending && (
+      {/* Talent Management Pending Notification */}
+      {isTalentPending && (
         <div className="p-4 bg-cyan-950/60 border border-cyan-500/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-cyan-200 shadow-xl">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm text-white">Action Required: Training Interventions</h3>
+              <h3 className="font-extrabold text-sm text-white">Action Required: Training & Check-In Preparation</h3>
               <p className="text-slate-300 mt-0.5">
-                Line Manager has completed the 5 development objectives for <strong>{employee.name}</strong>. Please assign formal training courses, workshops, or certifications.
+                Line Manager has completed the 5 development objectives for <strong>{employee.name}</strong>. Please assign formal training courses and set up the {checkInMilestone} milestones.
               </p>
             </div>
           </div>
@@ -90,11 +92,11 @@ export const LnaTeamPdpDashboard: React.FC<LnaTeamPdpDashboardProps> = ({ onOpen
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-panel-subtle p-4.5 rounded-2xl border border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Pending LNA Assignment</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Pending Talent Review</span>
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
           </div>
           <div className="text-2xl font-black text-cyan-400 mt-2">
-            {isLnaPending ? '1 Queue Item' : '0 Pending'}
+            {isTalentPending ? '1 Queue Item' : '0 Pending'}
           </div>
         </div>
 
@@ -110,34 +112,34 @@ export const LnaTeamPdpDashboard: React.FC<LnaTeamPdpDashboardProps> = ({ onOpen
 
         <div className="glass-panel-subtle p-4.5 rounded-2xl border border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Activated PDPs</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Mid-Year Check-In Schedule</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-black text-emerald-400 mt-2">
-            {status === 'ACTIVE' ? '2 Ready' : '1 Ready'}
+          <div className="text-base font-black text-emerald-400 mt-2">
+            {checkInMilestone}
           </div>
         </div>
 
         <div className="glass-panel-subtle p-4.5 rounded-2xl border border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">LNA Due Date</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Talent Deadline</span>
             <Clock className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-sm font-bold text-white font-mono mt-2">
-            {cycleConfig.lnaDeadline}
+            {cycleConfig.talentManagementDeadline || cycleConfig.lnaDeadline}
           </div>
         </div>
       </div>
 
-      {/* LNA Queue Table */}
+      {/* Talent Management Queue Table */}
       <div className="glass-panel rounded-2xl p-5 border border-slate-800 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              LNA Learning Plan Work Queue
+              Talent Management Work Queue
             </h3>
             <p className="text-xs text-slate-400">
-              Employees ready for formal training course assignment
+              Employees ready for formal training course assignment & mid-year check-in
             </p>
           </div>
         </div>
@@ -177,7 +179,7 @@ export const LnaTeamPdpDashboard: React.FC<LnaTeamPdpDashboardProps> = ({ onOpen
                     className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black rounded-lg text-xs transition-all cursor-pointer inline-flex items-center gap-1 shadow-xs"
                   >
                     <BookOpen className="w-3.5 h-3.5" />
-                    <span>{isLnaPending ? 'Assign Plan' : 'Review Plan'}</span>
+                    <span>{isTalentPending ? 'Assign Plan' : 'Review Plan'}</span>
                   </button>
                 </td>
               </tr>

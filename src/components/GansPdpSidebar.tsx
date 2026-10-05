@@ -213,14 +213,14 @@ export const GansPdpSidebar: React.FC<GansPdpSidebarProps> = ({ currentTab, onSe
           </div>
         )}
 
-        {/* LNA TEAM VIEW NAVIGATION */}
-        {currentRole === 'LNA_TEAM' && (
+        {/* TALENT MANAGEMENT VIEW NAVIGATION */}
+        {(currentRole === 'TALENT_MANAGEMENT' || currentRole === 'LNA_TEAM') && (
           <div className="space-y-4">
             <div>
               <div className="px-3 py-1.5 text-[11px] font-bold tracking-wider text-[#1a5075] uppercase flex items-center justify-between border-b border-slate-200/80 pb-1.5 mb-1.5">
                 <span className="flex items-center gap-1.5">
                   <GraduationCap className="w-3.5 h-3.5 text-[#0275a8]" />
-                  LNA Training Solutions
+                  Talent Management
                 </span>
               </div>
               <div className="space-y-1">
@@ -235,7 +235,7 @@ export const GansPdpSidebar: React.FC<GansPdpSidebarProps> = ({ currentTab, onSe
                 >
                   <div className="flex items-center gap-2.5">
                     <LayoutDashboard className={`w-4 h-4 ${currentTab === 'dashboard' ? 'text-white' : 'text-[#0275a8]'}`} />
-                    <span>LNA Task Dashboard</span>
+                    <span>Talent Dashboard</span>
                   </div>
                 </button>
 
@@ -250,9 +250,9 @@ export const GansPdpSidebar: React.FC<GansPdpSidebarProps> = ({ currentTab, onSe
                 >
                   <div className="flex items-center gap-2.5">
                     <BookOpen className={`w-4 h-4 ${currentTab === 'form' ? 'text-white' : 'text-cyan-600'}`} />
-                    <span>Training Plan Editor</span>
+                    <span>Training & Check-In</span>
                   </div>
-                  {status === 'PENDING_LNA_TEAM' && (
+                  {(status === 'PENDING_TALENT_MANAGEMENT' || status === 'PENDING_LNA_TEAM') && (
                     <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-400 text-slate-950 animate-pulse">
                       Pending
                     </span>

@@ -38,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExport }) => {
   const [showPresetsMenu, setShowPresetsMenu] = useState(false);
 
   // Compute actionable notification dots for each role based on status
+  const isTalentPending = status === 'PENDING_TALENT_MANAGEMENT' || status === 'PENDING_LNA_TEAM';
   const roleBadges: Record<Role, { count: number; activeForStage: boolean }> = {
     EMPLOYEE: {
       count: status === 'PENDING_EMPLOYEE_EVALUATION' || status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' ? 1 : 0,
@@ -51,9 +52,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExport }) => {
       count: status === 'PENDING_HR_INITIATION' ? 1 : 0,
       activeForStage: status === 'PENDING_HR_INITIATION' || status === 'NOT_STARTED',
     },
+    TALENT_MANAGEMENT: {
+      count: isTalentPending ? 1 : 0,
+      activeForStage: isTalentPending,
+    },
     LNA_TEAM: {
-      count: status === 'PENDING_LNA_TEAM' ? 1 : 0,
-      activeForStage: status === 'PENDING_LNA_TEAM',
+      count: isTalentPending ? 1 : 0,
+      activeForStage: isTalentPending,
     },
   };
 
@@ -77,9 +82,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExport }) => {
       icon: <Shield className="w-4 h-4" />,
     },
     {
-      role: 'LNA_TEAM',
-      label: 'LNA Team View',
-      subLabel: 'Learning Needs & Training Lead',
+      role: 'TALENT_MANAGEMENT',
+      label: 'Talent Management',
+      subLabel: 'Talent & Training Solutions Lead',
       icon: <GraduationCap className="w-4 h-4" />,
     },
   ];

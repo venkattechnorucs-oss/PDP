@@ -3,7 +3,33 @@ import { usePdp } from '../context/PdpContext';
 import { User } from 'lucide-react';
 
 export const PdpEmployeeInfoSection: React.FC = () => {
-  const { employee } = usePdp();
+  const { employee, status } = usePdp();
+
+  // From Manager roadmap onwards, show the additional row with Program Duration and Status
+  const showRoadmapRow = [
+    'PDP_PLANNING_MANAGER',
+    'PENDING_LNA_TEAM',
+    'PENDING_EMPLOYEE_ACKNOWLEDGEMENT',
+    'ACTIVE',
+    'COMPLETED',
+  ].includes(status);
+
+  const getStatusDisplay = (s: string) => {
+    switch (s) {
+      case 'PDP_PLANNING_MANAGER':
+        return { label: 'Roadmap Planning', color: 'bg-indigo-50 text-indigo-800 border-indigo-200' };
+      case 'PENDING_LNA_TEAM':
+        return { label: 'LNA Formulation', color: 'bg-purple-50 text-purple-800 border-purple-200' };
+      case 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT':
+        return { label: 'Pending Sign-Off', color: 'bg-amber-50 text-amber-800 border-amber-200' };
+      case 'ACTIVE':
+        return { label: 'Active PDP', color: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
+      case 'COMPLETED':
+        return { label: 'Completed', color: 'bg-slate-100 text-slate-800 border-slate-300' };
+      default:
+        return { label: s.replace(/_/g, ' '), color: 'bg-sky-50 text-sky-800 border-sky-200' };
+    }
+  };
 
   return (
     <section className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-xs">
@@ -82,7 +108,7 @@ export const PdpEmployeeInfoSection: React.FC = () => {
             </tr>
 
             {/* Row 5: Date of Joining | Year */}
-            <tr className="hover:bg-slate-50/50 transition-colors">
+            <tr className={`${showRoadmapRow ? 'border-b border-slate-200/70' : ''} hover:bg-slate-50/50 transition-colors`}>
               <td className="bg-[#f4f8fb] font-bold py-2.5 px-3.5 border-r border-slate-200/70 text-[#153f5e]">
                 Date of Joining
               </td>
@@ -96,6 +122,30 @@ export const PdpEmployeeInfoSection: React.FC = () => {
                 {employee.year || '2026'}
               </td>
             </tr>
+
+            {/* Row 6: Program Duration | Status (From Manager Roadmap onwards) */}
+            {showRoadmapRow && (
+              <tr className="hover:bg-slate-50/50 transition-colors">
+                <td className="bg-[#f4f8fb] font-bold py-2.5 px-3.5 border-r border-slate-200/70 text-[#153f5e]">
+                  Program Duration
+                </td>
+                <td className="py-2.5 px-3.5 font-semibold text-slate-800 border-r border-slate-200/70">
+                  {employee.programDuration || '12 Months (2026)'}
+                </td>
+                <td className="bg-[#f4f8fb] font-bold py-2.5 px-3.5 border-r border-slate-200/70 text-[#153f5e]">
+                  Status
+                </td>
+                <td className="py-2.5 px-3.5">
+                  <span
+                    className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-bold border ${
+                      getStatusDisplay(status).color
+                    }`}
+                  >
+                    {getStatusDisplay(status).label}
+                  </span>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

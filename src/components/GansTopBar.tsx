@@ -13,7 +13,7 @@ const STAGES: { key: PdpStatus; label: string; num: number; category?: string }[
   { key: 'PENDING_MANAGER_REVIEW', label: 'Manager Review', num: 2 },
   { key: 'PENDING_HR_INITIATION', label: 'HR Initiation', num: 3 },
   { key: 'PDP_PLANNING_MANAGER', label: 'Manager Roadmap', num: 4 },
-  { key: 'PENDING_LNA_TEAM', label: 'LNA Training Plan', num: 5 },
+  { key: 'PENDING_TALENT_MANAGEMENT', label: 'Talent Management Plan', num: 5 },
   { key: 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', label: 'Employee Sign-Off', num: 6 },
   { key: 'ACTIVE', label: 'Active PDP', num: 7 },
   { key: 'HR_VIEW', label: 'HR View', num: 8 },

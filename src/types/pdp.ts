@@ -29,16 +29,26 @@ export interface CompetencyItem {
   managerObjective?: string;
 }
 
+export interface RoadmapSubRow {
+  rowNumber: number; // 1, 2, 3, 4
+  activity: string;
+  trainingPath: string;
+  phase: string;
+  statusRemarks: string;
+}
+
 export interface DevelopmentRoadmapItem {
   competencyId: string;
   code: string;
   competencyName: string;
   category: CompetencyCategory;
   objective: string;
-  developmentActivities: string;
-  learningTrainingPlan: string;
-  phaseMonths: string;
-  statusRemarks: string;
+  rows: RoadmapSubRow[];
+  // Backwards-compatible accessors
+  developmentActivities?: string;
+  learningTrainingPlan?: string;
+  phaseMonths?: string;
+  statusRemarks?: string;
 }
 
 export interface EmployeeProfile {

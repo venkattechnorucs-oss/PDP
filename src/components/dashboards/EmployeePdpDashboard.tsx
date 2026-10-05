@@ -185,11 +185,11 @@ export const EmployeePdpDashboard: React.FC<EmployeePdpDashboardProps> = ({ onOp
                 className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-all space-y-2 text-xs"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.2 rounded">
-                    {item.code}
+                  <span className="font-bold text-[10px] text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800/40">
+                    Priority #{idx + 1}
                   </span>
-                  <span className="text-[10px] font-bold text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
-                    {item.phaseMonths}
+                  <span className="text-[10px] font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                    {item.category}
                   </span>
                 </div>
 
