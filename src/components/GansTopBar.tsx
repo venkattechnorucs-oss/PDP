@@ -13,7 +13,7 @@ const STAGES: { key: PdpStatus; label: string; num: number; category?: string }[
   { key: 'PENDING_MANAGER_REVIEW', label: 'Manager Review', num: 2 },
   { key: 'PENDING_HR_INITIATION', label: 'HR Initiation', num: 3 },
   { key: 'PDP_PLANNING_MANAGER', label: 'Manager Roadmap', num: 4 },
-  { key: 'PENDING_TALENT_MANAGEMENT', label: 'Talent Management Plan', num: 5 },
+  { key: 'PENDING_LNA_TEAM', label: 'LNA Training Plan', num: 5 },
   { key: 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', label: 'Employee Sign-Off', num: 6 },
   { key: 'ACTIVE', label: 'Active PDP', num: 7 },
   { key: 'HR_VIEW', label: 'HR View', num: 8 },
@@ -44,7 +44,7 @@ export const GansTopBar: React.FC = () => {
 
   return (
     <header className="w-full bg-[#153f5e] text-white sticky top-0 z-40 select-none shadow-md border-b border-white/10 print:hidden">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3">
         {/* App Branding */}
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-white/25 to-white/10 border border-white/25 flex items-center justify-center font-black text-xs tracking-wider shadow-inner text-white">

@@ -34,6 +34,9 @@ export interface RoadmapSubRow {
   activity: string;
   trainingPath: string;
   phase: string;
+  startDate?: string;
+  endDate?: string;
+  assignedDates?: string;
   statusRemarks: string;
 }
 

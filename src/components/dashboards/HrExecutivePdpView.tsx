@@ -293,7 +293,7 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
     else if (memberStatus === 'PENDING_MANAGER_REVIEW') targetPreset = 'PENDING_MANAGER_REVIEW';
     else if (memberStatus === 'PENDING_HR_INITIATION') targetPreset = 'PENDING_HR_INITIATION';
     else if (memberStatus === 'PDP_PLANNING_MANAGER') targetPreset = 'PDP_PLANNING_MANAGER';
-    else if (memberStatus === 'PENDING_TALENT_MANAGEMENT' || memberStatus === 'PENDING_LNA_TEAM') targetPreset = 'PENDING_TALENT_MANAGEMENT';
+    else if (memberStatus === 'PENDING_TALENT_MANAGEMENT' || memberStatus === 'PENDING_LNA_TEAM') targetPreset = 'PENDING_LNA_TEAM';
     else if (memberStatus === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT') targetPreset = 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
     else if (memberStatus === 'ACTIVE') targetPreset = 'ACTIVE';
 

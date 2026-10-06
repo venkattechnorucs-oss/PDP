@@ -52,10 +52,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExport }) => {
       count: status === 'PENDING_HR_INITIATION' ? 1 : 0,
       activeForStage: status === 'PENDING_HR_INITIATION' || status === 'NOT_STARTED',
     },
-    TALENT_MANAGEMENT: {
-      count: isTalentPending ? 1 : 0,
-      activeForStage: isTalentPending,
-    },
     LNA_TEAM: {
       count: isTalentPending ? 1 : 0,
       activeForStage: isTalentPending,
@@ -82,9 +78,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExport }) => {
       icon: <Shield className="w-4 h-4" />,
     },
     {
-      role: 'TALENT_MANAGEMENT',
-      label: 'Talent Management',
-      subLabel: 'Talent & Training Solutions Lead',
+      role: 'LNA_TEAM',
+      label: 'LNA Team',
+      subLabel: 'LNA & Training Solutions Lead',
       icon: <GraduationCap className="w-4 h-4" />,
     },
   ];

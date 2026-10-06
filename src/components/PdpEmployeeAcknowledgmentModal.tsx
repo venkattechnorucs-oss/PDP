@@ -141,14 +141,13 @@ export const PdpEmployeeAcknowledgmentModal: React.FC<PdpEmployeeAcknowledgmentM
             type="button"
             onClick={handleConfirmAcknowledgment}
             disabled={!hasConfirmedCheckbox}
-            className={`px-5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-xs ${
+            className={`px-6 py-2 text-xs font-bold rounded-lg transition-all shadow-xs ${
               hasConfirmedCheckbox
                 ? 'bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer active:scale-[0.99]'
                 : 'bg-slate-300 text-slate-500 cursor-not-allowed'
             }`}
           >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Confirm & Submit</span>
+            Submit
           </button>
         </div>
       </div>

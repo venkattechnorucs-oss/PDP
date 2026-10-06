@@ -17,6 +17,7 @@ import {
   INITIAL_CYCLE_CONFIG,
   COMPETENCY_4_ROW_PRESETS,
 } from '../data/mockData';
+import { calculatePhaseDates } from '../utils/phaseDateUtils';
 
 interface PdpContextType {
   currentRole: Role;
@@ -45,7 +46,7 @@ interface PdpContextType {
   updateRoadmapSubRow: (
     competencyId: string,
     rowNumber: number,
-    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks',
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate',
     value: string
   ) => void;
   updateRoadmapActivity: (competencyId: string, activities: string) => void;
@@ -270,20 +271,26 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const preset = COMPETENCY_4_ROW_PRESETS[comp.id] || {
         objective: comp.managerObjective || '',
         rows: [
-          { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 1 (1 - 3 Months)', statusRemarks: 'Planned' },
-          { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 2 (3 - 6 Months)', statusRemarks: 'Planned' },
-          { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 3 (6 - 9 Months)', statusRemarks: 'Planned' },
-          { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 4 (9 - 12 Months)', statusRemarks: 'Planned' },
+          { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'Planned' },
+          { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
+          { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
+          { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
         ],
       };
 
-      const rows: RoadmapSubRow[] = preset.rows.map((r) => ({
-        rowNumber: r.rowNumber,
-        activity: r.activity || '',
-        trainingPath: 'Pending LNA Team',
-        phase: r.phase || `Phase ${r.rowNumber}`,
-        statusRemarks: r.statusRemarks || 'Planned',
-      }));
+      const rows: RoadmapSubRow[] = preset.rows.map((r) => {
+        const dateInfo = calculatePhaseDates(r.phase, r.rowNumber, r.startDate);
+        return {
+          rowNumber: r.rowNumber,
+          activity: r.activity || '',
+          trainingPath: 'Pending LNA Team',
+          phase: dateInfo.duration,
+          startDate: dateInfo.startDate,
+          endDate: dateInfo.endDate,
+          assignedDates: dateInfo.assignedDates,
+          statusRemarks: r.statusRemarks || 'Planned',
+        };
+      });
 
       return {
         competencyId: comp.id,
@@ -351,7 +358,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateRoadmapSubRow = (
     competencyId: string,
     rowNumber: number,
-    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks',
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate',
     value: string
   ) => {
     setRoadmapItems((prev) =>
@@ -360,15 +367,35 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const currentRows = r.rows && r.rows.length === 4
           ? r.rows
           : [
-              { rowNumber: 1, activity: r.developmentActivities || '', trainingPath: r.learningTrainingPlan || 'Pending LNA Team', phase: 'Phase 1 (1 - 3 Months)', statusRemarks: r.statusRemarks || 'Planned' },
-              { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 2 (3 - 6 Months)', statusRemarks: 'Planned' },
-              { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 3 (6 - 9 Months)', statusRemarks: 'Planned' },
-              { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 4 (9 - 12 Months)', statusRemarks: 'Planned' },
+              { rowNumber: 1, activity: r.developmentActivities || '', trainingPath: r.learningTrainingPlan || 'Pending LNA Team', phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: r.statusRemarks || 'Planned' },
+              { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
+              { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
+              { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
             ];
 
-        const updatedRows = currentRows.map((row) =>
-          row.rowNumber === rowNumber ? { ...row, [field]: value } : row
-        );
+        const updatedRows = currentRows.map((row) => {
+          if (row.rowNumber !== rowNumber) return row;
+          if (field === 'phase') {
+            const dateInfo = calculatePhaseDates(value, rowNumber, row.startDate);
+            return {
+              ...row,
+              phase: dateInfo.duration,
+              startDate: dateInfo.startDate,
+              endDate: dateInfo.endDate,
+              assignedDates: dateInfo.assignedDates,
+            };
+          }
+          if (field === 'startDate') {
+            const dateInfo = calculatePhaseDates(row.phase, rowNumber, value);
+            return {
+              ...row,
+              startDate: dateInfo.startDate,
+              endDate: dateInfo.endDate,
+              assignedDates: dateInfo.assignedDates,
+            };
+          }
+          return { ...row, [field]: value };
+        });
 
         return {
           ...r,
@@ -611,22 +638,26 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const preset = COMPETENCY_4_ROW_PRESETS[id] || {
             objective: '',
             rows: [
-              { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 1 (1 - 3 Months)', statusRemarks: 'Planned' },
-              { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 2 (3 - 6 Months)', statusRemarks: 'Planned' },
-              { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 3 (6 - 9 Months)', statusRemarks: 'Planned' },
-              { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: 'Phase 4 (9 - 12 Months)', statusRemarks: 'Planned' },
+              { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'Planned' },
+              { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
+              { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
+              { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
             ],
           };
 
           const rows: RoadmapSubRow[] = preset.rows.map((r) => {
             const hasActivities = ['PDP_PLANNING_MANAGER', 'PENDING_LNA_TEAM', 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus);
             const hasTraining = ['PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus);
+            const dateInfo = calculatePhaseDates(r.phase, r.rowNumber, r.startDate);
 
             return {
               rowNumber: r.rowNumber,
               activity: hasActivities ? r.activity : '',
               trainingPath: hasTraining ? r.trainingPath : 'Pending LNA Team',
-              phase: r.phase,
+              phase: dateInfo.duration,
+              startDate: dateInfo.startDate,
+              endDate: dateInfo.endDate,
+              assignedDates: dateInfo.assignedDates,
               statusRemarks: targetStatus === 'ACTIVE' ? 'Active In-Progress' : (r.statusRemarks || 'Scheduled for 2026/27 Cycle'),
             };
           });
