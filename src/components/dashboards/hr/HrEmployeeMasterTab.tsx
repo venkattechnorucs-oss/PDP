@@ -168,7 +168,7 @@ export const HrEmployeeMasterTab: React.FC = () => {
 
         <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-            <Briefcase className="w-3.5 h-3.5 text-indigo-600" />
+            <Briefcase className="w-3.5 h-3.5 text-[#C8A977]" />
             <span>Divisions</span>
           </div>
           <div className="mt-1 text-2xl font-black text-slate-900">

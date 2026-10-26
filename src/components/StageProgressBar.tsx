@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePdp } from '../context/PdpContext';
 import { PdpStatus, Role } from '../types/pdp';
+import { YasHoldingLogo } from './YasHoldingLogo';
 import {
   Check,
   Clock,
@@ -112,10 +113,8 @@ export const StageProgressBar: React.FC = () => {
   return (
     <div className="glass-panel-subtle rounded-2xl p-5 mb-8 border border-slate-800 shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs border border-indigo-500/30">
-            PDP
-          </div>
+        <div className="flex items-center gap-3">
+          <YasHoldingLogo className="h-7" />
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
               Connected PDP Workflow Progression
@@ -132,7 +131,7 @@ export const StageProgressBar: React.FC = () => {
             value={status}
             onChange={(e) => loadStagePreset(e.target.value as PdpStatus)}
             aria-label="Simulation Stage Jump Selector"
-            className="text-xs font-semibold bg-slate-800 text-indigo-300 border border-slate-700 rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+            className="text-xs font-semibold bg-slate-800 text-[#C8A977] border border-slate-700 rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-[#C8A977] cursor-pointer"
           >
             <option value="PENDING_EMPLOYEE_EVALUATION">1. Employee Evaluation</option>
             <option value="PENDING_MANAGER_REVIEW">2. Manager Review</option>
@@ -162,7 +161,7 @@ export const StageProgressBar: React.FC = () => {
               }}
               className={`flex flex-col p-3 rounded-xl border transition-all cursor-pointer relative ${
                 isCurrent
-                  ? 'bg-indigo-950/70 border-indigo-500 ring-1 ring-indigo-500/50 shadow-md shadow-indigo-500/10'
+                  ? 'bg-[#211E4E] border-[#C8A977] ring-1 ring-[#C8A977]/50 shadow-md'
                   : isCompleted
                   ? 'bg-slate-800/60 border-emerald-900/60 text-slate-300 hover:border-slate-600'
                   : 'bg-slate-900/40 border-slate-800/80 text-slate-500 hover:border-slate-700'
@@ -172,7 +171,7 @@ export const StageProgressBar: React.FC = () => {
                 <span
                   className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                     isCurrent
-                      ? 'bg-indigo-500 text-white animate-pulse'
+                      ? 'bg-[#C8A977] text-[#211E4E] font-black'
                       : isCompleted
                       ? 'bg-emerald-500 text-slate-950 font-extrabold'
                       : 'bg-slate-800 text-slate-400 border border-slate-700'
@@ -184,7 +183,7 @@ export const StageProgressBar: React.FC = () => {
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-medium ${
                     isCurrent
-                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                      ? 'bg-[#C8A977]/20 text-[#C8A977] border border-[#C8A977]/40'
                       : isCompleted
                       ? 'bg-emerald-500/10 text-emerald-400'
                       : 'bg-slate-800/50 text-slate-500'

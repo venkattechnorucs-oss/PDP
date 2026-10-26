@@ -44,16 +44,16 @@ export const PdpEmployeeAcknowledgmentModal: React.FC<PdpEmployeeAcknowledgmentM
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="bg-[#153f5e] text-white p-4 flex items-center justify-between">
+        <div className="bg-[#211E4E] text-white p-4 flex items-center justify-between border-b border-[#C8A977]/30">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center border border-white/20">
-              <UserCheck className="w-4 h-4 text-sky-200" />
+            <div className="w-8 h-8 rounded-lg bg-[#211E4E] text-[#C8A977] flex items-center justify-center border border-[#C8A977]/60">
+              <UserCheck className="w-4 h-4 text-[#C8A977]" />
             </div>
             <div>
               <h3 className="font-bold text-sm tracking-tight text-white">
                 Employee Acknowledgement
               </h3>
-              <p className="text-[10px] text-sky-200/90 font-mono">
+              <p className="text-[10px] text-[#C8A977] font-mono">
                 Cycle {cycleConfig.cycleYear}
               </p>
             </div>
@@ -110,7 +110,7 @@ export const PdpEmployeeAcknowledgmentModal: React.FC<PdpEmployeeAcknowledgmentM
               value={employeeComments}
               onChange={(e) => setEmployeeComments(e.target.value)}
               placeholder="Add comments..."
-              className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-[#153f5e] transition-all"
+              className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#211E4E]/20 focus:border-[#211E4E] transition-all"
             />
           </div>
 
@@ -120,7 +120,7 @@ export const PdpEmployeeAcknowledgmentModal: React.FC<PdpEmployeeAcknowledgmentM
               type="checkbox"
               checked={hasConfirmedCheckbox}
               onChange={(e) => setHasConfirmedCheckbox(e.target.checked)}
-              className="w-4 h-4 text-[#153f5e] border-slate-300 rounded focus:ring-[#153f5e] mt-0.5 cursor-pointer shrink-0"
+              className="w-4 h-4 text-[#211E4E] border-slate-300 rounded focus:ring-[#211E4E] accent-[#211E4E] mt-0.5 cursor-pointer shrink-0"
             />
             <span className="font-semibold text-xs text-slate-900 leading-snug">
               I have reviewed and agreed to my Professional Development Plan.
@@ -143,7 +143,7 @@ export const PdpEmployeeAcknowledgmentModal: React.FC<PdpEmployeeAcknowledgmentM
             disabled={!hasConfirmedCheckbox}
             className={`px-6 py-2 text-xs font-bold rounded-lg transition-all shadow-xs ${
               hasConfirmedCheckbox
-                ? 'bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer active:scale-[0.99]'
+                ? 'bg-[#211E4E] hover:bg-[#161435] text-white cursor-pointer active:scale-[0.99]'
                 : 'bg-slate-300 text-slate-500 cursor-not-allowed'
             }`}
           >

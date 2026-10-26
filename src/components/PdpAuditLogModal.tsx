@@ -22,9 +22,9 @@ const getRoleIcon = (role: Role) => {
     case 'EMPLOYEE':
       return <User className="w-3.5 h-3.5 text-sky-400" />;
     case 'MANAGER':
-      return <Users className="w-3.5 h-3.5 text-indigo-400" />;
+      return <Users className="w-3.5 h-3.5 text-[#C8A977]" />;
     case 'HR_ADMIN':
-      return <Shield className="w-3.5 h-3.5 text-purple-400" />;
+      return <Shield className="w-3.5 h-3.5 text-[#C8A977]" />;
     case 'LNA_TEAM':
       return <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />;
   }
@@ -47,7 +47,7 @@ export const PdpAuditLogModal: React.FC<PdpAuditLogModalProps> = ({ isOpen, onCl
         {/* Header */}
         <div className="p-4 sm:p-5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#211E4E] text-[#C8A977] border border-[#C8A977]/30 flex items-center justify-center">
               <History className="w-4 h-4" />
             </div>
             <div>

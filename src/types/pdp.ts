@@ -4,6 +4,14 @@ export type ProficiencyLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Exper
 
 export type CompetencyCategory = 'Functional' | 'Behavioural';
 
+export interface CommentMessage {
+  id: string;
+  sender: 'employee' | 'manager' | 'system';
+  senderName: string;
+  text: string;
+  timestamp: string;
+}
+
 export type PdpStatus =
   | 'NOT_STARTED'
   | 'PENDING_EMPLOYEE_EVALUATION'
@@ -26,11 +34,12 @@ export interface CompetencyItem {
   employeeEvaluation?: ProficiencyLevel;
   managerEvaluation?: ProficiencyLevel;
   isSelectedForPdp?: boolean;
+  priorityRank?: number;
   managerObjective?: string;
 }
 
 export interface RoadmapSubRow {
-  rowNumber: number; // 1, 2, 3, 4
+  rowNumber: number; // 1, 2, 3, 4, 5 (Rows 1-4 mandatory, Row 5 optional)
   activity: string;
   trainingPath: string;
   phase: string;
@@ -45,6 +54,7 @@ export interface DevelopmentRoadmapItem {
   code: string;
   competencyName: string;
   category: CompetencyCategory;
+  priorityRank?: number;
   objective: string;
   rows: RoadmapSubRow[];
   // Backwards-compatible accessors

@@ -20,6 +20,9 @@ export const INITIAL_EMPLOYEE: EmployeeProfile = {
   avatarInitials: 'RK',
 };
 
+export const DEFAULT_EMPLOYEE_DEVELOPMENT_THOUGHTS =
+  'I am eager to strengthen my operational reliability modeling, root cause analysis certifications, and leadership communication over this performance period. I look forward to taking on key shutdown management responsibilities and participating in ISO accredited asset integrity workshops.';
+
 export const INITIAL_COMPETENCIES: CompetencyItem[] = [
   // 7 Behavioural Competencies (First - Common for everyone)
   {
@@ -212,71 +215,99 @@ export const LNA_RECOMMENDED_COURSES: Record<string, string[]> = {
     'Certified Asset Management Assessor (CAMA) & ISO 55000 Masterclass (5 Days)',
     'API 580/581 Risk-Based Inspection (RBI) Practitioner Certification (4 Days)',
     'Advanced Structural & Pressure Boundary Fitness-for-Service (FFS) Program',
+    'Asset Life Extension & Aging Equipment Reliability Intensive',
+    'Comprehensive Pressure Vessel & Pipeline Integrity Engineering Workshop',
   ],
   'comp-f-2': [
     'ISO 18436-2 Vibration Analyst Category III Advanced Certification (5 Days)',
     'Advanced Turbo-Machinery Diagnostics & Dynamic Rotor Balancing Workshop',
     'Ultrasound Level II & Acoustic Emission Plant Surveillance Lab',
+    'Digital Twin Predictive Vibration Analytics Seminar',
+    'Rotating Machinery FFT Spectral Analysis & Modal Testing Workshop',
   ],
   'comp-f-3': [
     'TÜV Rheinland Certified Functional Safety Engineer (FS Eng SIS) (4 Days)',
     'Advanced Hazard and Operability (HAZOP) & LOPA Leadership Mastery',
     'Process Safety Incident Commander & Barrier Management Program',
+    'Process Safety Management (PSM) Lead Auditor Intensive',
+    'Quantitative Risk Assessment (QRA) & Safety Instrumented Systems (SIS)',
   ],
   'comp-f-4': [
     'Sologic / Apollo Root Cause Analysis Master Facilitator Certification',
     'Human Factors & Failure Mode Root Cause Investigation in Energy Plants',
     'Advanced Fault Tree Analysis & Reliability Modeling Workshop',
+    'Zero-Recurring Failure Engineering Leadership Masterclass',
+    'Fishbone & 5-Whys Incident Investigation Masterclass',
   ],
   'comp-f-5': [
     'Certified Maintenance & Reliability Professional (CMRP) Prep & Exam',
     'RCM3 Risk-Based Reliability Centered Maintenance Practitioner',
     'FMEA & Preventive Maintenance Optimization (PMO) Hands-on Lab',
+    'World-Class Maintenance Strategy & Reliability Leadership Workshop',
+    'Critical Spares Optimization & Predictive Maintenance Scheduling',
   ],
   'comp-f-6': [
     'Industrial IoT & Edge Telemetry Data Engineering for Plants (3 Days)',
     'OSIsoft PI System Advanced Analytics & Real-Time Dashboards',
     'Predictive AI Machine Learning for Rotating Equipment Workshop',
+    'Smart Plant Digital Twin & Telemetry Operations Masterclass',
+    'SCADA & Industrial Edge Computing Infrastructure for Plants',
   ],
   'comp-f-7': [
     'Executive Engineering Technical Report Writing & Expert Witness Briefing',
     'Statutory Pressure Equipment Directive & National Regulatory Compliance',
     'Technical Audit Leadership & ISO 19011 Lead Auditor Training',
+    'Regulatory Audit Defense & Statutory Governance Masterclass',
+    'Corporate Engineering Compliance & Statutory Code Enforcement',
   ],
   'comp-b-1': [
-    'Executive Presence & High-Stakes Technical Communication (C-Suite Lab)',
-    'Strategic Influence & Cross-Departmental Persuasion for Senior Leads',
+    'Executive Presence & High-Stakes Technical Communication (C-Suite Lab, 3 Days)',
     'Storytelling with Engineering Data & Visual Presentation Mastery',
+    'Strategic Influence & Cross-Departmental Persuasion for Senior Leads',
+    'Advanced Executive Briefing & Stakeholder Consensus Workshop',
+    'Board-Level Communication & High-Impact Leadership Discourse',
   ],
   'comp-b-2': [
     'High-Performance Turnaround Leadership & Multi-Disciplinary Synergy',
     'Collaborative Matrix Management & Agile Operations Leadership',
     'Cross-Functional Stakeholder Alignment & Joint Problem-Solving Workshop',
+    'Enterprise Team Dynamics & Cross-Functional Synergy Summit',
+    'Inter-Disciplinary Teaming & Operational Integration Mastery',
   ],
   'comp-b-3': [
     'Strategic Decision-Making Under High Operational Uncertainty (Harvard Case Lab)',
     'Cognitive Bias Mitigation & Crisis Command Center Decision Protocols',
     'Engineering Economics & Capital Trade-off Decision Frameworks',
+    'Executive Crisis Decision Mastery Certification',
+    'Risk-Informed Strategic Operational Decision Engineering',
   ],
   'comp-b-4': [
     'Mastering Technical Mentorship & Workplace Coaching (ILM Certified)',
     'Designing Accelerated On-the-Job Competency Development Milestones',
     'Tacit Knowledge Capture & Engineering Knowledge Transfer Systems',
+    'Advanced Technical Mentorship Certification & Evaluation Lab',
+    'Supervisory Coaching & High-Potential Engineering Talent Incubator',
   ],
   'comp-b-5': [
     'Prosci® Certified Change Management Practitioner (3 Days)',
     'Leading Digital Engineering Transformations & Overcoming Cultural Resistance',
     'Agile Mindset & Operational Resilience in Energy Transitions',
+    'Sustained Operational Change Governance & Continuous Feedback Lab',
+    'Enterprise Change Sponsorship & Culture Evolution Workshop',
   ],
   'comp-b-6': [
     'Lean Six Sigma Black Belt for Operational Asset Excellence (8 Days)',
     'World-Class OEE & Zero-Unplanned-Loss Operational Mastery',
     'Continuous Improvement Systems & Kaizen Leadership for Plants',
+    'Advanced Total Productive Maintenance (TPM) Facilitator Workshop',
+    'Operational Excellence & Root Waste Elimination Intensive',
   ],
   'comp-b-7': [
     'Strategic Negotiation & Dispute Resolution for Plant Engineering Leads',
     'Constructive Conflict Management & Cross-Departmental Win-Win Alignment',
     'Contractor & EPC Vendor Negotiation Mastery',
+    'Advanced Commercial Mediation & Partner Alignment Lab',
+    'Cross-Cultural Stakeholder Negotiation & Consensus Mastery',
   ],
 };
 

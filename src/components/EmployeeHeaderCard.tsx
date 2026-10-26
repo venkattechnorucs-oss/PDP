@@ -37,14 +37,14 @@ export const getStatusBadgeInfo = (status: PdpStatus) => {
     case 'PENDING_HR_INITIATION':
       return {
         label: 'Pending HR Initiation',
-        bg: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
-        dot: 'bg-purple-400 animate-pulse',
+        bg: 'bg-[#C8A977]/20 text-[#C8A977] border-[#C8A977]/40',
+        dot: 'bg-[#C8A977] animate-pulse',
       };
     case 'PDP_PLANNING_MANAGER':
       return {
         label: 'PDP Planning – Manager',
-        bg: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
-        dot: 'bg-indigo-400 animate-pulse',
+        bg: 'bg-[#211E4E] text-[#C8A977] border-[#C8A977]/40',
+        dot: 'bg-[#C8A977] animate-pulse',
       };
     case 'PENDING_LNA_TEAM':
       return {
@@ -74,14 +74,14 @@ export const EmployeeHeaderCard: React.FC = () => {
   return (
     <div className="glass-panel rounded-2xl p-6 shadow-xl border border-slate-700/60 relative overflow-hidden mb-8">
       {/* Background subtle ambient glow */}
-      <div className="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -right-16 -top-16 w-64 h-64 bg-[#C8A977]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-[#211E4E]/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
         {/* Profile Details */}
         <div className="flex items-start sm:items-center gap-5">
           <div className="relative">
-            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg shadow-indigo-500/20 border border-white/20">
+            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-[#211E4E] border-2 border-[#C8A977] flex items-center justify-center text-[#C8A977] font-bold text-xl sm:text-2xl shadow-lg">
               {employee.avatarInitials}
             </div>
             <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center text-white" title="Active Employee">
@@ -97,13 +97,13 @@ export const EmployeeHeaderCard: React.FC = () => {
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
                 {employee.staffId}
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-slate-800 text-indigo-300 border border-indigo-900/50">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-[#211E4E] text-[#C8A977] border border-[#C8A977]/40">
                 {employee.erpNo}
               </span>
             </div>
 
-            <p className="text-sm font-medium text-indigo-200 flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-indigo-400" />
+            <p className="text-sm font-medium text-slate-300 flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-[#C8A977]" />
               {employee.position}
               <span className="text-slate-500">•</span>
               <span className="text-slate-300 font-semibold">{employee.grade}</span>

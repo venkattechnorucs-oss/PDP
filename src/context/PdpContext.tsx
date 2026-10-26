@@ -10,14 +10,17 @@ import {
   CycleConfig,
   AuditLog,
   ToastMessage,
+  CommentMessage,
 } from '../types/pdp';
 import {
   INITIAL_EMPLOYEE,
   INITIAL_COMPETENCIES,
   INITIAL_CYCLE_CONFIG,
   COMPETENCY_4_ROW_PRESETS,
+  DEFAULT_EMPLOYEE_DEVELOPMENT_THOUGHTS,
 } from '../data/mockData';
 import { calculatePhaseDates } from '../utils/phaseDateUtils';
+import { TeamMemberSubmission, toEmployeeProfile } from '../data/teamSubmissionsData';
 
 interface PdpContextType {
   currentRole: Role;
@@ -27,6 +30,12 @@ interface PdpContextType {
   cycleConfig: CycleConfig;
   competencies: CompetencyItem[];
   roadmapItems: DevelopmentRoadmapItem[];
+  employeeDevelopmentThoughts: string;
+  updateEmployeeDevelopmentThoughts: (thoughts: string) => void;
+  managerRemarks: string;
+  updateManagerRemarks: (remarks: string) => void;
+  commentHistory: CommentMessage[];
+  addCommentMessage: (message: Omit<CommentMessage, 'id' | 'timestamp'> & { timestamp?: string }) => void;
   auditLogs: AuditLog[];
   toasts: ToastMessage[];
   addToast: (type: ToastMessage['type'], title: string, message: string) => void;
@@ -34,19 +43,23 @@ interface PdpContextType {
   
   // Actions
   updateEmployeeEvaluation: (competencyId: string, level: ProficiencyLevel) => void;
+  resetEmployeeEvaluationForm: () => void;
   submitEmployeeEvaluation: () => { success: boolean; error?: string };
   
   updateManagerEvaluation: (competencyId: string, level: ProficiencyLevel) => void;
   toggleCompetencySelection: (competencyId: string) => void;
+  updateCompetencyPriority: (competencyId: string, priorityRank?: number) => void;
   updateManagerObjective: (competencyId: string, objective: string) => void;
   submitManagerEvaluation: () => { success: boolean; error?: string };
+  returnToEmployee: (reason?: string) => void;
+  returnToManager: (reason?: string) => void;
   
   initiatePdpByHr: (remarks?: string) => { success: boolean; error?: string };
   
   updateRoadmapSubRow: (
     competencyId: string,
     rowNumber: number,
-    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate',
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate' | 'endDate',
     value: string
   ) => void;
   updateRoadmapActivity: (competencyId: string, activities: string) => void;
@@ -64,6 +77,7 @@ interface PdpContextType {
   sendReminder: (targetRole: Role, recipientName: string) => void;
   resetAllData: () => void;
   loadStagePreset: (targetStatus: PdpStatus) => void;
+  selectEmployeeForReview: (sub: TeamMemberSubmission, targetStatus?: PdpStatus) => void;
   
   // Helper queries
   selectedCompetenciesCount: number;
@@ -77,6 +91,42 @@ const PdpContext = createContext<PdpContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'enterprise_pdp_state_v3';
 
+const ensureFiveSubRows = (existingRows: RoadmapSubRow[] = []): RoadmapSubRow[] => {
+  const defaultTemplates = [
+    { rowNumber: 1, phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'Scheduled' },
+    { rowNumber: 2, phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
+    { rowNumber: 3, phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
+    { rowNumber: 4, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
+    { rowNumber: 5, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Optional' },
+  ];
+
+  const result: RoadmapSubRow[] = [];
+  for (let i = 1; i <= 5; i++) {
+    const found = existingRows.find((r) => r.rowNumber === i);
+    const tmpl = defaultTemplates[i - 1];
+    if (found) {
+      result.push({
+        ...tmpl,
+        ...found,
+        rowNumber: i,
+        statusRemarks: found.statusRemarks || tmpl.statusRemarks,
+      });
+    } else {
+      result.push({
+        rowNumber: i,
+        activity: '',
+        trainingPath: 'Pending LNA Team',
+        phase: tmpl.phase,
+        startDate: tmpl.startDate,
+        endDate: tmpl.endDate,
+        assignedDates: tmpl.assignedDates,
+        statusRemarks: tmpl.statusRemarks,
+      });
+    }
+  }
+  return result;
+};
+
 export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentRole, setCurrentRole] = useState<Role>('EMPLOYEE');
   const [status, setStatus] = useState<PdpStatus>('PENDING_EMPLOYEE_EVALUATION');
@@ -84,6 +134,19 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cycleConfig, setCycleConfig] = useState<CycleConfig>(INITIAL_CYCLE_CONFIG);
   const [competencies, setCompetencies] = useState<CompetencyItem[]>(INITIAL_COMPETENCIES);
   const [roadmapItems, setRoadmapItems] = useState<DevelopmentRoadmapItem[]>([]);
+  const [employeeDevelopmentThoughts, setEmployeeDevelopmentThoughts] = useState<string>(
+    DEFAULT_EMPLOYEE_DEVELOPMENT_THOUGHTS
+  );
+  const [managerRemarks, setManagerRemarks] = useState<string>('');
+  const [commentHistory, setCommentHistory] = useState<CommentMessage[]>([
+    {
+      id: 'msg-1',
+      sender: 'employee',
+      senderName: 'Vivekanandan',
+      text: 'Focusing on driving enterprise performance KPIs and Kaizen operational excellence across corporate units.',
+      timestamp: '19/Aug/2026',
+    },
+  ]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([
     {
       id: 'log-1',
@@ -106,7 +169,16 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (parsed.employee) setEmployee(parsed.employee);
         if (parsed.cycleConfig) setCycleConfig(parsed.cycleConfig);
         if (parsed.competencies) setCompetencies(parsed.competencies);
-        if (parsed.roadmapItems) setRoadmapItems(parsed.roadmapItems);
+        if (parsed.roadmapItems) {
+          const normalized = (parsed.roadmapItems as DevelopmentRoadmapItem[]).map((item) => ({
+            ...item,
+            rows: ensureFiveSubRows(item.rows || []),
+          }));
+          setRoadmapItems(normalized);
+        }
+        if (parsed.employeeDevelopmentThoughts !== undefined) {
+          setEmployeeDevelopmentThoughts(parsed.employeeDevelopmentThoughts);
+        }
         if (parsed.auditLogs) setAuditLogs(parsed.auditLogs);
       }
     } catch (e) {
@@ -125,13 +197,14 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           cycleConfig,
           competencies,
           roadmapItems,
+          employeeDevelopmentThoughts,
           auditLogs,
         })
       );
     } catch (e) {
       console.warn('Could not save state to localStorage', e);
     }
-  }, [status, employee, cycleConfig, competencies, roadmapItems, auditLogs]);
+  }, [status, employee, cycleConfig, competencies, roadmapItems, employeeDevelopmentThoughts, auditLogs]);
 
   // Toast Helpers
   const addToast = (type: ToastMessage['type'], title: string, message: string) => {
@@ -169,6 +242,10 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const updateEmployeeDevelopmentThoughts = (thoughts: string) => {
+    setEmployeeDevelopmentThoughts(thoughts);
+  };
+
   const isEmployeeEvalComplete = competencies.every((c) => c.employeeEvaluation !== undefined);
 
   const submitEmployeeEvaluation = () => {
@@ -182,20 +259,48 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, error: 'All 14 competencies must be evaluated.' };
     }
 
+    if (employeeDevelopmentThoughts.trim().length > 0) {
+      setCommentHistory((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.text === employeeDevelopmentThoughts.trim() && last.sender === 'employee') return prev;
+        return [
+          ...prev,
+          {
+            id: `msg-${Date.now()}`,
+            sender: 'employee',
+            senderName: employee.name || 'Vivekanandan',
+            text: employeeDevelopmentThoughts.trim(),
+            timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '/'),
+          },
+        ];
+      });
+    }
+
     setStatus('PENDING_MANAGER_REVIEW');
     setCurrentRole('MANAGER');
     logAction(
       'EMPLOYEE',
       employee.name,
-      'Self-Evaluation Submitted',
-      'Employee completed self-evaluation for all 14 competencies and submitted for Line Manager review.'
+      'Self-Evaluation & Thoughts Submitted',
+      'Employee completed self-evaluation for all 14 competencies and submitted Development Thoughts for Line Manager review.'
     );
     addToast(
       'success',
       'Evaluation Submitted Successfully',
-      'Your PDP self-evaluation has been submitted. Moved to Manager Review stage.'
+      'Your PDP self-evaluation and development thoughts have been submitted. Moved to Manager Review stage.'
     );
     return { success: true };
+  };
+
+  const resetEmployeeEvaluationForm = () => {
+    setCompetencies((prev) =>
+      prev.map((c) => ({
+        ...c,
+        employeeEvaluation: undefined,
+      }))
+    );
+    setEmployeeDevelopmentThoughts('');
+    addToast('info', 'Form Reset', 'Employee evaluation ratings and thoughts have been cleared.');
   };
 
   // 2. Manager First Review Updates
@@ -205,21 +310,50 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const updateCompetencyPriority = (competencyId: string, priorityRank?: number) => {
+    setCompetencies((prev) =>
+      prev.map((c) => {
+        if (c.id === competencyId) {
+          return {
+            ...c,
+            isSelectedForPdp: priorityRank !== undefined,
+            priorityRank,
+          };
+        }
+        // If another competency currently has this priorityRank, clear it to avoid duplicate priorities
+        if (priorityRank !== undefined && c.priorityRank === priorityRank) {
+          return {
+            ...c,
+            isSelectedForPdp: false,
+            priorityRank: undefined,
+          };
+        }
+        return c;
+      })
+    );
+  };
+
   const toggleCompetencySelection = (competencyId: string) => {
     setCompetencies((prev) => {
       const target = prev.find((c) => c.id === competencyId);
       if (!target) return prev;
-      const currentlySelected = prev.filter((c) => c.isSelectedForPdp).length;
-      if (!target.isSelectedForPdp && currentlySelected >= 5) {
+      if (target.isSelectedForPdp) {
+        return prev.map((c) =>
+          c.id === competencyId ? { ...c, isSelectedForPdp: false, priorityRank: undefined } : c
+        );
+      }
+      const usedRanks = prev.map((c) => c.priorityRank).filter((r): r is number => r !== undefined);
+      const nextRank = [1, 2, 3, 4, 5].find((r) => !usedRanks.includes(r));
+      if (!nextRank) {
         addToast(
           'warning',
           'Selection Limit Reached',
-          'You can select exactly 5 competencies for the PDP development roadmap.'
+          'You can select exactly 5 competencies for the PDP development roadmap (Priority 1 to 5).'
         );
         return prev;
       }
       return prev.map((c) =>
-        c.id === competencyId ? { ...c, isSelectedForPdp: !c.isSelectedForPdp } : c
+        c.id === competencyId ? { ...c, isSelectedForPdp: true, priorityRank: nextRank } : c
       );
     });
   };
@@ -230,7 +364,9 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const selectedCompetencies = competencies.filter((c) => c.isSelectedForPdp);
+  const selectedCompetencies = competencies
+    .filter((c) => c.isSelectedForPdp)
+    .sort((a, b) => (a.priorityRank || 99) - (b.priorityRank || 99));
   const selectedCompetenciesCount = selectedCompetencies.length;
   const isManagerEvalComplete =
     selectedCompetenciesCount === 5 &&
@@ -241,7 +377,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addToast(
         'error',
         'Select Exactly 5 Competencies',
-        `Please select exactly 5 development competencies (Currently selected: ${selectedCompetenciesCount}).`
+        `Please select all 5 priority competencies (Priority 1 to 5). Currently selected: ${selectedCompetenciesCount}.`
       );
       return { success: false, error: 'Exactly 5 competencies must be selected.' };
     }
@@ -266,19 +402,14 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }))
     );
 
-    // Populate initial roadmap items based on 5 selected competencies with 4 rows each
+    // Populate initial roadmap items based on 5 selected competencies with 5 rows each (rows 1-4 mandatory, row 5 optional)
     const initialRoadmaps: DevelopmentRoadmapItem[] = selectedCompetencies.map((comp) => {
       const preset = COMPETENCY_4_ROW_PRESETS[comp.id] || {
         objective: comp.managerObjective || '',
-        rows: [
-          { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'Planned' },
-          { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
-          { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
-          { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
-        ],
+        rows: [],
       };
 
-      const rows: RoadmapSubRow[] = preset.rows.map((r) => {
+      const baseRows: RoadmapSubRow[] = preset.rows.map((r) => {
         const dateInfo = calculatePhaseDates(r.phase, r.rowNumber, r.startDate);
         return {
           rowNumber: r.rowNumber,
@@ -292,19 +423,35 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       });
 
+      const rows: RoadmapSubRow[] = ensureFiveSubRows(baseRows);
+
       return {
         competencyId: comp.id,
         code: comp.code,
         competencyName: comp.name,
         category: comp.category,
+        priorityRank: comp.priorityRank,
         objective: comp.managerObjective || preset.objective || '',
         rows,
         developmentActivities: rows[0]?.activity || '',
         learningTrainingPlan: 'Pending LNA Team',
-        phaseMonths: '12 Months (4 Phases)',
+        phaseMonths: '24 Months (5 Milestones)',
         statusRemarks: 'Planned for 2026/27 Cycle',
       };
     });
+
+    if (managerRemarks.trim().length > 0) {
+      setCommentHistory((prev) => [
+        ...prev,
+        {
+          id: `msg-${Date.now()}`,
+          sender: 'manager',
+          senderName: employee.lineManager || 'Suresh Nair',
+          text: managerRemarks.trim(),
+          timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '/'),
+        },
+      ]);
+    }
 
     setRoadmapItems(initialRoadmaps);
     setStatus('PENDING_HR_INITIATION');
@@ -323,6 +470,30 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       'Evaluation and 5 selected development competencies forwarded to HR. Moved to HR Initiation stage.'
     );
     return { success: true };
+  };
+
+  const returnToEmployee = (reason?: string) => {
+    setStatus('PENDING_EMPLOYEE_EVALUATION');
+    setCurrentRole('EMPLOYEE');
+    logAction(
+      currentRole,
+      currentRole === 'MANAGER' ? employee.lineManager : 'HR Admin',
+      'Returned to Employee',
+      reason || 'PDP was returned to Employee for updates and revisions.'
+    );
+    addToast('warning', 'Returned to Employee', 'PDP has been returned to the employee for revision.');
+  };
+
+  const returnToManager = (reason?: string) => {
+    setStatus('PENDING_MANAGER_REVIEW');
+    setCurrentRole('MANAGER');
+    logAction(
+      'HR_ADMIN',
+      'HR Talent Management',
+      'Returned to Manager',
+      reason || 'PDP was returned to Line Manager for revision.'
+    );
+    addToast('warning', 'Returned to Manager', 'PDP has been returned to Line Manager for revision.');
   };
 
   // 3. HR Initiates PDP
@@ -358,20 +529,13 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateRoadmapSubRow = (
     competencyId: string,
     rowNumber: number,
-    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate',
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate' | 'endDate',
     value: string
   ) => {
     setRoadmapItems((prev) =>
       prev.map((r) => {
         if (r.competencyId !== competencyId) return r;
-        const currentRows = r.rows && r.rows.length === 4
-          ? r.rows
-          : [
-              { rowNumber: 1, activity: r.developmentActivities || '', trainingPath: r.learningTrainingPlan || 'Pending LNA Team', phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: r.statusRemarks || 'Planned' },
-              { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
-              { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
-              { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
-            ];
+        const currentRows = ensureFiveSubRows(r.rows);
 
         const updatedRows = currentRows.map((row) => {
           if (row.rowNumber !== rowNumber) return row;
@@ -387,11 +551,20 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
           if (field === 'startDate') {
             const dateInfo = calculatePhaseDates(row.phase, rowNumber, value);
+            const targetEndDate = row.endDate || dateInfo.endDate;
             return {
               ...row,
-              startDate: dateInfo.startDate,
-              endDate: dateInfo.endDate,
-              assignedDates: dateInfo.assignedDates,
+              startDate: value,
+              endDate: targetEndDate,
+              assignedDates: `From: ${value} To: ${targetEndDate}`,
+            };
+          }
+          if (field === 'endDate') {
+            const targetStartDate = row.startDate || '01/Jul/2026';
+            return {
+              ...row,
+              endDate: value,
+              assignedDates: `From: ${targetStartDate} To: ${value}`,
             };
           }
           return { ...row, [field]: value };
@@ -421,29 +594,34 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateRoadmapSubRow(competencyId, 1, 'statusRemarks', remarks);
   };
 
+  // 4 rows are mandatory (rows 1, 2, 3, 4), and the 5th row is optional
   const isManagerRoadmapComplete =
     roadmapItems.length === 5 &&
-    roadmapItems.every(
-      (r) =>
-        r.rows &&
-        r.rows.length === 4 &&
-        r.rows.some((row) => row.activity && row.activity.trim().length >= 8)
-    );
+    roadmapItems.every((r) => {
+      if (!r.rows || r.rows.length === 0) return false;
+      const mandatoryRows = r.rows.filter((row) => row.rowNumber >= 1 && row.rowNumber <= 4);
+      return (
+        mandatoryRows.length === 4 &&
+        mandatoryRows.every((row) => row.activity && row.activity.trim().length >= 5)
+      );
+    });
 
   const submitManagerRoadmap = () => {
-    const incomplete = roadmapItems.filter(
-      (r) =>
-        !r.rows ||
-        r.rows.length !== 4 ||
-        !r.rows.some((row) => row.activity && row.activity.trim().length >= 8)
-    );
+    const incomplete = roadmapItems.filter((r) => {
+      if (!r.rows || r.rows.length === 0) return true;
+      const mandatoryRows = r.rows.filter((row) => row.rowNumber >= 1 && row.rowNumber <= 4);
+      return (
+        mandatoryRows.length !== 4 ||
+        !mandatoryRows.every((row) => row.activity && row.activity.trim().length >= 5)
+      );
+    });
     if (incomplete.length > 0) {
       addToast(
         'error',
         'Incomplete Development Roadmap',
-        `Please specify detailed Development Activities / Projects across the 4 rows for all 5 competencies (${incomplete.length} incomplete).`
+        `Please specify detailed Development Activities / Projects for Milestones 1–4 (*) across all 5 competencies (${incomplete.length} incomplete).`
       );
-      return { success: false, error: 'All 5 competencies require development activities.' };
+      return { success: false, error: 'All 5 competencies require development activities for Milestones 1–4 (*).' };
     }
 
     setStatus('PENDING_LNA_TEAM');
@@ -452,7 +630,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       'MANAGER',
       employee.lineManager,
       'Development Roadmap Submitted to LNA',
-      'Manager defined practical development activities across 4 rows and phase timelines for all 5 competencies.'
+      'Manager defined practical development activities across 5 milestones for all 5 competencies.'
     );
     addToast(
       'success',
@@ -467,39 +645,44 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateRoadmapSubRow(competencyId, 1, 'trainingPath', trainingPlan);
   };
 
+  // 4 rows are mandatory (rows 1, 2, 3, 4), and the 5th row is optional
   const isLnaPlanComplete =
     roadmapItems.length === 5 &&
-    roadmapItems.every(
-      (r) =>
-        r.rows &&
-        r.rows.length === 4 &&
-        r.rows.some(
+    roadmapItems.every((r) => {
+      if (!r.rows || r.rows.length === 0) return false;
+      const mandatoryRows = r.rows.filter((row) => row.rowNumber >= 1 && row.rowNumber <= 4);
+      return (
+        mandatoryRows.length === 4 &&
+        mandatoryRows.every(
           (row) =>
             row.trainingPath &&
-            row.trainingPath.trim().length >= 5 &&
+            row.trainingPath.trim().length >= 3 &&
             row.trainingPath !== 'Pending LNA Team'
         )
-    );
+      );
+    });
 
   const submitLnaPlan = () => {
-    const incomplete = roadmapItems.filter(
-      (r) =>
-        !r.rows ||
-        r.rows.length !== 4 ||
-        !r.rows.some(
+    const incomplete = roadmapItems.filter((r) => {
+      if (!r.rows || r.rows.length === 0) return true;
+      const mandatoryRows = r.rows.filter((row) => row.rowNumber >= 1 && row.rowNumber <= 4);
+      return (
+        mandatoryRows.length !== 4 ||
+        !mandatoryRows.every(
           (row) =>
             row.trainingPath &&
-            row.trainingPath.trim().length >= 5 &&
+            row.trainingPath.trim().length >= 3 &&
             row.trainingPath !== 'Pending LNA Team'
         )
-    );
+      );
+    });
     if (incomplete.length > 0) {
       addToast(
         'error',
         'Incomplete Training Plan',
-        `Please assign formal Learning & Training interventions across the 4 rows for all 5 competencies (${incomplete.length} pending).`
+        `Please assign formal Learning & Training interventions for Training Paths 1–4 (*) across all 5 competencies (${incomplete.length} pending).`
       );
-      return { success: false, error: 'All 5 competencies require learning and training programs.' };
+      return { success: false, error: 'All 5 competencies require learning and training programs for Training Paths 1–4 (*).' };
     }
 
     setStatus('PENDING_EMPLOYEE_ACKNOWLEDGEMENT');
@@ -579,6 +762,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCycleConfig(INITIAL_CYCLE_CONFIG);
     setCompetencies(INITIAL_COMPETENCIES);
     setRoadmapItems([]);
+    setEmployeeDevelopmentThoughts(DEFAULT_EMPLOYEE_DEVELOPMENT_THOUGHTS);
     setAuditLogs([
       {
         id: `log-${Date.now()}`,
@@ -618,7 +802,9 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ? 'Advanced'
         : 'Advanced';
 
-      const isSelected = (!isStage1 && !isStage2) && selectedIds.includes(c.id);
+      const selectedIndex = selectedIds.indexOf(c.id);
+      const isSelected = (!isStage1 && !isStage2) && selectedIndex !== -1;
+      const priorityRank = isSelected ? selectedIndex + 1 : undefined;
       const preset = COMPETENCY_4_ROW_PRESETS[c.id];
       const obj = isSelected ? (preset?.objective || '') : '';
 
@@ -627,13 +813,14 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         employeeEvaluation: empEval,
         managerEvaluation: mgrEval,
         isSelectedForPdp: isSelected,
+        priorityRank,
         managerObjective: obj,
       };
     });
 
     const mockRoadmaps: DevelopmentRoadmapItem[] = (isStage1 || isStage2)
       ? []
-      : selectedIds.map((id) => {
+      : selectedIds.map((id, rankIdx) => {
           const comp = mockCompetencies.find((c) => c.id === id)!;
           const preset = COMPETENCY_4_ROW_PRESETS[id] || {
             objective: '',
@@ -645,7 +832,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ],
           };
 
-          const rows: RoadmapSubRow[] = preset.rows.map((r) => {
+          const baseSubRows: RoadmapSubRow[] = preset.rows.map((r) => {
             const hasActivities = ['PDP_PLANNING_MANAGER', 'PENDING_LNA_TEAM', 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus);
             const hasTraining = ['PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus);
             const dateInfo = calculatePhaseDates(r.phase, r.rowNumber, r.startDate);
@@ -653,7 +840,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return {
               rowNumber: r.rowNumber,
               activity: hasActivities ? r.activity : '',
-              trainingPath: hasTraining ? r.trainingPath : 'Pending LNA Team',
+              trainingPath: hasTraining ? r.trainingPath : '',
               phase: dateInfo.duration,
               startDate: dateInfo.startDate,
               endDate: dateInfo.endDate,
@@ -662,22 +849,26 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             };
           });
 
+          const rows: RoadmapSubRow[] = ensureFiveSubRows(baseSubRows);
+
           return {
             competencyId: comp.id,
             code: comp.code,
             competencyName: comp.name,
             category: comp.category,
+            priorityRank: rankIdx + 1,
             objective: comp.managerObjective || preset.objective || '',
             rows,
             developmentActivities: rows[0]?.activity || '',
             learningTrainingPlan: rows[0]?.trainingPath || 'Pending LNA Team',
-            phaseMonths: '12 Months (4 Phases)',
+            phaseMonths: '24 Months (5 Milestones)',
             statusRemarks: targetStatus === 'ACTIVE' ? 'Active In-Progress' : 'Scheduled for 2026/27 Cycle',
           };
         });
 
     setCompetencies(mockCompetencies);
     setRoadmapItems(mockRoadmaps);
+    setEmployeeDevelopmentThoughts(DEFAULT_EMPLOYEE_DEVELOPMENT_THOUGHTS);
     setStatus(targetStatus);
 
     // Set appropriate role view for convenience
@@ -694,6 +885,28 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addToast('info', 'Preset Loaded', `Switched state to "${targetStatus.replace(/_/g, ' ')}".`);
   };
 
+  const selectEmployeeForReview = (sub: TeamMemberSubmission, targetStatus?: PdpStatus) => {
+    setEmployee(toEmployeeProfile(sub));
+    const nextStatus = targetStatus || (sub.status === 'APPROVED' ? 'PENDING_HR_INITIATION' : 'PENDING_MANAGER_REVIEW');
+    loadStagePreset(nextStatus);
+    addToast('info', 'Employee Selected', `Loaded PDP review profile for ${sub.name}.`);
+  };
+
+  const updateManagerRemarks = (remarks: string) => {
+    setManagerRemarks(remarks);
+  };
+
+  const addCommentMessage = (message: Omit<CommentMessage, 'id' | 'timestamp'> & { timestamp?: string }) => {
+    const newMsg: CommentMessage = {
+      id: `msg-${Date.now()}`,
+      sender: message.sender,
+      senderName: message.senderName,
+      text: message.text,
+      timestamp: message.timestamp || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '/'),
+    };
+    setCommentHistory((prev) => [...prev, newMsg]);
+  };
+
   return (
     <PdpContext.Provider
       value={{
@@ -704,16 +917,26 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         cycleConfig,
         competencies,
         roadmapItems,
+        employeeDevelopmentThoughts,
+        updateEmployeeDevelopmentThoughts,
+        managerRemarks,
+        updateManagerRemarks,
+        commentHistory,
+        addCommentMessage,
         auditLogs,
         toasts,
         addToast,
         removeToast,
         updateEmployeeEvaluation,
+        resetEmployeeEvaluationForm,
         submitEmployeeEvaluation,
         updateManagerEvaluation,
         toggleCompetencySelection,
+        updateCompetencyPriority,
         updateManagerObjective,
         submitManagerEvaluation,
+        returnToEmployee,
+        returnToManager,
         initiatePdpByHr,
         updateRoadmapSubRow,
         updateRoadmapObjective,
@@ -728,6 +951,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sendReminder,
         resetAllData,
         loadStagePreset,
+        selectEmployeeForReview,
         selectedCompetenciesCount,
         isEmployeeEvalComplete,
         isManagerEvalComplete,

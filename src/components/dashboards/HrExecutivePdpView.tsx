@@ -579,16 +579,16 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                 }
                 className={`p-3.5 rounded-xl border transition-all cursor-pointer shadow-xs ${
                   activeFilter === 'MANAGER_PENDING'
-                    ? 'bg-indigo-700 text-white border-indigo-800 shadow-md ring-2 ring-indigo-300'
-                    : 'bg-white hover:bg-indigo-50/50 border-indigo-200 text-slate-800'
+                    ? 'bg-[#211E4E] text-white border-[#1b1842] shadow-md ring-2 ring-[#C8A977]'
+                    : 'bg-white hover:bg-[#211E4E]/5 border-slate-200 text-slate-800'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={`text-[10px] font-bold uppercase tracking-wider ${
                       activeFilter === 'MANAGER_PENDING'
-                        ? 'text-indigo-100'
-                        : 'text-indigo-800'
+                        ? 'text-[#C8A977]'
+                        : 'text-[#211E4E]'
                     }`}
                   >
                     Pending with Manager
@@ -596,8 +596,8 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                   <UserCheck
                     className={`w-3.5 h-3.5 ${
                       activeFilter === 'MANAGER_PENDING'
-                        ? 'text-white'
-                        : 'text-indigo-600'
+                        ? 'text-[#C8A977]'
+                        : 'text-[#211E4E]'
                     }`}
                   />
                 </div>
@@ -615,16 +615,16 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                 }
                 className={`p-3.5 rounded-xl border transition-all cursor-pointer shadow-xs ${
                   activeFilter === 'LNA_PENDING'
-                    ? 'bg-purple-600 text-white border-purple-700 shadow-md ring-2 ring-purple-400'
-                    : 'bg-white hover:bg-purple-50/50 border-purple-200 text-slate-800'
+                    ? 'bg-[#211E4E] text-white border-[#1b1842] shadow-md ring-2 ring-[#C8A977]'
+                    : 'bg-white hover:bg-[#C8A977]/10 border-slate-200 text-slate-800'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={`text-[10px] font-bold uppercase tracking-wider ${
                       activeFilter === 'LNA_PENDING'
-                        ? 'text-purple-100'
-                        : 'text-purple-800'
+                        ? 'text-[#C8A977]'
+                        : 'text-slate-800'
                     }`}
                   >
                     Pending with Talent Management
@@ -632,8 +632,8 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                   <GraduationCap
                     className={`w-3.5 h-3.5 ${
                       activeFilter === 'LNA_PENDING'
-                        ? 'text-white'
-                        : 'text-purple-600'
+                        ? 'text-[#C8A977]'
+                        : 'text-[#C8A977]'
                     }`}
                   />
                 </div>
@@ -938,13 +938,13 @@ export const HrExecutivePdpView: React.FC<HrExecutivePdpViewProps> = ({ onInspec
                                 </span>
                               )}
                               {member.category === 'MANAGER_PENDING' && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                  <UserCheck className="w-3 h-3" /> Manager Review
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#211E4E]/10 text-[#211E4E] border border-[#211E4E]/30">
+                                  <UserCheck className="w-3 h-3 text-[#211E4E]" /> Manager Review
                                 </span>
                               )}
                               {member.category === 'LNA_PENDING' && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                  <GraduationCap className="w-3 h-3" /> Talent Management
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C8A977]/25 text-[#211E4E] border border-[#C8A977]">
+                                  <GraduationCap className="w-3 h-3 text-[#C8A977]" /> Talent Management
                                 </span>
                               )}
                               {member.category === 'ACTIVE_PDP' && (
