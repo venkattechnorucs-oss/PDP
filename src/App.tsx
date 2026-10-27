@@ -11,6 +11,7 @@ import { ManagerApprovalsView } from './components/ManagerApprovalsView';
 import { HrInitiationView } from './components/HrInitiationView';
 import { ToastContainer } from './components/ToastContainer';
 import { ArrowLeft } from 'lucide-react';
+import { PdpStatus } from './types/pdp';
 import { TEAM_SUBMISSIONS, MANAGER_SELF_PROFILE, TeamMemberSubmission } from './data/teamSubmissionsData';
 
 const MainAppContent: React.FC = () => {
@@ -102,7 +103,10 @@ const MainAppContent: React.FC = () => {
   };
 
   const handleReviewFromManagerApprovals = (sub: TeamMemberSubmission) => {
-    selectEmployeeForReview(sub, 'PENDING_MANAGER_REVIEW');
+    // If currently in Manager Roadmap stage, open the employee's PDP Development Roadmap page
+    const targetStatus: PdpStatus =
+      status === 'PDP_PLANNING_MANAGER' ? 'PDP_PLANNING_MANAGER' : 'PENDING_MANAGER_REVIEW';
+    selectEmployeeForReview(sub, targetStatus);
     setIsReviewingEmployee(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
