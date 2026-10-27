@@ -7,10 +7,11 @@ export type NavTabType =
   | 'my_approvals'
   | 'pdp-assessment'
   | 'hr_initiation'
+  | 'lna_plan'
   | 'pdp';
 
 interface PdpSideNavProps {
-  currentRole?: 'employee' | 'manager' | 'hr';
+  currentRole?: 'employee' | 'manager' | 'hr' | 'lna';
   activeTab?: NavTabType;
   onSelectTab?: (tab: NavTabType) => void;
   pendingApprovalsCount?: number;
@@ -26,6 +27,7 @@ export const PdpSideNav: React.FC<PdpSideNavProps> = ({
     activeTab === 'dashboard' || activeTab === 'my_pdp';
   const isMyApprovalsActive = activeTab === 'my_approvals';
   const isHrInitiationActive = activeTab === 'hr_initiation' || activeTab === 'pdp';
+  const isLnaPlanActive = activeTab === 'lna_plan';
 
   return (
     <aside className="w-48 lg:w-52 shrink-0 bg-white border-r border-slate-200 py-4 px-3 min-h-[calc(100vh-50px)] select-none hidden md:block">
@@ -97,6 +99,25 @@ export const PdpSideNav: React.FC<PdpSideNavProps> = ({
               strokeWidth={2}
             />
             <span>PDP Initiation</span>
+          </button>
+        )}
+
+        {/* Item 4: LNA Training Plan (Shown in LNA role) */}
+        {currentRole === 'lna' && (
+          <button
+            type="button"
+            onClick={() => onSelectTab && onSelectTab('lna_plan')}
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-all cursor-pointer text-left font-bold ${
+              isLnaPlanActive
+                ? 'bg-[#211E4E] text-white shadow-xs'
+                : 'text-[#211E4E] hover:text-[#C8A977] hover:bg-[#211E4E]/5'
+            }`}
+          >
+            <GraduationCap
+              className={`w-4 h-4 ${isLnaPlanActive ? 'text-white' : 'text-[#211E4E]'} shrink-0`}
+              strokeWidth={2}
+            />
+            <span>LNA Training Plan</span>
           </button>
         )}
       </div>

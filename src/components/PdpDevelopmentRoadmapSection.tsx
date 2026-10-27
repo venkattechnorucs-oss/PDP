@@ -2,10 +2,14 @@ import React from 'react';
 import { usePdp } from '../context/PdpContext';
 import {
   AlertCircle,
+  Calendar,
   Layers,
+  ChevronDown,
 } from 'lucide-react';
 import { calculatePhaseDates } from '../utils/phaseDateUtils';
 import { DateRangeCalendarPicker } from './DateRangeCalendarPicker';
+import { EditableActivityCombobox } from './EditableActivityCombobox';
+import { EditableTrainingPathCombobox } from './EditableTrainingPathCombobox';
 import { DevelopmentRoadmapItem, RoadmapSubRow } from '../types/pdp';
 
 interface PdpDevelopmentRoadmapSectionProps {
@@ -59,6 +63,8 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
     updateRoadmapSubRow,
     submitManagerRoadmap,
     submitLnaPlan,
+    returnToManager,
+    returnToLnt,
     isManagerRoadmapComplete,
     isLnaPlanComplete,
   } = usePdp();
@@ -80,10 +86,12 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
 
   const isManagerPlanning =
     currentRole === 'MANAGER' && status === 'PDP_PLANNING_MANAGER';
+  // Learning / Training Path column is only needed in LNA Training Plan and subsequent pages (not in Manager Roadmap)
+  const showTrainingColumn = status !== 'PDP_PLANNING_MANAGER';
   const isLnaEditing =
     (currentRole === 'LNA_TEAM' && status === 'PENDING_LNA_TEAM') ||
     status === 'PENDING_LNA_TEAM';
-  const isTrainingEditable = isLnaEditing || isManagerPlanning;
+  const isTrainingEditable = isLnaEditing;
   const isEmployeeSigning =
     currentRole === 'EMPLOYEE' && status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
 
@@ -102,33 +110,35 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
         <table className="w-full table-fixed text-left text-xs border-collapse min-w-[1100px]">
           <thead>
             <tr className="bg-[#1C1844] text-white font-bold text-[11px] uppercase tracking-wider border-b border-slate-200">
-              {/* Column 1: Competency (14%) - Sleek corporate presentation */}
-              <th className="py-3 px-3.5 w-[14%] border-r border-slate-700/60 text-left">
+              {/* Column 1: Competency */}
+              <th className={`py-3 px-3.5 ${showTrainingColumn ? 'w-[14%]' : 'w-[18%]'} border-r border-slate-700/60 text-left`}>
                 Competency
               </th>
 
-              {/* Column 2: Objectives (16%) */}
-              <th className="py-3 px-3.5 w-[16%] border-r border-slate-700/60 text-left">
+              {/* Column 2: Objectives */}
+              <th className={`py-3 px-3.5 ${showTrainingColumn ? 'w-[16%]' : 'w-[22%]'} border-r border-slate-700/60 text-left`}>
                 Objectives
               </th>
 
-              {/* Column 3: Development Activities / Projects (29%) */}
-              <th className="py-3 px-3.5 w-[29%] border-r border-slate-700/60 text-left">
+              {/* Column 3: Development Activities / Projects */}
+              <th className={`py-3 px-3.5 ${showTrainingColumn ? 'w-[29%]' : 'w-[38%]'} border-r border-slate-700/60 text-left`}>
                 Development Activities / Projects
               </th>
 
-              {/* Column 4: Learning / Training Path (22%) */}
-              <th className="py-3 px-3.5 w-[22%] border-r border-slate-700/60 text-left">
-                Learning / Training Path
-              </th>
+              {/* Column 4: Learning / Training Path (Shown only when not on Manager Roadmap) */}
+              {showTrainingColumn && (
+                <th className="py-3 px-3.5 w-[22%] border-r border-slate-700/60 text-left">
+                  Learning / Training Path
+                </th>
+              )}
 
-              {/* Column 5: Phase (11%) */}
-              <th className="py-3 px-2 w-[11%] border-r border-slate-700/60 text-center">
+              {/* Column 5: Phase */}
+              <th className={`py-3 px-2 ${showTrainingColumn ? 'w-[11%]' : 'w-[12%]'} border-r border-slate-700/60 text-center`}>
                 Phase
               </th>
 
-              {/* Column 6: Status/Remarks (8%) */}
-              <th className="py-3 px-2 w-[8%] text-center">
+              {/* Column 6: Status/Remarks */}
+              <th className={`py-3 px-2 ${showTrainingColumn ? 'w-[8%]' : 'w-[10%]'} text-center`}>
                 Status
               </th>
             </tr>
@@ -202,41 +212,32 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                           </td>
                         )}
 
-                        {/* 3. Development Activities / Projects (Tight, neat milestone rows) */}
-                        <td className="py-2 px-3 border-r border-slate-200/90 align-top">
+                        {/* 3. Development Activities / Projects (Editable Combobox with Suggestions & Custom Input) */}
+                        <td className="py-1 px-2.5 border-r border-slate-200/90 align-top">
                           {isManagerPlanning ? (
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-700">
-                                Milestone {row.rowNumber}
+                            <EditableActivityCombobox
+                              value={row.activity || ''}
+                              onChange={(newActivity) =>
+                                updateRoadmapSubRow(
+                                  item.competencyId,
+                                  row.rowNumber,
+                                  'activity',
+                                  newActivity
+                                )
+                              }
+                              competencyId={item.competencyId}
+                              rowNumber={row.rowNumber}
+                            />
+                          ) : (
+                            <div className="space-y-0.5">
+                              <div className="text-[10.5px] font-semibold text-slate-700 leading-tight flex items-center">
+                                Activity {row.rowNumber}
                                 {row.rowNumber <= 4 && (
                                   <span className="text-red-500 font-bold ml-0.5">*</span>
                                 )}
+                                <span className="ml-0.5">:</span>
                               </div>
-                              <textarea
-                                rows={2}
-                                value={row.activity || ''}
-                                onChange={(e) =>
-                                  updateRoadmapSubRow(
-                                    item.competencyId,
-                                    row.rowNumber,
-                                    'activity',
-                                    e.target.value
-                                  )
-                                }
-                                placeholder={
-                                  row.rowNumber <= 4
-                                    ? "Specify development activity, milestone or work project..."
-                                    : "Additional development project or stretch goal..."
-                                }
-                                className="w-full text-xs p-2 rounded-md border border-slate-200 bg-white hover:border-slate-300 focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] focus:outline-hidden text-slate-900 placeholder:text-slate-400 shadow-2xs transition-all leading-normal break-words resize-y min-h-[44px]"
-                              />
-                            </div>
-                          ) : (
-                            <div className="py-0.5">
-                              <span className="font-semibold text-slate-700 text-[11px] mr-1.5 inline-block">
-                                Milestone {row.rowNumber}{row.rowNumber <= 4 && <span className="text-red-500 font-bold ml-0.5">*</span>}:
-                              </span>
-                              <span className="text-xs text-slate-900 leading-normal break-words">
+                              <div className="w-full text-xs p-1.5 rounded border border-slate-200 bg-slate-50/70 text-slate-900 leading-snug break-words shadow-2xs min-h-[36px]">
                                 {row.activity ? (
                                   row.activity
                                 ) : (
@@ -244,64 +245,57 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                                     {row.rowNumber === 5 ? 'Not specified' : '—'}
                                   </span>
                                 )}
-                              </span>
+                              </div>
                             </div>
                           )}
                         </td>
 
-                        {/* 4. Learning / Training Path (Tight, neat training path rows) */}
-                        <td className="py-2 px-3 border-r border-slate-200/90 align-top">
-                          {isTrainingEditable ? (
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-700">
-                                Training Path {row.rowNumber}
-                                {row.rowNumber <= 4 && (
-                                  <span className="text-red-500 font-bold ml-0.5">*</span>
-                                )}
-                              </div>
-                              <textarea
-                                rows={2}
+                        {/* 4. Learning / Training Path (Editable Combobox with Suggestions & Custom Input, Box View in non-edit) */}
+                        {showTrainingColumn && (
+                          <td className="py-1 px-2.5 border-r border-slate-200/90 align-top">
+                            {isTrainingEditable ? (
+                              <EditableTrainingPathCombobox
                                 value={
                                   row.trainingPath && row.trainingPath !== 'Pending LNA Team'
                                     ? row.trainingPath
                                     : ''
                                 }
-                                onChange={(e) =>
+                                onChange={(newTraining) =>
                                   updateRoadmapSubRow(
                                     item.competencyId,
                                     row.rowNumber,
                                     'trainingPath',
-                                    e.target.value
+                                    newTraining
                                   )
                                 }
-                                placeholder={
-                                  row.rowNumber <= 4
-                                    ? "Enter course, certification, workshop, or learning path..."
-                                    : "Additional course, certification, or self-paced study..."
-                                }
-                                className="w-full text-xs p-2 rounded-md border border-slate-200 bg-white hover:border-slate-300 focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] focus:outline-hidden text-slate-900 placeholder:text-slate-400 shadow-2xs transition-all leading-normal break-words resize-y min-h-[44px]"
+                                competencyId={item.competencyId}
+                                rowNumber={row.rowNumber}
                               />
-                            </div>
-                          ) : (
-                            <div className="py-0.5">
-                              <span className="font-semibold text-slate-700 text-[11px] mr-1.5 inline-block">
-                                Training Path {row.rowNumber}{row.rowNumber <= 4 && <span className="text-red-500 font-bold ml-0.5">*</span>}:
-                              </span>
-                              <span className="text-xs text-slate-900 leading-normal break-words">
-                                {row.trainingPath && row.trainingPath !== 'Pending LNA Team' ? (
-                                  row.trainingPath
-                                ) : (
-                                  <span className="text-slate-400 italic">
-                                    {row.rowNumber === 5 ? 'Self-paced / on-the-job' : 'Pending LNA Team'}
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-                          )}
-                        </td>
+                            ) : (
+                              <div className="space-y-0.5">
+                                <div className="text-[10.5px] font-semibold text-slate-700 leading-tight flex items-center">
+                                  Training Path {row.rowNumber}
+                                  {row.rowNumber <= 4 && (
+                                    <span className="text-red-500 font-bold ml-0.5">*</span>
+                                  )}
+                                  <span className="ml-0.5">:</span>
+                                </div>
+                                <div className="w-full text-xs p-1.5 rounded border border-slate-200 bg-slate-50/70 text-slate-900 leading-snug break-words shadow-2xs min-h-[36px]">
+                                  {row.trainingPath && row.trainingPath !== 'Pending LNA Team' ? (
+                                    row.trainingPath
+                                  ) : (
+                                    <span className="text-slate-400 italic">
+                                      {row.rowNumber === 5 ? 'Self-paced / on-the-job' : 'Pending LNA Team'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </td>
+                        )}
 
                         {/* 5. Phase (Single sleek interactive calendar picker or clean date display) */}
-                        <td className="py-2 px-2 border-r border-slate-200/90 align-middle text-center">
+                        <td className="py-1 px-2 border-r border-slate-200/90 align-middle text-center">
                           {isManagerPlanning ? (
                             <div className="w-full">
                               <DateRangeCalendarPicker
@@ -318,20 +312,72 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                               />
                             </div>
                           ) : (
-                            <div className="flex flex-col items-center justify-center text-center py-0.5">
-                              <span className="font-bold text-xs text-[#211E4E] whitespace-nowrap leading-tight">
-                                {row.phase || dateInfo.duration}
-                              </span>
-                              <span className="text-[9.5px] text-slate-500 font-mono mt-0.5 whitespace-nowrap">
-                                {row.startDate || dateInfo.startDate} – {row.endDate || dateInfo.endDate}
-                              </span>
+                            <div className="w-full py-1 px-1.5 rounded-md bg-slate-50/80 border border-slate-200/80 text-left shadow-2xs">
+                              <div className="flex items-center justify-between gap-1 mb-0.5 pb-0.5 border-b border-slate-200/60">
+                                <span className="text-[10px] font-bold text-[#211E4E] tracking-tight">
+                                  {row.phase || dateInfo.duration}
+                                </span>
+                                <span className="w-3.5 h-3.5 rounded bg-[#211E4E]/5 text-[#211E4E] flex items-center justify-center shrink-0">
+                                  <Calendar className="w-2.5 h-2.5 text-[#C8A977]" />
+                                </span>
+                              </div>
+                              <div className="space-y-0.5 font-mono text-[9.5px]">
+                                <div className="flex items-center justify-between text-slate-600">
+                                  <span className="text-[8.5px] font-sans font-semibold text-slate-400 uppercase">From</span>
+                                  <span className="font-semibold text-slate-800">{row.startDate || dateInfo.startDate}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-slate-600">
+                                  <span className="text-[8.5px] font-sans font-semibold text-slate-400 uppercase">To</span>
+                                  <span className="font-semibold text-slate-800">{row.endDate || dateInfo.endDate}</span>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </td>
 
-                        {/* 6. Status/Remarks (Spacious text box in edit mode, clean pill in view mode) */}
-                        <td className="py-2 px-2 align-middle text-center">
-                          {isManagerPlanning ? (
+                        {/* 6. Status/Remarks (ACTIVE green dropdown on Active PDP, spacious text box in edit mode, clean pill in view mode) */}
+                        <td className="py-1 px-2 align-middle text-center">
+                          {status === 'ACTIVE' ? (
+                            <div className="py-0.5 flex justify-center">
+                              <div className="relative inline-block w-full max-w-[115px]">
+                                <select
+                                  value={row.statusRemarks || 'ACTIVE'}
+                                  onChange={(e) =>
+                                    updateRoadmapSubRow(
+                                      item.competencyId,
+                                      row.rowNumber,
+                                      'statusRemarks',
+                                      e.target.value
+                                    )
+                                  }
+                                  className={`w-full text-[10px] font-bold py-1 pl-2 pr-5 rounded-md border shadow-2xs cursor-pointer appearance-none transition-colors text-center ${
+                                    (row.statusRemarks || 'ACTIVE') === 'Completed'
+                                      ? 'bg-emerald-600 text-white border-emerald-700'
+                                      : (row.statusRemarks || 'ACTIVE') === 'In Progress'
+                                      ? 'bg-blue-50 text-blue-700 border-blue-300'
+                                      : 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                  }`}
+                                >
+                                  <option value="ACTIVE" className="bg-white text-emerald-700 font-bold">
+                                    ACTIVE
+                                  </option>
+                                  <option value="In Progress" className="bg-white text-blue-700 font-bold">
+                                    In Progress
+                                  </option>
+                                  <option value="Completed" className="bg-white text-emerald-700 font-bold">
+                                    Completed
+                                  </option>
+                                </select>
+                                <ChevronDown
+                                  className={`w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none ${
+                                    (row.statusRemarks || 'ACTIVE') === 'Completed'
+                                      ? 'text-white'
+                                      : 'text-slate-500'
+                                  }`}
+                                />
+                              </div>
+                            </div>
+                          ) : isManagerPlanning ? (
                             <div>
                               <input
                                 type="text"
@@ -345,7 +391,7 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                                   )
                                 }
                                 placeholder="Status"
-                                className="w-full text-xs py-1.5 px-1.5 rounded-md border border-slate-200 bg-white text-center focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] focus:outline-hidden text-slate-800 placeholder:text-slate-400 shadow-2xs transition-all"
+                                className="w-full text-xs py-1 px-1.5 rounded border border-slate-200 bg-white text-center focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] focus:outline-hidden text-slate-800 placeholder:text-slate-400 shadow-2xs transition-all"
                               />
                             </div>
                           ) : (
@@ -374,7 +420,7 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
             <div className="flex items-center gap-2">
               {!isManagerRoadmapComplete && (
                 <span className="text-xs text-amber-700 font-medium flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Complete Development Activities for Milestones 1–4 (*) across all 5 competencies.
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Complete Development Activities for Activities 1–4 (*) across all 5 competencies.
                 </span>
               )}
               <button
@@ -415,15 +461,31 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
             </div>
           )}
 
-          {/* Employee Action: Submit with no icon */}
+          {/* Employee Action: Return to Manager, Return to LNT, and Submit */}
           {isEmployeeSigning && (
-            <button
-              type="button"
-              onClick={onOpenAcknowledgementModal}
-              className="px-7 py-2.5 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs rounded-lg shadow-sm transition-all cursor-pointer active:scale-98"
-            >
-              Submit
-            </button>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => returnToManager('Employee returned PDP for manager adjustments')}
+                className="px-4 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer"
+              >
+                Return to Manager
+              </button>
+              <button
+                type="button"
+                onClick={() => returnToLnt('Employee returned PDP for LNT learning path adjustments')}
+                className="px-4 py-2 bg-white hover:bg-amber-50 text-amber-800 hover:text-amber-900 font-bold text-xs rounded-lg border border-amber-300 shadow-2xs transition-all cursor-pointer"
+              >
+                Return to LNT
+              </button>
+              <button
+                type="button"
+                onClick={onOpenAcknowledgementModal}
+                className="px-7 py-2 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs rounded-lg shadow-sm transition-all cursor-pointer active:scale-98"
+              >
+                Submit
+              </button>
+            </div>
           )}
         </div>
       </div>

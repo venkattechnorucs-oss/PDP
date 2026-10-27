@@ -13,10 +13,14 @@ import { TEAM_SUBMISSIONS, TeamMemberSubmission } from '../data/teamSubmissionsD
 
 interface HrInitiationViewProps {
   onReviewEmployee: (employee: TeamMemberSubmission) => void;
+  title?: string;
+  subtitle?: string;
 }
 
 export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
   onReviewEmployee,
+  title,
+  subtitle,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDivision, setSelectedDivision] = useState('ALL');
@@ -84,10 +88,11 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-              <span>Personal Development Plan (PDP) – HR Initiation</span>
+              <span>{title || 'Personal Development Plan (PDP) – HR Initiation'}</span>
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-white/80 font-normal">
-              Filter employee submissions by functional area, department, and division. Review development objectives and initiate organizational PDP cycles.
+              {subtitle ||
+                'Filter employee submissions by functional area, department, and division. Review development objectives and initiate organizational PDP cycles.'}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -220,9 +225,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                 <th className="py-3 px-4">EMPLOYEE NAME</th>
                 <th className="py-3 px-4">POSITION</th>
                 <th className="py-3 px-4">DEPARTMENT</th>
-                <th className="py-3 px-4">DIVISION</th>
                 <th className="py-3 px-4">FUNCTION</th>
-                <th className="py-3 px-3 text-center w-16">GRADE</th>
                 <th className="py-3 px-3.5">DATE</th>
                 <th className="py-3 px-4 text-center">STATUS</th>
                 <th className="py-3 px-4 text-center w-36">ACTION</th>
@@ -231,7 +234,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
             <tbody className="divide-y divide-slate-200/80">
               {filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-slate-400 italic text-xs">
+                  <td colSpan={8} className="py-12 text-center text-slate-400 italic text-xs">
                     No employees found matching the selected filters.
                   </td>
                 </tr>
@@ -253,12 +256,9 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                         </span>
                       </td>
 
-                      {/* Employee Name */}
+                      {/* Employee Name (No Emp ID underneath) */}
                       <td className="py-3.5 px-4 font-bold text-slate-900">
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold text-slate-900">{emp.name}</span>
-                          <span className="text-[10px] font-mono text-slate-500">{emp.id}</span>
-                        </div>
+                        <span className="text-xs font-bold text-slate-900">{emp.name}</span>
                       </td>
 
                       {/* Position */}
@@ -271,23 +271,9 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                         {emp.department}
                       </td>
 
-                      {/* Division */}
-                      <td className="py-3.5 px-4 text-slate-700 font-medium">
-                        <span className="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                          {emp.division}
-                        </span>
-                      </td>
-
                       {/* Functional Area */}
                       <td className="py-3.5 px-4 text-slate-700 font-medium">
                         {emp.functionDept}
-                      </td>
-
-                      {/* Grade */}
-                      <td className="py-3.5 px-3 text-center">
-                        <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-mono font-bold text-[11px] border border-slate-200">
-                          {emp.grade}
-                        </span>
                       </td>
 
                       {/* Date */}

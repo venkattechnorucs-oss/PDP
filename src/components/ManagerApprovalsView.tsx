@@ -6,7 +6,6 @@ import {
   RotateCcw,
   Search,
   Eye,
-  UserCheck,
 } from 'lucide-react';
 import { TEAM_SUBMISSIONS, TeamMemberSubmission } from '../data/teamSubmissionsData';
 
@@ -236,7 +235,6 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                 <th className="py-3 px-4">EMPLOYEE NAME</th>
                 <th className="py-3 px-4">POSITION</th>
                 <th className="py-3 px-4">DEPARTMENT</th>
-                <th className="py-3 px-3 text-center w-16">GRADE</th>
                 <th className="py-3 px-3.5">DATE</th>
                 <th className="py-3 px-4 text-center">STATUS</th>
                 <th className="py-3 px-4 text-center w-36">ACTION</th>
@@ -245,7 +243,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
             <tbody className="divide-y divide-slate-200/80">
               {filteredSubmissions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-10 text-center text-slate-400 italic text-xs">
+                  <td colSpan={7} className="py-10 text-center text-slate-400 italic text-xs">
                     No submissions found matching your search and filter criteria.
                   </td>
                 </tr>
@@ -267,17 +265,9 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                         </span>
                       </td>
 
-                      {/* Employee Name + Delegation Badge */}
+                      {/* Employee Name */}
                       <td className="py-3.5 px-4 font-bold text-slate-900">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-slate-900">{sub.name}</span>
-                          {sub.hasDelegation && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FBF5E8] text-[#8C6D23] border border-[#E7D6A8]">
-                              <UserCheck className="w-3 h-3 text-[#8C6D23]" />
-                              <span>Delegation</span>
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-xs font-bold text-slate-900">{sub.name}</span>
                       </td>
 
                       {/* Position */}
@@ -288,13 +278,6 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                       {/* Department */}
                       <td className="py-3.5 px-4 text-slate-700 font-medium">
                         {sub.department}
-                      </td>
-
-                      {/* Grade */}
-                      <td className="py-3.5 px-3 text-center">
-                        <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-mono font-bold text-[11px] border border-slate-200">
-                          {sub.grade}
-                        </span>
                       </td>
 
                       {/* Date */}

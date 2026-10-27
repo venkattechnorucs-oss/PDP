@@ -53,6 +53,7 @@ interface PdpContextType {
   submitManagerEvaluation: () => { success: boolean; error?: string };
   returnToEmployee: (reason?: string) => void;
   returnToManager: (reason?: string) => void;
+  returnToLnt: (reason?: string) => void;
   
   initiatePdpByHr: (remarks?: string) => { success: boolean; error?: string };
   
@@ -485,15 +486,27 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const returnToManager = (reason?: string) => {
-    setStatus('PENDING_MANAGER_REVIEW');
+    setStatus('PDP_PLANNING_MANAGER');
     setCurrentRole('MANAGER');
     logAction(
-      'HR_ADMIN',
-      'HR Talent Management',
+      currentRole,
+      currentRole === 'EMPLOYEE' ? employee.name : 'HR Talent Management',
       'Returned to Manager',
       reason || 'PDP was returned to Line Manager for revision.'
     );
     addToast('warning', 'Returned to Manager', 'PDP has been returned to Line Manager for revision.');
+  };
+
+  const returnToLnt = (reason?: string) => {
+    setStatus('PENDING_LNA_TEAM');
+    setCurrentRole('LNA_TEAM');
+    logAction(
+      currentRole,
+      employee.name,
+      'Returned to LNT Team',
+      reason || 'PDP was returned to LNT Team for learning & training plan revision.'
+    );
+    addToast('warning', 'Returned to LNT Team', 'PDP has been returned to LNT Team for revision.');
   };
 
   // 3. HR Initiates PDP
@@ -619,9 +632,9 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addToast(
         'error',
         'Incomplete Development Roadmap',
-        `Please specify detailed Development Activities / Projects for Milestones 1–4 (*) across all 5 competencies (${incomplete.length} incomplete).`
+        `Please specify detailed Development Activities / Projects for Activities 1–4 (*) across all 5 competencies (${incomplete.length} incomplete).`
       );
-      return { success: false, error: 'All 5 competencies require development activities for Milestones 1–4 (*).' };
+      return { success: false, error: 'All 5 competencies require development activities for Activities 1–4 (*).' };
     }
 
     setStatus('PENDING_LNA_TEAM');
@@ -937,6 +950,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         submitManagerEvaluation,
         returnToEmployee,
         returnToManager,
+        returnToLnt,
         initiatePdpByHr,
         updateRoadmapSubRow,
         updateRoadmapObjective,
