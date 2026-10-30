@@ -56,16 +56,13 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
       {/* 1. Header Banner matching Image 1 */}
       <section className="bg-[#211E4E] rounded-2xl p-6 sm:p-7 shadow-[0_8px_30px_rgb(33,30,78,0.05)] border border-white/80">
         <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-          Personal Development Plan (PDP) – Approvals
+          Professional Development Plan (PDP) – Approvals
         </h1>
-        <p className="mt-1.5 text-xs sm:text-sm text-white/80 font-normal">
-          Review team submissions, evaluate skill alignment, and endorse or return for revisions.
-        </p>
       </section>
 
       {/* 2. Top Summary KPI Cards matching Image 1 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-        {/* Card 1: Pending Approval */}
+        {/* Card 1: Pending */}
         <div
           onClick={() => setActiveFilter('PENDING')}
           className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
@@ -76,7 +73,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              PENDING APPROVAL
+              PENDING
             </span>
             <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200">
               <Clock className="w-4 h-4 text-amber-600" />
@@ -109,7 +106,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           </div>
         </div>
 
-        {/* Card 3: Approved */}
+        {/* Card 3: Submitted */}
         <div
           onClick={() => setActiveFilter('APPROVED')}
           className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
@@ -120,7 +117,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              APPROVED
+              SUBMITTED
             </span>
             <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -193,7 +190,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
           >
-            Approved
+            Submitted
           </button>
           <button
             type="button"
@@ -290,13 +287,13 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                         {isApproved && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs whitespace-nowrap">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>APPROVED</span>
+                            <span>SUBMITTED</span>
                           </span>
                         )}
                         {isPending && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs whitespace-nowrap">
                             <Clock className="w-3.5 h-3.5 text-amber-700" />
-                            <span>PENDING APPROVAL</span>
+                            <span>PENDING</span>
                           </span>
                         )}
                         {isReturned && (

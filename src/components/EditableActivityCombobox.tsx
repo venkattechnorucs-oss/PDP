@@ -150,24 +150,10 @@ export const EditableActivityCombobox: React.FC<EditableActivityComboboxProps> =
         <div
           className={`absolute z-50 left-0 right-0 ${
             rowNumber >= 4 ? 'bottom-full mb-1' : 'top-full mt-1'
-          } bg-white border border-slate-300 rounded-lg shadow-xl p-1.5 text-left text-xs max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100`}
+          } bg-white border border-slate-300 rounded-lg shadow-xl p-1 text-left text-xs max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100`}
           style={{ boxShadow: '0 10px 28px rgba(33, 30, 78, 0.16)' }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between pb-1 px-1.5 border-b border-slate-100 mb-1">
-            <span className="text-[10px] font-bold text-[#211E4E] uppercase tracking-wider">
-              Select Activity
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="p-0.5 text-slate-400 hover:text-slate-600 rounded transition-colors cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Options List */}
+          {/* Options List without dots, checkmarks or header */}
           <div className="space-y-0.5">
             {suggestions.map((option, idx) => {
               const isSelected = value.trim() === option.trim();
@@ -176,23 +162,12 @@ export const EditableActivityCombobox: React.FC<EditableActivityComboboxProps> =
                   key={idx}
                   type="button"
                   onClick={() => handleSelectOption(option)}
-                  className={`w-full text-left px-2 py-1.5 rounded transition-all cursor-pointer flex items-start gap-1.5 text-[11px] leading-snug group ${
+                  className={`w-full text-left px-2.5 py-1.5 rounded transition-all cursor-pointer text-xs leading-snug ${
                     isSelected
                       ? 'bg-[#211E4E] text-white font-medium shadow-2xs'
                       : 'hover:bg-[#211E4E]/5 hover:text-[#211E4E] text-slate-700'
                   }`}
                 >
-                  <span
-                    className={`shrink-0 mt-0.5 ${
-                      isSelected ? 'text-[#C8A977]' : 'text-slate-400 group-hover:text-[#C8A977]'
-                    }`}
-                  >
-                    {isSelected ? (
-                      <Check className="w-3 h-3" />
-                    ) : (
-                      <span className="font-bold">•</span>
-                    )}
-                  </span>
                   <span className="break-words">{option}</span>
                 </button>
               );

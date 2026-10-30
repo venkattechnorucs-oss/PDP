@@ -16,14 +16,10 @@ import { PdpStatus } from '../types/pdp';
 import { YasHoldingLogo } from './YasHoldingLogo';
 
 const STAGES: { key: PdpStatus; label: string; num: number }[] = [
-  { key: 'PENDING_EMPLOYEE_EVALUATION', label: 'Employee Evaluation', num: 1 },
-  { key: 'PENDING_MANAGER_REVIEW', label: 'Manager Review', num: 2 },
-  { key: 'PENDING_HR_INITIATION', label: 'HR Initiation', num: 3 },
-  { key: 'PDP_PLANNING_MANAGER', label: 'Manager Roadmap', num: 4 },
-  { key: 'PENDING_LNA_TEAM', label: 'LNA Training Plan', num: 5 },
-  { key: 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', label: 'Employee Sign-Off', num: 6 },
-  { key: 'ACTIVE', label: 'Active PDP', num: 7 },
-  { key: 'HR_VIEW', label: 'HR View', num: 8 },
+  { key: 'PENDING_EMPLOYEE_EVALUATION', label: 'Employee', num: 1 },
+  { key: 'PENDING_MANAGER_REVIEW', label: 'Manager', num: 2 },
+  { key: 'PENDING_LNA_TEAM', label: 'LNA Team', num: 3 },
+  { key: 'HR_VIEW', label: 'HR', num: 4 },
 ];
 
 interface GansTopBarProps {}
@@ -44,7 +40,14 @@ export const GansTopBar: React.FC<GansTopBarProps> = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const currentStageObj = STAGES.find((s) => s.key === status);
+  const currentStageObj =
+    status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' || status === 'ACTIVE'
+      ? STAGES.find((s) => s.key === 'PENDING_EMPLOYEE_EVALUATION')
+      : status === 'PDP_PLANNING_MANAGER'
+      ? STAGES.find((s) => s.key === 'PENDING_MANAGER_REVIEW')
+      : status === 'PENDING_HR_INITIATION'
+      ? STAGES.find((s) => s.key === 'HR_VIEW')
+      : STAGES.find((s) => s.key === status);
 
   return (
     <header className="w-full sticky top-0 z-40 select-none shadow-xs print:hidden">
@@ -131,6 +134,7 @@ export const GansTopBar: React.FC<GansTopBarProps> = () => {
 
         {/* Right: Stage Selector Dropdown & Quick Reset */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+
           {/* Stage Selector Dropdown */}
           <div className="relative" ref={menuRef}>
             <button
@@ -150,12 +154,8 @@ export const GansTopBar: React.FC<GansTopBarProps> = () => {
             </button>
 
             {showPresetsMenu && (
-              <div className="absolute right-0 top-10 w-64 bg-[#211E4E] text-white rounded-xl shadow-2xl border border-[#C8A977]/40 p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-2.5 py-1.5 font-bold text-[10px] text-[#C8A977] uppercase tracking-wider border-b border-slate-700/80 flex items-center justify-between">
-                  <span>Workflow Stages</span>
-                  <span className="text-[9px] text-[#C8A977] font-mono">8 Stages</span>
-                </div>
-                <div className="space-y-1 mt-1.5 max-h-80 overflow-y-auto">
+              <div className="absolute right-0 top-10 w-44 bg-[#211E4E] text-white rounded-xl shadow-2xl border border-[#C8A977]/40 p-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+                <div className="space-y-1 max-h-80 overflow-y-auto">
                   {STAGES.map((s) => {
                     const isSelected = status === s.key;
                     return (

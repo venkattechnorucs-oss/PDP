@@ -160,21 +160,10 @@ export const EditableTrainingPathCombobox: React.FC<EditableTrainingPathCombobox
         <div
           className={`absolute z-50 left-0 right-0 ${
             rowNumber >= 4 ? 'bottom-full mb-1' : 'top-full mt-1'
-          } bg-white border border-slate-300 rounded-lg shadow-xl p-1.5 text-left text-xs max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100`}
+          } bg-white border border-slate-300 rounded-lg shadow-xl p-1 text-left text-xs max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100`}
           style={{ boxShadow: '0 10px 28px rgba(33, 30, 78, 0.16)' }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between pb-1 px-1.5 border-b border-slate-100 mb-1">
-            <span className="text-[10px] font-bold text-[#211E4E] uppercase tracking-wider flex items-center gap-1">
-              <GraduationCap className="w-3 h-3 text-[#C8A977]" />
-              Select Learning / Training Path
-            </span>
-            <span className="text-[9.5px] text-slate-400 font-medium">
-              {suggestions.length} options
-            </span>
-          </div>
-
-          {/* Options List */}
+          {/* Options List without header, dots or checkmarks */}
           <div className="space-y-0.5">
             {suggestions.map((option, idx) => {
               const isSelected = value.trim() === option.trim();
@@ -183,17 +172,13 @@ export const EditableTrainingPathCombobox: React.FC<EditableTrainingPathCombobox
                   key={`${option}-${idx}`}
                   type="button"
                   onClick={() => handleSelectOption(option)}
-                  className={`w-full text-left p-1.5 rounded transition-all flex items-start gap-1.5 cursor-pointer text-xs leading-snug ${
+                  className={`w-full text-left px-2.5 py-1.5 rounded transition-all cursor-pointer text-xs leading-snug ${
                     isSelected
-                      ? 'bg-[#211E4E]/10 text-[#211E4E] font-semibold border-l-2 border-[#211E4E]'
-                      : 'hover:bg-slate-100 text-slate-700 hover:text-slate-900'
+                      ? 'bg-[#211E4E] text-white font-medium shadow-2xs'
+                      : 'hover:bg-[#211E4E]/5 hover:text-[#211E4E] text-slate-700'
                   }`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#C8A977] shrink-0 mt-1.5" />
-                  <span className="flex-1 break-words">{option}</span>
-                  {isSelected && (
-                    <Check className="w-3.5 h-3.5 text-[#211E4E] shrink-0 mt-0.5" />
-                  )}
+                  <span className="break-words">{option}</span>
                 </button>
               );
             })}

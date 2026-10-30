@@ -199,7 +199,7 @@ export const INITIAL_COMPETENCIES: CompetencyItem[] = [
 
 export const INITIAL_CYCLE_CONFIG: CycleConfig = {
   cycleYear: '2026',
-  assessmentName: 'Annual Strategic Personal Development Plan (PDP) Cycle 2026',
+  assessmentName: 'Annual Strategic Professional Development Plan (PDP) Cycle 2026',
   employeeDeadline: '15 Sep 2026',
   managerDeadline: '30 Sep 2026',
   lnaDeadline: '15 Oct 2026',

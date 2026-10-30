@@ -24,8 +24,12 @@ export const PdpCommentHistory: React.FC<PdpCommentHistoryProps> = ({ className 
     updateManagerRemarks,
   } = usePdp();
 
-  const isEmployeeEditing =
+  const isEmployeeEval =
     currentRole === 'EMPLOYEE' && status === 'PENDING_EMPLOYEE_EVALUATION';
+  const isEmployeeSignOff =
+    currentRole === 'EMPLOYEE' && status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
+  const isEmployeeEditing = isEmployeeEval || isEmployeeSignOff;
+
   const isManagerEditing =
     currentRole === 'MANAGER' && status === 'PENDING_MANAGER_REVIEW';
   const isReadOnly = !isEmployeeEditing && !isManagerEditing;
@@ -39,8 +43,8 @@ export const PdpCommentHistory: React.FC<PdpCommentHistoryProps> = ({ className 
   };
 
   // Resolve input values & handlers based on role
-  const isEmployeeMode = isEmployeeEditing || (status === 'PENDING_EMPLOYEE_EVALUATION' && currentRole === 'EMPLOYEE');
-  const isManagerMode = isManagerEditing || (currentRole === 'MANAGER' && status === 'PENDING_MANAGER_REVIEW');
+  const isEmployeeMode = isEmployeeEditing;
+  const isManagerMode = isManagerEditing;
 
   const inputValue = isEmployeeMode
     ? employeeDevelopmentThoughts
@@ -56,13 +60,17 @@ export const PdpCommentHistory: React.FC<PdpCommentHistoryProps> = ({ className 
     }
   };
 
-  const inputLabel = isEmployeeMode
+  const inputLabel = isEmployeeSignOff
+    ? 'Development Thoughts / Comments'
+    : isEmployeeEval
     ? 'Development Thoughts'
     : isManagerMode
     ? 'REMARKS'
     : 'Development Thoughts / Remarks';
 
-  const placeholderText = isEmployeeMode
+  const placeholderText = isEmployeeSignOff
+    ? 'Enter your development thoughts, sign-off comments, or return feedback here...'
+    : isEmployeeEval
     ? 'Enter your development thoughts, notes, or developmental remarks here...'
     : isManagerMode
     ? 'Enter remarks or developmental feedback here...'

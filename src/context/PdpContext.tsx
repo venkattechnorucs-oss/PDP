@@ -486,6 +486,18 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const returnToManager = (reason?: string) => {
+    if (employeeDevelopmentThoughts && employeeDevelopmentThoughts.trim() && currentRole === 'EMPLOYEE') {
+      setCommentHistory((prev) => [
+        ...prev,
+        {
+          id: `msg-${Date.now()}`,
+          sender: 'employee',
+          senderName: employee.name || 'Vivekanandan',
+          text: employeeDevelopmentThoughts.trim(),
+          timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '/'),
+        },
+      ]);
+    }
     setStatus('PDP_PLANNING_MANAGER');
     setCurrentRole('MANAGER');
     logAction(
@@ -498,6 +510,18 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const returnToLnt = (reason?: string) => {
+    if (employeeDevelopmentThoughts && employeeDevelopmentThoughts.trim() && currentRole === 'EMPLOYEE') {
+      setCommentHistory((prev) => [
+        ...prev,
+        {
+          id: `msg-${Date.now()}`,
+          sender: 'employee',
+          senderName: employee.name || 'Vivekanandan',
+          text: employeeDevelopmentThoughts.trim(),
+          timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '/'),
+        },
+      ]);
+    }
     setStatus('PENDING_LNA_TEAM');
     setCurrentRole('LNA_TEAM');
     logAction(
@@ -716,6 +740,19 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // 6. Employee Final Acknowledgement -> Active
   const acknowledgePdpByEmployee = (comments?: string) => {
+    const note = (comments || employeeDevelopmentThoughts || '').trim();
+    if (note) {
+      setCommentHistory((prev) => [
+        ...prev,
+        {
+          id: `msg-${Date.now()}`,
+          sender: 'employee',
+          senderName: employee.name || 'Vivekanandan',
+          text: note,
+          timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '/'),
+        },
+      ]);
+    }
     setStatus('ACTIVE');
     setCurrentRole('EMPLOYEE');
     logAction(
@@ -723,7 +760,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       employee.name,
       'PDP Formally Acknowledged',
       `Employee reviewed and accepted the 2026-2027 Professional Development Plan roadmap.${
-        comments ? ` Employee Note: ${comments}` : ''
+        note ? ` Employee Note: ${note}` : ''
       }`
     );
     addToast(
@@ -894,15 +931,12 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     else if (targetStatus === 'ACTIVE') setCurrentRole('EMPLOYEE');
     else if (targetStatus === 'COMPLETED') setCurrentRole('EMPLOYEE');
     else if (targetStatus === 'HR_VIEW') setCurrentRole('HR_ADMIN');
-
-    addToast('info', 'Preset Loaded', `Switched state to "${targetStatus.replace(/_/g, ' ')}".`);
   };
 
   const selectEmployeeForReview = (sub: TeamMemberSubmission, targetStatus?: PdpStatus) => {
     setEmployee(toEmployeeProfile(sub));
     const nextStatus = targetStatus || (sub.status === 'APPROVED' ? 'PENDING_HR_INITIATION' : 'PENDING_MANAGER_REVIEW');
     loadStagePreset(nextStatus);
-    addToast('info', 'Employee Selected', `Loaded PDP review profile for ${sub.name}.`);
   };
 
   const updateManagerRemarks = (remarks: string) => {

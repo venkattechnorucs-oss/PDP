@@ -9,13 +9,21 @@ import { PdpEmployeeAcknowledgmentModal } from './components/PdpEmployeeAcknowle
 import { PdpSideNav, NavTabType } from './components/PdpSideNav';
 import { ManagerApprovalsView } from './components/ManagerApprovalsView';
 import { HrInitiationView } from './components/HrInitiationView';
+import { HrPdpDashboardView } from './components/HrPdpDashboardView';
+import { EmployeeMasterView } from './components/EmployeeMasterView';
+import { FunctionalMasterView } from './components/FunctionalMasterView';
+import { CompetencyMasterView } from './components/CompetencyMasterView';
+import { ReleaseHistoryView } from './components/ReleaseHistoryView';
+import { DelegationView } from './components/DelegationView';
+import { ReportsView } from './components/ReportsView';
 import { ToastContainer } from './components/ToastContainer';
-import { ArrowLeft } from 'lucide-react';
+import { ReviewAndAssignView } from './components/ReviewAndAssignView';
+import { ArrowLeft, FileCheck } from 'lucide-react';
 import { PdpStatus } from './types/pdp';
 import { TEAM_SUBMISSIONS, MANAGER_SELF_PROFILE, TeamMemberSubmission } from './data/teamSubmissionsData';
 
 const MainAppContent: React.FC = () => {
-  const { status, loadStagePreset, selectEmployeeForReview } = usePdp();
+  const { status, loadStagePreset, selectEmployeeForReview, employee } = usePdp();
 
   // Derive role directly from the active workflow stage
   const currentRole: 'employee' | 'manager' | 'hr' | 'lna' =
@@ -28,9 +36,13 @@ const MainAppContent: React.FC = () => {
       : 'employee';
 
   const [activeTab, setActiveTab] = useState<NavTabType>(() => {
-    if (status === 'PENDING_HR_INITIATION' || status === 'HR_VIEW') return 'hr_initiation';
+    if (status === 'HR_VIEW') return 'hr_dashboard';
+    if (status === 'PENDING_HR_INITIATION') return 'hr_initiation';
     if (status === 'PENDING_LNA_TEAM') return 'lna_plan';
-    if (status === 'PENDING_MANAGER_REVIEW' || status === 'PDP_PLANNING_MANAGER') return 'my_approvals';
+    if (status === 'PENDING_MANAGER_REVIEW') return 'pending_actions';
+    if (status === 'PDP_PLANNING_MANAGER') return 'review_and_assign';
+    if (status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT') return 'sign_off';
+    if (status === 'ACTIVE') return 'active_pdp';
     return 'my_pdp';
   });
 
@@ -44,15 +56,24 @@ const MainAppContent: React.FC = () => {
       prevStatusRef.current = status;
       setIsReviewingEmployee(false);
 
-      if (status === 'PENDING_HR_INITIATION' || status === 'HR_VIEW') {
+      if (status === 'HR_VIEW') {
+        setActiveTab('hr_dashboard');
+      } else if (status === 'PENDING_HR_INITIATION') {
         setActiveTab('hr_initiation');
       } else if (status === 'PENDING_LNA_TEAM') {
         setActiveTab('lna_plan');
         setIsReviewingEmployee(false);
       } else if (status === 'PENDING_MANAGER_REVIEW') {
-        setActiveTab('my_approvals');
+        setActiveTab('pending_actions');
+        setIsReviewingEmployee(false);
       } else if (status === 'PDP_PLANNING_MANAGER') {
-        setActiveTab('my_approvals');
+        setActiveTab('review_and_assign');
+        setIsReviewingEmployee(false);
+      } else if (status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT') {
+        setActiveTab('sign_off');
+        setIsReviewingEmployee(false);
+      } else if (status === 'ACTIVE') {
+        setActiveTab('active_pdp');
         setIsReviewingEmployee(false);
       } else {
         setActiveTab('my_pdp');
@@ -92,8 +113,35 @@ const MainAppContent: React.FC = () => {
       } else {
         loadStagePreset('PENDING_EMPLOYEE_EVALUATION');
       }
-    } else if (tab === 'my_approvals') {
-      setActiveTab('my_approvals');
+    } else if (tab === 'sign_off') {
+      setActiveTab('sign_off');
+      loadStagePreset('PENDING_EMPLOYEE_ACKNOWLEDGEMENT');
+      setIsReviewingEmployee(false);
+    } else if (tab === 'active_pdp') {
+      setActiveTab('active_pdp');
+      loadStagePreset('ACTIVE');
+      setIsReviewingEmployee(false);
+    } else if (tab === 'my_approvals' || tab === 'pending_actions') {
+      setActiveTab('pending_actions');
+      setIsReviewingEmployee(false);
+    } else if (tab === 'review_and_assign') {
+      setActiveTab('review_and_assign');
+      loadStagePreset('PDP_PLANNING_MANAGER');
+      setIsReviewingEmployee(false);
+    } else if (tab === 'hr_dashboard') {
+      setActiveTab('hr_dashboard');
+    } else if (tab === 'employee_master') {
+      setActiveTab('employee_master');
+    } else if (tab === 'functional_master') {
+      setActiveTab('functional_master');
+    } else if (tab === 'competency_master') {
+      setActiveTab('competency_master');
+    } else if (tab === 'release_history') {
+      setActiveTab('release_history');
+    } else if (tab === 'delegation') {
+      setActiveTab('delegation');
+    } else if (tab === 'reports') {
+      setActiveTab('reports');
     } else if (tab === 'hr_initiation' || tab === 'pdp') {
       setActiveTab('hr_initiation');
     } else if (tab === 'lna_plan') {
@@ -143,7 +191,23 @@ const MainAppContent: React.FC = () => {
           {/* 1. EMPLOYEE ROLE VIEW */}
           {currentRole === 'employee' && (
             <>
-              {!isReviewingEmployee ? (
+              {activeTab === 'active_pdp' ? (
+                /* Active PDP View */
+                <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200">
+                  <PdpEmployeeInfoSection />
+                  <PdpDevelopmentRoadmapSection
+                    onOpenAcknowledgementModal={() => setIsAckModalOpen(true)}
+                  />
+                </div>
+              ) : activeTab === 'sign_off' ? (
+                /* Employee Sign-off Page */
+                <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200">
+                  <PdpEmployeeInfoSection />
+                  <PdpDevelopmentRoadmapSection
+                    onOpenAcknowledgementModal={() => setIsAckModalOpen(true)}
+                  />
+                </div>
+              ) : !isReviewingEmployee ? (
                 /* Employee Dashboard - Cycles Table (Welcome, Ravi Kumar) */
                 <EmployeeDashboardView
                   onNavigateToPdp={() => {
@@ -181,6 +245,24 @@ const MainAppContent: React.FC = () => {
           {/* 2. MANAGER ROLE VIEW */}
           {currentRole === 'manager' && (
             <>
+              {/* Tab A0: Active PDP (Manager's own personal Active PDP) */}
+              {activeTab === 'active_pdp' && (
+                <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200">
+                  <PdpEmployeeInfoSection />
+                  <PdpDevelopmentRoadmapSection
+                    onOpenAcknowledgementModal={() => setIsAckModalOpen(true)}
+                  />
+                </div>
+              )}
+              {/* Tab A1: Sign Off (Manager's own personal PDP Sign-off) */}
+              {activeTab === 'sign_off' && (
+                <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200">
+                  <PdpEmployeeInfoSection />
+                  <PdpDevelopmentRoadmapSection
+                    onOpenAcknowledgementModal={() => setIsAckModalOpen(true)}
+                  />
+                </div>
+              )}
               {/* Tab A: My PDP (Manager is also an employee having their own PDP) */}
               {activeTab === 'my_pdp' && (
                 <>
@@ -217,8 +299,8 @@ const MainAppContent: React.FC = () => {
                 </>
               )}
 
-              {/* Tab B: My Approvals (Pending Approval: 4, Returned: 1, Approved: 11) */}
-              {activeTab === 'my_approvals' && (
+              {/* Tab B: Pending Actions (Under My Approvals) */}
+              {(activeTab === 'my_approvals' || activeTab === 'pending_actions') && (
                 <>
                   {!isReviewingEmployee ? (
                     <ManagerApprovalsView
@@ -236,7 +318,44 @@ const MainAppContent: React.FC = () => {
                           className="inline-flex items-center gap-2 text-xs font-bold text-[#211E4E] hover:text-[#C8A977] px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
                         >
                           <ArrowLeft className="w-3.5 h-3.5" />
-                          <span>Back to My Approvals</span>
+                          <span>Back to Pending Actions</span>
+                        </button>
+                      </div>
+
+                      <PdpEmployeeInfoSection />
+                      <PdpCompetencyEvaluationTable />
+                      <PdpDevelopmentRoadmapSection
+                        onOpenAcknowledgementModal={() => setIsAckModalOpen(true)}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Tab C: Review & Assign (Under My Approvals) */}
+              {activeTab === 'review_and_assign' && (
+                <>
+                  {!isReviewingEmployee ? (
+                    <ReviewAndAssignView
+                      onReviewEmployee={(sub) => {
+                        selectEmployeeForReview(sub, 'PDP_PLANNING_MANAGER');
+                        setIsReviewingEmployee(true);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                    />
+                  ) : (
+                    <div className="space-y-6 w-full max-w-[1720px] mx-auto">
+                      <div className="flex items-center justify-between pb-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsReviewingEmployee(false);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="inline-flex items-center gap-2 text-xs font-bold text-[#211E4E] hover:text-[#C8A977] px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer w-fit"
+                        >
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                          <span>Back to Review & Assign</span>
                         </button>
                       </div>
 
@@ -252,13 +371,27 @@ const MainAppContent: React.FC = () => {
             </>
           )}
 
-          {/* 3. HR ADMIN ROLE VIEW (Shows Employee List with Functional, Department & Division Filters) */}
+          {/* 3. HR ADMIN ROLE VIEW (Shows PDP Dashboard or PDP Initiation with Functional, Department & Division Filters) */}
           {currentRole === 'hr' && (
             <>
               {!isReviewingEmployee ? (
-                <HrInitiationView
-                  onReviewEmployee={handleReviewFromHrInitiation}
-                />
+                activeTab === 'employee_master' ? (
+                  <EmployeeMasterView />
+                ) : activeTab === 'functional_master' ? (
+                  <FunctionalMasterView />
+                ) : activeTab === 'competency_master' ? (
+                  <CompetencyMasterView />
+                ) : activeTab === 'release_history' ? (
+                  <ReleaseHistoryView />
+                ) : activeTab === 'delegation' ? (
+                  <DelegationView />
+                ) : activeTab === 'reports' ? (
+                  <ReportsView />
+                ) : activeTab === 'hr_dashboard' ? (
+                  <HrPdpDashboardView onReviewEmployee={handleReviewFromHrInitiation} />
+                ) : (
+                  <HrInitiationView onReviewEmployee={handleReviewFromHrInitiation} />
+                )
               ) : (
                 <div className="space-y-6 w-full max-w-[1720px] mx-auto">
                   <div className="flex items-center justify-between pb-1">
@@ -271,7 +404,7 @@ const MainAppContent: React.FC = () => {
                       className="inline-flex items-center gap-2 text-xs font-bold text-[#211E4E] hover:text-[#C8A977] px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Back to Employee List</span>
+                      <span>Back to {activeTab === 'hr_dashboard' ? 'Dashboard' : 'Employee List'}</span>
                     </button>
                   </div>
 

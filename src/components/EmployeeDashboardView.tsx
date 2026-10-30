@@ -87,7 +87,7 @@ export const EmployeeDashboardView: React.FC<EmployeeDashboardViewProps> = ({
             <GraduationCap className="w-4 h-4 text-[#C8A977]" />
           </div>
           <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide">
-            Personal Development Plan (PDP)
+            Professional Development Plan (PDP)
           </h2>
         </div>
 

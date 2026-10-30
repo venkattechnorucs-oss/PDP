@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePdp } from '../context/PdpContext';
 import {
   AlertCircle,
   Calendar,
   Layers,
   ChevronDown,
+  MessageSquare,
 } from 'lucide-react';
 import { calculatePhaseDates } from '../utils/phaseDateUtils';
 import { DateRangeCalendarPicker } from './DateRangeCalendarPicker';
 import { EditableActivityCombobox } from './EditableActivityCombobox';
 import { EditableTrainingPathCombobox } from './EditableTrainingPathCombobox';
+import { LnaCompetencyProcessView } from './LnaCompetencyProcessView';
+import { PdpCommentHistory } from './PdpCommentHistory';
+import { PdpCommentModal } from './PdpCommentModal';
 import { DevelopmentRoadmapItem, RoadmapSubRow } from '../types/pdp';
 
 interface PdpDevelopmentRoadmapSectionProps {
@@ -69,6 +73,11 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
     isLnaPlanComplete,
   } = usePdp();
 
+  const [commentModalData, setCommentModalData] = useState<{
+    item: DevelopmentRoadmapItem;
+    row: RoadmapSubRow;
+  } | null>(null);
+
   // HR should NOT see the Development Roadmap table
   if (currentRole === 'HR_ADMIN') return null;
 
@@ -95,6 +104,60 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
   const isEmployeeSigning =
     currentRole === 'EMPLOYEE' && status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
 
+  // Dedicated interactive stepper process view for Manager Roadmap
+  if (isManagerPlanning) {
+    return (
+      <LnaCompetencyProcessView
+        mode="MANAGER"
+        roadmapItems={roadmapItems}
+        updateRoadmapSubRow={updateRoadmapSubRow}
+        submitRoadmap={submitManagerRoadmap}
+        isComplete={isManagerRoadmapComplete}
+      />
+    );
+  }
+
+  // Dedicated interactive stepper process view for LNA Training Plan
+  if (isLnaEditing) {
+    return (
+      <LnaCompetencyProcessView
+        mode="LNA"
+        roadmapItems={roadmapItems}
+        updateRoadmapSubRow={updateRoadmapSubRow}
+        submitRoadmap={submitLnaPlan}
+        onReturnToManager={() => returnToManager('LNA Team returned PDP to Manager for adjustments')}
+        isComplete={isLnaPlanComplete}
+      />
+    );
+  }
+
+  // Dedicated interactive stepper process view for Employee Sign-off
+  if (isEmployeeSigning) {
+    return (
+      <LnaCompetencyProcessView
+        mode="EMPLOYEE_SIGNOFF"
+        roadmapItems={roadmapItems}
+        updateRoadmapSubRow={updateRoadmapSubRow}
+        onReturnToManager={() => returnToManager('Employee returned PDP for manager adjustments')}
+        onReturnToLnt={() => returnToLnt('Employee returned PDP for LNT learning path adjustments')}
+        onOpenAcknowledgementModal={onOpenAcknowledgementModal}
+        isComplete={true}
+      />
+    );
+  }
+
+  // Dedicated interactive stepper process view for Active PDP
+  if (status === 'ACTIVE') {
+    return (
+      <LnaCompetencyProcessView
+        mode="ACTIVE_PDP"
+        roadmapItems={roadmapItems}
+        updateRoadmapSubRow={updateRoadmapSubRow}
+        isComplete={true}
+      />
+    );
+  }
+
   return (
     <section className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-xs w-full">
       {/* Table Section Header - Matches Employee Details */}
@@ -109,7 +172,7 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
       <div className="w-full overflow-x-auto">
         <table className="w-full table-fixed text-left text-xs border-collapse min-w-[1100px]">
           <thead>
-            <tr className="bg-[#1C1844] text-white font-bold text-[11px] uppercase tracking-wider border-b border-slate-200">
+            <tr className="bg-[#211E4E] text-white font-bold text-[11px] uppercase tracking-wider border-b border-slate-200">
               {/* Column 1: Competency */}
               <th className={`py-3 px-3.5 ${showTrainingColumn ? 'w-[14%]' : 'w-[18%]'} border-r border-slate-700/60 text-left`}>
                 Competency
@@ -133,13 +196,18 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
               )}
 
               {/* Column 5: Phase */}
-              <th className={`py-3 px-2 ${showTrainingColumn ? 'w-[11%]' : 'w-[12%]'} border-r border-slate-700/60 text-center`}>
+              <th className={`py-3 px-2 ${showTrainingColumn ? 'w-[10%]' : 'w-[12%]'} border-r border-slate-700/60 text-center`}>
                 Phase
               </th>
 
               {/* Column 6: Status/Remarks */}
-              <th className={`py-3 px-2 ${showTrainingColumn ? 'w-[8%]' : 'w-[10%]'} text-center`}>
+              <th className={`py-3 px-2 ${showTrainingColumn ? 'w-[8%]' : 'w-[10%]'} border-r border-slate-700/60 text-center`}>
                 Status
+              </th>
+
+              {/* Column 7: Comments */}
+              <th className={`py-3 px-2 ${showTrainingColumn ? 'w-[8%]' : 'w-[10%]'} text-center`}>
+                Comments
               </th>
             </tr>
           </thead>
@@ -402,6 +470,33 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                             </div>
                           )}
                         </td>
+
+                        {/* 7. Comments Link/Icon Popup */}
+                        <td className="py-1 px-2 align-middle text-center">
+                          {status === 'ACTIVE' ? (
+                            <button
+                              type="button"
+                              onClick={() => setCommentModalData({ item, row })}
+                              className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-[#211E4E] hover:text-[#C8A977] bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#211E4E]/30 transition-all cursor-pointer shadow-2xs group mx-auto"
+                              title="View Comment History"
+                              aria-label="View Comment History"
+                            >
+                              <MessageSquare className="w-4 h-4 text-[#211E4E] group-hover:text-[#C8A977] transition-colors" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setCommentModalData({ item, row })}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#211E4E] hover:text-[#C8A977] bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#211E4E]/30 transition-all cursor-pointer shadow-2xs group"
+                              title="View Comment History"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 text-[#211E4E] group-hover:text-[#C8A977] transition-colors" />
+                              <span className="underline decoration-slate-300 group-hover:decoration-[#C8A977]">
+                                Comments
+                              </span>
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -489,6 +584,11 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
           )}
         </div>
       </div>
+      {/* Modal Popup for Comment History on row link click */}
+      <PdpCommentModal
+        isOpen={!!commentModalData}
+        onClose={() => setCommentModalData(null)}
+      />
     </section>
   );
 };

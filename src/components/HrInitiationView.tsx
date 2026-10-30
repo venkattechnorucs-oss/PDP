@@ -8,6 +8,7 @@ import {
   Clock,
   RotateCcw,
   Sparkles,
+  Send,
 } from 'lucide-react';
 import { TEAM_SUBMISSIONS, TeamMemberSubmission } from '../data/teamSubmissionsData';
 
@@ -16,6 +17,8 @@ interface HrInitiationViewProps {
   title?: string;
   subtitle?: string;
 }
+
+type HrFilterTab = 'ALL' | 'PENDING' | 'INITIATED';
 
 export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
   onReviewEmployee,
@@ -26,7 +29,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
   const [selectedDivision, setSelectedDivision] = useState('ALL');
   const [selectedDepartment, setSelectedDepartment] = useState('ALL');
   const [selectedFunction, setSelectedFunction] = useState('ALL');
-  const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [activeHrFilter, setActiveHrFilter] = useState<HrFilterTab>('ALL');
 
   // Derive unique filter options
   const divisions = useMemo(() => {
@@ -41,17 +44,41 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
     return Array.from(new Set(TEAM_SUBMISSIONS.map((s) => s.functionDept))).sort();
   }, []);
 
+  // Helper: Determine if a submission has been initiated
+  const isSubmissionInitiated = (sub: TeamMemberSubmission) => {
+    return (
+      sub.pdpStage === 'ACTIVE' ||
+      sub.pdpStage === 'PDP_PLANNING_MANAGER' ||
+      sub.pdpStage === 'PENDING_LNA_TEAM' ||
+      sub.pdpStage === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT'
+    );
+  };
+
+  // Top Summary Metrics: Pending & Initiated
+  const metrics = useMemo(() => {
+    const initiatedCount = TEAM_SUBMISSIONS.filter(isSubmissionInitiated).length;
+    const pendingCount = TEAM_SUBMISSIONS.length - initiatedCount;
+    return {
+      pending: pendingCount,
+      initiated: initiatedCount,
+      total: TEAM_SUBMISSIONS.length,
+    };
+  }, []);
+
   const filteredEmployees = useMemo(() => {
     return TEAM_SUBMISSIONS.filter((sub) => {
+      const isInitiated = isSubmissionInitiated(sub);
+
+      // KPI Tab filter: ALL / PENDING / INITIATED
+      if (activeHrFilter === 'PENDING' && isInitiated) return false;
+      if (activeHrFilter === 'INITIATED' && !isInitiated) return false;
+
+      // Dropdown filters
       if (selectedDivision !== 'ALL' && sub.division !== selectedDivision) return false;
       if (selectedDepartment !== 'ALL' && sub.department !== selectedDepartment) return false;
       if (selectedFunction !== 'ALL' && sub.functionDept !== selectedFunction) return false;
-      if (selectedStatus !== 'ALL') {
-        if (selectedStatus === 'PENDING_APPROVAL' && sub.status !== 'PENDING APPROVAL') return false;
-        if (selectedStatus === 'APPROVED' && sub.status !== 'APPROVED') return false;
-        if (selectedStatus === 'RETURNED' && sub.status !== 'RETURNED') return false;
-      }
 
+      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = sub.name.toLowerCase().includes(q);
@@ -64,51 +91,85 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
 
       return true;
     });
-  }, [selectedDivision, selectedDepartment, selectedFunction, selectedStatus, searchQuery]);
+  }, [activeHrFilter, selectedDivision, selectedDepartment, selectedFunction, searchQuery]);
 
   const handleResetFilters = () => {
+    setActiveHrFilter('ALL');
     setSelectedDivision('ALL');
     setSelectedDepartment('ALL');
     setSelectedFunction('ALL');
-    setSelectedStatus('ALL');
     setSearchQuery('');
   };
 
   const isFiltered =
+    activeHrFilter !== 'ALL' ||
     selectedDivision !== 'ALL' ||
     selectedDepartment !== 'ALL' ||
     selectedFunction !== 'ALL' ||
-    selectedStatus !== 'ALL' ||
     searchQuery.trim().length > 0;
 
   return (
     <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200 font-sans">
       {/* 1. Header Banner */}
       <section className="bg-[#211E4E] rounded-2xl p-6 sm:p-7 shadow-[0_8px_30px_rgb(33,30,78,0.05)] border border-white/80">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-              <span>{title || 'Personal Development Plan (PDP) – HR Initiation'}</span>
-            </h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/80 font-normal">
-              {subtitle ||
-                'Filter employee submissions by functional area, department, and division. Review development objectives and initiate organizational PDP cycles.'}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#C8A977] text-[#211E4E] shadow-2xs">
-              {filteredEmployees.length} of {TEAM_SUBMISSIONS.length} Employees
-            </span>
-          </div>
-        </div>
+        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
+          <span>{title || 'Professional Development Plan (PDP) – HR Initiation'}</span>
+        </h1>
       </section>
 
-      {/* 2. HR Filter Controls: Functional, Department, Division, Status & Search */}
+      {/* 2. Top Summary KPI Cards (Pending & Initiated) matching Manager Page layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        {/* Card 1: Pending */}
+        <div
+          onClick={() => setActiveHrFilter(activeHrFilter === 'PENDING' ? 'ALL' : 'PENDING')}
+          className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
+            activeHrFilter === 'PENDING'
+              ? 'border-[#211E4E] ring-2 ring-[#211E4E]/20 shadow-md'
+              : 'border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              PENDING
+            </span>
+            <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200">
+              <Clock className="w-4 h-4 text-amber-600" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-black text-slate-900 tracking-tight">
+            {metrics.pending}
+          </div>
+        </div>
+
+        {/* Card 2: Initiated */}
+        <div
+          onClick={() => setActiveHrFilter(activeHrFilter === 'INITIATED' ? 'ALL' : 'INITIATED')}
+          className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
+            activeHrFilter === 'INITIATED'
+              ? 'border-[#211E4E] ring-2 ring-[#211E4E]/20 shadow-md'
+              : 'border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              INITIATED
+            </span>
+            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-black text-emerald-600 tracking-tight">
+            {metrics.initiated}
+          </div>
+        </div>
+      </div>
+
+      {/* 4. HR Filter Controls: Search & Dropdowns */}
       <section className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
             <Filter className="w-4 h-4 text-[#C8A977]" />
-            <span>Employee Filters</span>
+            <span>Additional Filters</span>
           </div>
           {isFiltered && (
             <button
@@ -122,7 +183,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Search Input */}
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -182,24 +243,10 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
               ))}
             </select>
           </div>
-
-          {/* Status Filter */}
-          <div>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-hidden transition-all cursor-pointer"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="PENDING_APPROVAL">Pending Approval / Review</option>
-              <option value="APPROVED">Approved / Ready to Initiate</option>
-              <option value="RETURNED">Returned for Revisions</option>
-            </select>
-          </div>
         </div>
       </section>
 
-      {/* 3. Employee List Table */}
+      {/* 5. Employee List Table */}
       <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {/* Table Banner Header */}
         <div className="bg-[#211E4E] px-5 py-3.5 flex items-center justify-between">
@@ -227,7 +274,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                 <th className="py-3 px-4">DEPARTMENT</th>
                 <th className="py-3 px-4">FUNCTION</th>
                 <th className="py-3 px-3.5">DATE</th>
-                <th className="py-3 px-4 text-center">STATUS</th>
+                <th className="py-3 px-4 text-center">INITIATION STATUS</th>
                 <th className="py-3 px-4 text-center w-36">ACTION</th>
               </tr>
             </thead>
@@ -240,9 +287,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                 </tr>
               ) : (
                 filteredEmployees.map((emp, index) => {
-                  const isApproved = emp.status === 'APPROVED';
-                  const isPending = emp.status === 'PENDING APPROVAL';
-                  const isReturned = emp.status === 'RETURNED';
+                  const initiated = isSubmissionInitiated(emp);
 
                   return (
                     <tr
@@ -256,7 +301,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                         </span>
                       </td>
 
-                      {/* Employee Name (No Emp ID underneath) */}
+                      {/* Employee Name */}
                       <td className="py-3.5 px-4 font-bold text-slate-900">
                         <span className="text-xs font-bold text-slate-900">{emp.name}</span>
                       </td>
@@ -281,24 +326,17 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                         {emp.date}
                       </td>
 
-                      {/* Status Badge */}
+                      {/* Initiation Status Badge */}
                       <td className="py-3.5 px-4 text-center">
-                        {isApproved && (
+                        {initiated ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs whitespace-nowrap">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>APPROVED</span>
+                            <span>INITIATED</span>
                           </span>
-                        )}
-                        {isPending && (
+                        ) : (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs whitespace-nowrap">
                             <Clock className="w-3.5 h-3.5 text-amber-700" />
-                            <span>PENDING APPROVAL</span>
-                          </span>
-                        )}
-                        {isReturned && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-orange-50 text-orange-800 border border-orange-300 shadow-2xs whitespace-nowrap">
-                            <RotateCcw className="w-3.5 h-3.5 text-orange-600" />
-                            <span>RETURNED</span>
+                            <span>PENDING</span>
                           </span>
                         )}
                       </td>
@@ -308,9 +346,9 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                         <button
                           type="button"
                           onClick={() => onReviewEmployee(emp)}
-                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-[#211E4E] hover:bg-[#161435] hover:text-[#C8A977] transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap text-[#211E4E] bg-white border border-slate-300 hover:bg-[#211E4E] hover:text-white group"
                         >
-                          <Eye className="w-3.5 h-3.5 text-[#C8A977]" />
+                          <Eye className="w-3.5 h-3.5 text-[#C8A977] group-hover:text-[#C8A977]" />
                           <span>Review PDP</span>
                         </button>
                       </td>
