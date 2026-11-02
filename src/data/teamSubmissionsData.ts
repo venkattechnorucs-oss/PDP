@@ -9,7 +9,7 @@ export interface TeamMemberSubmission {
   functionDept: string;
   grade: string;
   date: string;
-  status: 'PENDING APPROVAL' | 'RETURNED' | 'APPROVED';
+  status: 'NOT STARTED' | 'PENDING APPROVAL' | 'RETURNED' | 'APPROVED';
   pdpStage: PdpStatus;
   hasDelegation?: boolean;
   avatarInitials: string;
@@ -234,9 +234,9 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     division: 'Retail',
     functionDept: 'Customer Services',
     grade: '7',
-    date: '12 Jan 2026',
-    status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    date: '02/Feb/2026',
+    status: 'NOT STARTED',
+    pdpStage: 'PENDING_EMPLOYEE_EVALUATION',
     avatarInitials: 'AF',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -254,9 +254,9 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     division: 'Corporate',
     functionDept: 'IT Infrastructure',
     grade: '6',
-    date: '14 Jan 2026',
-    status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    date: '05/Feb/2026',
+    status: 'NOT STARTED',
+    pdpStage: 'PENDING_EMPLOYEE_EVALUATION',
     avatarInitials: 'HL',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',

@@ -1,11 +1,11 @@
 export interface PhaseDateInfo {
-  duration: '6 Months' | '1 Year' | '2 Years';
+  duration: '3 Months' | '6 Months' | '1 Year' | '2 Years';
   startDate: string;
   endDate: string;
   assignedDates: string; // e.g. "From: 01/Jul/2026 To: 31/Dec/2026"
 }
 
-export const DURATION_OPTIONS = ['6 Months', '1 Year', '2 Years'] as const;
+export const DURATION_OPTIONS = ['3 Months', '6 Months', '1 Year', '2 Years'] as const;
 export type DurationOption = (typeof DURATION_OPTIONS)[number];
 
 export const COMMON_START_DATES = [
@@ -21,6 +21,7 @@ export const COMMON_START_DATES = [
 export function normalizeDuration(val?: string): DurationOption {
   if (!val) return '6 Months';
   const lower = val.toLowerCase().replace(/\s+/g, '');
+  if (lower.includes('3month')) return '3 Months';
   if (lower.includes('2year')) return '2 Years';
   if (lower.includes('1year') || lower.includes('12month')) return '1 Year';
   if (lower.includes('6month')) return '6 Months';
@@ -64,7 +65,10 @@ export function calculatePhaseDates(
   let endMonthIndex = monthIndex;
   let endYear = year;
 
-  if (duration === '6 Months') {
+  if (duration === '3 Months') {
+    endMonthIndex = (monthIndex + 3) % 12;
+    if (monthIndex + 3 >= 12) endYear += 1;
+  } else if (duration === '6 Months') {
     endMonthIndex = (monthIndex + 6) % 12;
     if (monthIndex + 6 >= 12) endYear += 1;
   } else if (duration === '1 Year') {
@@ -75,6 +79,7 @@ export function calculatePhaseDates(
 
   // Calculate the day before the same day of the next cycle
   // For standard enterprise terms:
+  // 01/Jul/2026 + 3M => 30/Sep/2026
   // 01/Jul/2026 + 6M => 31/Dec/2026
   // 01/Jan/2027 + 6M => 30/Jun/2027
   // 01/Jul/2026 + 1Y => 30/Jun/2027
@@ -96,11 +101,13 @@ export function calculatePhaseDates(
   let canonicalEndDate = `${endDay}/${endMonthName}/${endYear}`;
 
   if (startDate === '01/Jul/2026') {
-    if (duration === '6 Months') canonicalEndDate = '31/Dec/2026';
+    if (duration === '3 Months') canonicalEndDate = '30/Sep/2026';
+    else if (duration === '6 Months') canonicalEndDate = '31/Dec/2026';
     else if (duration === '1 Year') canonicalEndDate = '30/Jun/2027';
     else if (duration === '2 Years') canonicalEndDate = '30/Jun/2028';
   } else if (startDate === '01/Jan/2027') {
-    if (duration === '6 Months') canonicalEndDate = '30/Jun/2027';
+    if (duration === '3 Months') canonicalEndDate = '31/Mar/2027';
+    else if (duration === '6 Months') canonicalEndDate = '30/Jun/2027';
     else if (duration === '1 Year') canonicalEndDate = '31/Dec/2027';
     else if (duration === '2 Years') canonicalEndDate = '31/Dec/2028';
   }

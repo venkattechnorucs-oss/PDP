@@ -18,6 +18,7 @@ import { DelegationView } from './components/DelegationView';
 import { ReportsView } from './components/ReportsView';
 import { ToastContainer } from './components/ToastContainer';
 import { ReviewAndAssignView } from './components/ReviewAndAssignView';
+import { LnaPdpInitiationReviewView } from './components/LnaPdpInitiationReviewView';
 import { ArrowLeft, FileCheck } from 'lucide-react';
 import { PdpStatus } from './types/pdp';
 import { TEAM_SUBMISSIONS, MANAGER_SELF_PROFILE, TeamMemberSubmission } from './data/teamSubmissionsData';
@@ -418,17 +419,34 @@ const MainAppContent: React.FC = () => {
             </>
           )}
 
-          {/* 4. LNA TRAINING PLAN ROLE VIEW (Shows Employee Filters & Organizational Submissions like HR Initiation page) */}
+          {/* 4. LNA ROLE VIEW (Shows PDP Initiation or LNA Training Plan) */}
           {currentRole === 'lna' && (
             <>
               {!isReviewingEmployee ? (
-                <HrInitiationView
-                  onReviewEmployee={handleReviewFromLna}
-                  title="Personal Development Plan (PDP) – LNA Training Plan"
-                  subtitle="Filter organizational employee submissions and assign tailored learning courses, certifications, and development milestones."
+                activeTab === 'hr_initiation' ? (
+                  <HrInitiationView
+                    onReviewEmployee={handleReviewFromLna}
+                    title="Personal Development Plan (PDP) – Initiation"
+                    subtitle="Review and initiate organizational employee PDP submissions."
+                  />
+                ) : (
+                  <HrInitiationView
+                    onReviewEmployee={handleReviewFromLna}
+                    title="Personal Development Plan (PDP) – LNA Training Plan"
+                    subtitle="Filter organizational employee submissions and assign tailored learning courses, certifications, and development milestones."
+                  />
+                )
+              ) : activeTab === 'hr_initiation' ? (
+                /* PDP Initiation Review View - Manager Priorities, Objectives, and Comments */
+                <LnaPdpInitiationReviewView
+                  onBack={() => {
+                    setIsReviewingEmployee(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                 />
               ) : (
-                <div className="space-y-6 w-full max-w-[1720px] mx-auto">
+                /* LNA Training Plan Assignment View */
+                <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200">
                   <div className="flex items-center justify-between pb-1">
                     <button
                       type="button"
@@ -444,7 +462,6 @@ const MainAppContent: React.FC = () => {
                   </div>
 
                   <PdpEmployeeInfoSection />
-                  <PdpCompetencyEvaluationTable />
                   <PdpDevelopmentRoadmapSection
                     onOpenAcknowledgementModal={() => setIsAckModalOpen(true)}
                   />

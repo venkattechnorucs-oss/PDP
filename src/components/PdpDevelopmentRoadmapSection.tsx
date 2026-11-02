@@ -6,9 +6,9 @@ import {
   Layers,
   ChevronDown,
   MessageSquare,
+  RotateCcw,
 } from 'lucide-react';
 import { calculatePhaseDates } from '../utils/phaseDateUtils';
-import { DateRangeCalendarPicker } from './DateRangeCalendarPicker';
 import { EditableActivityCombobox } from './EditableActivityCombobox';
 import { EditableTrainingPathCombobox } from './EditableTrainingPathCombobox';
 import { LnaCompetencyProcessView } from './LnaCompetencyProcessView';
@@ -21,8 +21,11 @@ interface PdpDevelopmentRoadmapSectionProps {
 }
 
 const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
+  const selectedPhase = item.phase || '6 Months';
+  const r1Dates = calculatePhaseDates(selectedPhase, 1, '01/Jul/2026');
+
   const defaultTemplates = [
-    { rowNumber: 1, phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: item.statusRemarks || 'Scheduled' },
+    { rowNumber: 1, phase: selectedPhase, startDate: r1Dates.startDate, endDate: r1Dates.endDate, assignedDates: r1Dates.assignedDates, statusRemarks: item.statusRemarks || 'Scheduled' },
     { rowNumber: 2, phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
     { rowNumber: 3, phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
     { rowNumber: 4, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
@@ -35,10 +38,16 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
     const found = existing.find((r) => r.rowNumber === i);
     const tmpl = defaultTemplates[i - 1];
     if (found) {
+      const effectivePhase = (i === 1 && item.phase) ? item.phase : (found.phase || tmpl.phase);
+      const dateInfo = calculatePhaseDates(effectivePhase, i, found.startDate || tmpl.startDate);
       result.push({
         ...tmpl,
         ...found,
         rowNumber: i,
+        phase: effectivePhase,
+        startDate: dateInfo.startDate,
+        endDate: dateInfo.endDate,
+        assignedDates: dateInfo.assignedDates,
         statusRemarks: found.statusRemarks || tmpl.statusRemarks,
       });
     } else {
@@ -342,11 +351,7 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                             ) : (
                               <div className="space-y-0.5">
                                 <div className="text-[10.5px] font-semibold text-slate-700 leading-tight flex items-center">
-                                  Training Path {row.rowNumber}
-                                  {row.rowNumber <= 4 && (
-                                    <span className="text-red-500 font-bold ml-0.5">*</span>
-                                  )}
-                                  <span className="ml-0.5">:</span>
+                                  Training Path {row.rowNumber}:
                                 </div>
                                 <div className="w-full text-xs p-1.5 rounded border border-slate-200 bg-slate-50/70 text-slate-900 leading-snug break-words shadow-2xs min-h-[36px]">
                                   {row.trainingPath && row.trainingPath !== 'Pending LNA Team' ? (
@@ -362,45 +367,11 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                           </td>
                         )}
 
-                        {/* 5. Phase (Single sleek interactive calendar picker or clean date display) */}
+                        {/* 5. Phase (Displays selected months or years, no calendar, no dates) */}
                         <td className="py-1 px-2 border-r border-slate-200/90 align-middle text-center">
-                          {isManagerPlanning ? (
-                            <div className="w-full">
-                              <DateRangeCalendarPicker
-                                startDate={row.startDate || dateInfo.startDate}
-                                endDate={row.endDate || dateInfo.endDate}
-                                rowNumber={row.rowNumber}
-                                onSelectRange={(newStart, newEnd, durationLabel) => {
-                                  updateRoadmapSubRow(item.competencyId, row.rowNumber, 'startDate', newStart);
-                                  updateRoadmapSubRow(item.competencyId, row.rowNumber, 'endDate', newEnd);
-                                  if (durationLabel) {
-                                    updateRoadmapSubRow(item.competencyId, row.rowNumber, 'phase', durationLabel);
-                                  }
-                                }}
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-full py-1 px-1.5 rounded-md bg-slate-50/80 border border-slate-200/80 text-left shadow-2xs">
-                              <div className="flex items-center justify-between gap-1 mb-0.5 pb-0.5 border-b border-slate-200/60">
-                                <span className="text-[10px] font-bold text-[#211E4E] tracking-tight">
-                                  {row.phase || dateInfo.duration}
-                                </span>
-                                <span className="w-3.5 h-3.5 rounded bg-[#211E4E]/5 text-[#211E4E] flex items-center justify-center shrink-0">
-                                  <Calendar className="w-2.5 h-2.5 text-[#C8A977]" />
-                                </span>
-                              </div>
-                              <div className="space-y-0.5 font-mono text-[9.5px]">
-                                <div className="flex items-center justify-between text-slate-600">
-                                  <span className="text-[8.5px] font-sans font-semibold text-slate-400 uppercase">From</span>
-                                  <span className="font-semibold text-slate-800">{row.startDate || dateInfo.startDate}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-slate-600">
-                                  <span className="text-[8.5px] font-sans font-semibold text-slate-400 uppercase">To</span>
-                                  <span className="font-semibold text-slate-800">{row.endDate || dateInfo.endDate}</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                          <span className="inline-block px-3 py-1.5 rounded-lg border border-[#211E4E]/20 bg-[#211E4E]/5 text-xs font-bold text-[#211E4E] shadow-2xs whitespace-nowrap">
+                            {row.phase || '6 Months'}
+                          </span>
                         </td>
 
                         {/* 6. Status/Remarks (ACTIVE green dropdown on Active PDP, spacious text box in edit mode, clean pill in view mode) */}
@@ -551,27 +522,21 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                     : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
                 }`}
               >
-                Submit
+                Initiate
               </button>
             </div>
           )}
 
-          {/* Employee Action: Return to Manager, Return to LNT, and Submit */}
+          {/* Employee Action: Request Changes and Submit */}
           {isEmployeeSigning && (
             <div className="flex items-center gap-2.5 flex-wrap">
               <button
                 type="button"
-                onClick={() => returnToManager('Employee returned PDP for manager adjustments')}
-                className="px-4 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer"
+                onClick={() => returnToManager('Employee requested changes to the PDP roadmap')}
+                className="px-5 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
               >
-                Return to Manager
-              </button>
-              <button
-                type="button"
-                onClick={() => returnToLnt('Employee returned PDP for LNT learning path adjustments')}
-                className="px-4 py-2 bg-white hover:bg-amber-50 text-amber-800 hover:text-amber-900 font-bold text-xs rounded-lg border border-amber-300 shadow-2xs transition-all cursor-pointer"
-              >
-                Return to LNT
+                <RotateCcw className="w-3.5 h-3.5 text-orange-600" />
+                <span>Request Changes</span>
               </button>
               <button
                 type="button"

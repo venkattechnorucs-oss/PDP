@@ -83,6 +83,15 @@ export const PdpSideNav: React.FC<PdpSideNavProps> = ({
   const isDelegationActive = activeTab === 'delegation';
   const isReportsActive = activeTab === 'reports';
   const isLnaPlanActive = activeTab === 'lna_plan';
+  const isLnaGroupActive = isHrInitiationActive || isLnaPlanActive;
+
+  const [isLnaExpanded, setIsLnaExpanded] = React.useState<boolean>(true);
+
+  React.useEffect(() => {
+    if (isLnaGroupActive) {
+      setIsLnaExpanded(true);
+    }
+  }, [isLnaGroupActive]);
 
   return (
     <aside className="w-52 lg:w-56 shrink-0 bg-white border-r border-slate-200 py-3.5 px-3 min-h-[calc(100vh-50px)] select-none hidden md:block overflow-y-auto">
@@ -396,55 +405,81 @@ export const PdpSideNav: React.FC<PdpSideNavProps> = ({
               <span>Reports</span>
             </button>
 
-            {/* Category: PDP & LNA Initiation */}
-            <div className="pt-2 border-t border-slate-100">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <GraduationCap className="w-3.5 h-3.5 text-[#C8A977]" />
-                <span>PDP / LNA</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => onSelectTab && onSelectTab('hr_initiation')}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all cursor-pointer text-left font-bold ${
-                  isHrInitiationActive
-                    ? 'bg-[#211E4E] text-white shadow-xs'
-                    : 'text-slate-700 hover:text-[#211E4E] hover:bg-slate-100'
-                }`}
-              >
-                <Users
-                  className={`w-4 h-4 ${isHrInitiationActive ? 'text-white' : 'text-slate-600'} shrink-0`}
-                  strokeWidth={2}
-                />
-                <span>PDP Initiation</span>
-              </button>
-            </div>
           </div>
         )}
 
-        {/* ================= 3. LNA ROLE VIEW ================= */}
+        {/* ================= 3. LNA ROLE VIEW (PDP Initiation + LNA Training Plan sub-divisions under LNA) ================= */}
         {currentRole === 'lna' && (
           <div className="space-y-1">
-            <div className="flex items-center gap-2 px-2.5 py-1 text-xs font-bold text-slate-700 tracking-wide">
-              <GraduationCap className="w-4 h-4 text-[#C8A977]" />
-              <span>LNA</span>
-            </div>
-
+            {/* Parent Header: LNA with Chevron */}
             <button
               type="button"
-              onClick={() => onSelectTab && onSelectTab('lna_plan')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all cursor-pointer text-left font-bold ${
-                isLnaPlanActive
+              onClick={() => {
+                setIsLnaExpanded((prev) => !prev);
+                if (!isLnaGroupActive && onSelectTab) {
+                  onSelectTab('hr_initiation');
+                }
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer text-left font-bold ${
+                isLnaGroupActive
                   ? 'bg-[#211E4E] text-white shadow-xs'
                   : 'text-[#211E4E] hover:text-[#C8A977] hover:bg-[#211E4E]/5'
               }`}
             >
-              <GraduationCap
-                className={`w-4 h-4 ${isLnaPlanActive ? 'text-white' : 'text-[#211E4E]'} shrink-0`}
-                strokeWidth={2}
+              <div className="flex items-center gap-2.5">
+                <GraduationCap
+                  className="w-4 h-4 text-[#C8A977] shrink-0"
+                  strokeWidth={2}
+                />
+                <span>LNA</span>
+              </div>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  isLnaExpanded ? 'rotate-180' : ''
+                } ${isLnaGroupActive ? 'text-white/80' : 'text-slate-400'}`}
               />
-              <span>LNA Training Plan</span>
             </button>
+
+            {/* Sub-divisions under LNA */}
+            {isLnaExpanded && (
+              <div className="pl-3.5 ml-2 border-l-2 border-slate-200 space-y-1 pt-0.5 animate-in fade-in duration-150">
+                {/* Sub-division 1: PDP Initiation (Above LNA Training Plan) */}
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('hr_initiation')}
+                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer text-left font-bold ${
+                    isHrInitiationActive
+                      ? 'bg-[#211E4E]/10 text-[#211E4E] font-extrabold border-l-2 border-[#211E4E]'
+                      : 'text-slate-600 hover:text-[#211E4E] hover:bg-slate-100'
+                  }`}
+                >
+                  <Users
+                    className={`w-3.5 h-3.5 ${
+                      isHrInitiationActive ? 'text-[#211E4E]' : 'text-slate-400'
+                    } shrink-0`}
+                  />
+                  <span>PDP Initiation</span>
+                </button>
+
+                {/* Sub-division 2: LNA Training Plan */}
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('lna_plan')}
+                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer text-left font-bold ${
+                    isLnaPlanActive
+                      ? 'bg-[#211E4E]/10 text-[#211E4E] font-extrabold border-l-2 border-[#211E4E]'
+                      : 'text-slate-600 hover:text-[#211E4E] hover:bg-slate-100'
+                  }`}
+                >
+                  <GraduationCap
+                    className={`w-3.5 h-3.5 ${
+                      isLnaPlanActive ? 'text-[#211E4E]' : 'text-slate-400'
+                    } shrink-0`}
+                  />
+                  <span>LNA Training Plan</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

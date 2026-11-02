@@ -106,7 +106,7 @@ export const StageProgressBar: React.FC = () => {
             aria-label="Simulation Stage Jump Selector"
             className="text-xs font-semibold bg-slate-800 text-[#C8A977] border border-slate-700 rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-[#C8A977] cursor-pointer"
           >
-            <option value="PENDING_EMPLOYEE_EVALUATION">1. Employee Evaluation</option>
+            <option value="PENDING_EMPLOYEE_EVALUATION">1. Employee Assessment</option>
             <option value="PENDING_MANAGER_REVIEW">2. Manager Review</option>
             <option value="PENDING_HR_INITIATION">3. HR Initiation</option>
             <option value="PDP_PLANNING_MANAGER">4. Manager Roadmap Plan</option>

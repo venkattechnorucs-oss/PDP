@@ -18,7 +18,7 @@ interface HrInitiationViewProps {
   subtitle?: string;
 }
 
-type HrFilterTab = 'ALL' | 'PENDING' | 'INITIATED';
+type HrFilterTab = 'ALL' | 'PENDING' | 'RETURNED' | 'INITIATED';
 
 export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
   onReviewEmployee,
@@ -44,9 +44,16 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
     return Array.from(new Set(TEAM_SUBMISSIONS.map((s) => s.functionDept))).sort();
   }, []);
 
+  // Helper: Determine if a submission has been returned
+  const isSubmissionReturned = (sub: TeamMemberSubmission) => {
+    return sub.status === 'RETURNED';
+  };
+
   // Helper: Determine if a submission has been initiated
   const isSubmissionInitiated = (sub: TeamMemberSubmission) => {
+    if (isSubmissionReturned(sub)) return false;
     return (
+      sub.status === 'APPROVED' ||
       sub.pdpStage === 'ACTIVE' ||
       sub.pdpStage === 'PDP_PLANNING_MANAGER' ||
       sub.pdpStage === 'PENDING_LNA_TEAM' ||
@@ -54,12 +61,16 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
     );
   };
 
-  // Top Summary Metrics: Pending & Initiated
+  // Top Summary Metrics: Pending Approval, Returned (center), and Initiated
   const metrics = useMemo(() => {
+    const returnedCount = TEAM_SUBMISSIONS.filter(isSubmissionReturned).length;
     const initiatedCount = TEAM_SUBMISSIONS.filter(isSubmissionInitiated).length;
-    const pendingCount = TEAM_SUBMISSIONS.length - initiatedCount;
+    const pendingCount = TEAM_SUBMISSIONS.filter(
+      (s) => !isSubmissionReturned(s) && !isSubmissionInitiated(s)
+    ).length;
     return {
       pending: pendingCount,
+      returned: returnedCount,
       initiated: initiatedCount,
       total: TEAM_SUBMISSIONS.length,
     };
@@ -67,10 +78,12 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
 
   const filteredEmployees = useMemo(() => {
     return TEAM_SUBMISSIONS.filter((sub) => {
+      const isReturned = isSubmissionReturned(sub);
       const isInitiated = isSubmissionInitiated(sub);
 
-      // KPI Tab filter: ALL / PENDING / INITIATED
-      if (activeHrFilter === 'PENDING' && isInitiated) return false;
+      // KPI Tab filter: ALL / PENDING / RETURNED / INITIATED
+      if (activeHrFilter === 'PENDING' && (isReturned || isInitiated)) return false;
+      if (activeHrFilter === 'RETURNED' && !isReturned) return false;
       if (activeHrFilter === 'INITIATED' && !isInitiated) return false;
 
       // Dropdown filters
@@ -117,9 +130,9 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
         </h1>
       </section>
 
-      {/* 2. Top Summary KPI Cards (Pending & Initiated) matching Manager Page layout */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-        {/* Card 1: Pending */}
+      {/* 2. Top Summary KPI Cards (Pending Approval, Returned in center, Initiated) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+        {/* Card 1: Pending Approval */}
         <div
           onClick={() => setActiveHrFilter(activeHrFilter === 'PENDING' ? 'ALL' : 'PENDING')}
           className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
@@ -130,7 +143,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              PENDING
+              PENDING APPROVAL
             </span>
             <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200">
               <Clock className="w-4 h-4 text-amber-600" />
@@ -141,7 +154,29 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
           </div>
         </div>
 
-        {/* Card 2: Initiated */}
+        {/* Card 2: Returned (Placed in Center) */}
+        <div
+          onClick={() => setActiveHrFilter(activeHrFilter === 'RETURNED' ? 'ALL' : 'RETURNED')}
+          className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
+            activeHrFilter === 'RETURNED'
+              ? 'border-[#211E4E] ring-2 ring-[#211E4E]/20 shadow-md'
+              : 'border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              RETURNED
+            </span>
+            <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center border border-orange-200">
+              <RotateCcw className="w-4 h-4 text-orange-600" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-black text-orange-600 tracking-tight">
+            {metrics.returned}
+          </div>
+        </div>
+
+        {/* Card 3: Initiated */}
         <div
           onClick={() => setActiveHrFilter(activeHrFilter === 'INITIATED' ? 'ALL' : 'INITIATED')}
           className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${

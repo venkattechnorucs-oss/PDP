@@ -27,13 +27,14 @@ interface HrPdpDashboardViewProps {
 
 type FilterStageType =
   | 'ALL'
-  | 'NOT_STARTED'
-  | 'PENDING_APPROVAL'
-  | 'PENDING_HR'
-  | 'PENDING_MANAGER'
-  | 'PENDING_LNA'
-  | 'PENDING_EMPLOYEE'
-  | 'ACKNOWLEDGED';
+  | 'EVAL_TOTAL'
+  | 'EVAL_NOT_STARTED'
+  | 'EVAL_PENDING_MANAGER'
+  | 'EVAL_PENDING_LNA'
+  | 'PDP_PENDING_MANAGER'
+  | 'PDP_PENDING_LNA'
+  | 'PDP_PENDING_SIGNOFF'
+  | 'PDP_ACKNOWLEDGED';
 
 export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
   onReviewEmployee,
@@ -55,50 +56,70 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     color: string;
   } | null>(null);
 
-  // Derive dynamic counts for the 8 requested metrics
+  // Map employee to one of the 7 stages for filtering
+  const getEmployeeStage = (sub: TeamMemberSubmission, idx: number): FilterStageType => {
+    if (idx === 0 || idx === 7) return 'EVAL_NOT_STARTED';
+    if (idx === 3 || idx === 5) return 'EVAL_PENDING_MANAGER';
+    if (idx === 8 || idx === 13) return 'EVAL_PENDING_LNA';
+    if (idx === 9 || idx === 14) return 'PDP_PENDING_MANAGER';
+    if (idx === 10 || idx === 15) return 'PDP_PENDING_LNA';
+    if (idx === 4 || idx === 11) return 'PDP_PENDING_SIGNOFF';
+    return 'PDP_ACKNOWLEDGED';
+  };
+
+  const getStageLabel = (stage: FilterStageType): { label: string; colorClass: string } => {
+    switch (stage) {
+      case 'EVAL_NOT_STARTED':
+        return { label: 'Not Started', colorClass: 'bg-slate-100 text-slate-700 border-slate-300' };
+      case 'EVAL_PENDING_MANAGER':
+        return { label: 'Pending with Manager (Evaluation)', colorClass: 'bg-orange-50 text-orange-700 border-orange-200' };
+      case 'EVAL_PENDING_LNA':
+        return { label: 'Pending with LNA (Evaluation)', colorClass: 'bg-purple-50 text-purple-700 border-purple-200' };
+      case 'PDP_PENDING_MANAGER':
+        return { label: 'Pending with Manager (PDP)', colorClass: 'bg-amber-50 text-amber-700 border-amber-200' };
+      case 'PDP_PENDING_LNA':
+        return { label: 'Pending with LNA (PDP)', colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+      case 'PDP_PENDING_SIGNOFF':
+        return { label: 'Pending Sign-Off', colorClass: 'bg-sky-50 text-sky-700 border-sky-200' };
+      case 'PDP_ACKNOWLEDGED':
+        return { label: 'Acknowledged', colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      default:
+        return { label: 'In Progress', colorClass: 'bg-slate-100 text-slate-700 border-slate-300' };
+    }
+  };
+
+  // Derive dynamic counts for Competency Evaluation and PDP Initiation
   const metrics = useMemo(() => {
-    let notStarted = 0;
-    let pendingApproval = 0;
-    let pendingHr = 0;
-    let pendingManager = 0;
-    let pendingLna = 0;
-    let pendingEmployee = 0;
-    let acknowledged = 0;
+    let evalNotStarted = 0;
+    let evalPendingManager = 0;
+    let evalPendingLna = 0;
+    let pdpPendingManager = 0;
+    let pdpPendingLna = 0;
+    let pdpPendingSignOff = 0;
+    let pdpAcknowledged = 0;
 
     TEAM_SUBMISSIONS.forEach((sub, idx) => {
-      // Deterministically categorize mock submissions across the 7 stages
-      if (idx % 8 === 0) {
-        notStarted++;
-      } else if (sub.pdpStage === 'PENDING_HR_INITIATION' || idx % 7 === 1) {
-        pendingHr++;
-        pendingApproval++;
-      } else if (sub.pdpStage === 'PENDING_MANAGER_REVIEW' || sub.pdpStage === 'PDP_PLANNING_MANAGER' || idx % 7 === 2) {
-        pendingManager++;
-        pendingApproval++;
-      } else if (sub.pdpStage === 'PENDING_LNA_TEAM' || idx % 7 === 3) {
-        pendingLna++;
-        pendingApproval++;
-      } else if (sub.pdpStage === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' || sub.pdpStage === 'PENDING_EMPLOYEE_EVALUATION' || idx % 7 === 4) {
-        pendingEmployee++;
-        pendingApproval++;
-      } else if (sub.pdpStage === 'ACTIVE' || sub.status === 'APPROVED' || idx % 7 === 5 || idx % 7 === 6) {
-        acknowledged++;
-      } else {
-        pendingApproval++;
-      }
+      const stage = getEmployeeStage(sub, idx);
+      if (stage === 'EVAL_NOT_STARTED') evalNotStarted++;
+      else if (stage === 'EVAL_PENDING_MANAGER') evalPendingManager++;
+      else if (stage === 'EVAL_PENDING_LNA') evalPendingLna++;
+      else if (stage === 'PDP_PENDING_MANAGER') pdpPendingManager++;
+      else if (stage === 'PDP_PENDING_LNA') pdpPendingLna++;
+      else if (stage === 'PDP_PENDING_SIGNOFF') pdpPendingSignOff++;
+      else if (stage === 'PDP_ACKNOWLEDGED') pdpAcknowledged++;
     });
 
     const totalRequests = TEAM_SUBMISSIONS.length;
 
     return {
       totalRequests,
-      notStarted,
-      pendingApproval,
-      pendingHr,
-      pendingManager,
-      pendingLna,
-      pendingEmployee,
-      acknowledged,
+      evalNotStarted,
+      evalPendingManager,
+      evalPendingLna,
+      pdpPendingManager,
+      pdpPendingLna,
+      pdpPendingSignOff,
+      pdpAcknowledged,
     };
   }, []);
 
@@ -127,36 +148,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     setActiveExecutionFilter('ALL');
   };
 
-  // Map employee to one of the 7 stages for filtering
-  const getEmployeeStage = (sub: TeamMemberSubmission, idx: number): FilterStageType => {
-    if (idx % 8 === 0) return 'NOT_STARTED';
-    if (sub.pdpStage === 'PENDING_HR_INITIATION' || idx % 7 === 1) return 'PENDING_HR';
-    if (sub.pdpStage === 'PENDING_MANAGER_REVIEW' || sub.pdpStage === 'PDP_PLANNING_MANAGER' || idx % 7 === 2) return 'PENDING_MANAGER';
-    if (sub.pdpStage === 'PENDING_LNA_TEAM' || idx % 7 === 3) return 'PENDING_LNA';
-    if (sub.pdpStage === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' || sub.pdpStage === 'PENDING_EMPLOYEE_EVALUATION' || idx % 7 === 4) return 'PENDING_EMPLOYEE';
-    if (sub.pdpStage === 'ACTIVE' || sub.status === 'APPROVED' || idx % 7 === 5 || idx % 7 === 6) return 'ACKNOWLEDGED';
-    return 'PENDING_APPROVAL';
-  };
-
-  const getStageLabel = (stage: FilterStageType): { label: string; colorClass: string } => {
-    switch (stage) {
-      case 'NOT_STARTED':
-        return { label: 'Not Started', colorClass: 'bg-slate-100 text-slate-700 border-slate-300' };
-      case 'PENDING_HR':
-        return { label: 'Pending with HR', colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
-      case 'PENDING_MANAGER':
-        return { label: 'Pending with Manager', colorClass: 'bg-amber-50 text-amber-700 border-amber-200' };
-      case 'PENDING_LNA':
-        return { label: 'Pending with LNA Team', colorClass: 'bg-purple-50 text-purple-700 border-purple-200' };
-      case 'PENDING_EMPLOYEE':
-        return { label: 'Pending with Employee', colorClass: 'bg-sky-50 text-sky-700 border-sky-200' };
-      case 'ACKNOWLEDGED':
-        return { label: 'Acknowledged', colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
-      default:
-        return { label: 'Pending', colorClass: 'bg-amber-50 text-amber-700 border-amber-200' };
-    }
-  };
-
   // Filtered employees
   const filteredEmployees = useMemo(() => {
     return TEAM_SUBMISSIONS.map((sub, idx) => ({ ...sub, computedStage: getEmployeeStage(sub, idx) }))
@@ -178,7 +169,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
 
         // Status Filter
         if (selectedStatus !== 'ALL') {
-          if (selectedStatus === 'Not Started' && sub.computedStage !== 'NOT_STARTED') return false;
+          if (selectedStatus === 'Not Started' && sub.computedStage !== 'EVAL_NOT_STARTED') return false;
           if ((selectedStatus === 'Pending' || selectedStatus === 'Pending Approval') && sub.status !== 'PENDING APPROVAL') return false;
           if ((selectedStatus === 'Submitted' || selectedStatus === 'Approved') && sub.status !== 'APPROVED') return false;
           if (selectedStatus === 'Returned' && sub.status !== 'RETURNED') return false;
@@ -186,17 +177,15 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
         }
 
         // Key Metric Stage Card Filter
-        if (selectedFilterStage !== 'ALL') {
-          if (selectedFilterStage === 'PENDING_APPROVAL') {
-            if (sub.computedStage === 'NOT_STARTED' || sub.computedStage === 'ACKNOWLEDGED') return false;
-          } else if (sub.computedStage !== selectedFilterStage) {
+        if (selectedFilterStage !== 'ALL' && selectedFilterStage !== 'EVAL_TOTAL') {
+          if (sub.computedStage !== selectedFilterStage) {
             return false;
           }
         }
 
         // Active Execution Filter
         if (activeExecutionFilter !== 'ALL') {
-          if (sub.computedStage !== 'ACKNOWLEDGED') return false;
+          if (sub.computedStage !== 'PDP_ACKNOWLEDGED') return false;
         }
 
         // Search By: Employee vs Manager
@@ -217,75 +206,78 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       });
   }, [selectedEntity, selectedDivision, selectedDepartment, selectedPosition, selectedStatus, selectedFilterStage, activeExecutionFilter, searchBy, searchQuery]);
 
-  const cards = [
+  const evalCards = [
     {
-      id: 'TOTAL',
+      id: 'EVAL_TOTAL',
       label: 'Total Requests',
       count: metrics.totalRequests,
-      stage: 'ALL' as FilterStageType,
+      stage: 'EVAL_TOTAL' as FilterStageType,
       icon: Users,
       topBorderColor: 'border-t-[#211E4E]',
       iconContainerClass: 'bg-slate-100 text-[#211E4E]',
     },
     {
-      id: 'NOT_STARTED',
+      id: 'EVAL_NOT_STARTED',
       label: 'Not Started',
-      count: metrics.notStarted,
-      stage: 'NOT_STARTED' as FilterStageType,
+      count: metrics.evalNotStarted,
+      stage: 'EVAL_NOT_STARTED' as FilterStageType,
       icon: AlertCircle,
       topBorderColor: 'border-t-slate-400',
       iconContainerClass: 'bg-slate-100 text-slate-600',
     },
     {
-      id: 'PENDING_APPROVAL',
-      label: 'Pending',
-      count: metrics.pendingApproval,
-      stage: 'PENDING_APPROVAL' as FilterStageType,
-      icon: Clock,
-      topBorderColor: 'border-t-amber-500',
-      iconContainerClass: 'bg-amber-50 text-amber-700',
-    },
-    {
-      id: 'PENDING_HR',
-      label: 'Pending with HR',
-      count: metrics.pendingHr,
-      stage: 'PENDING_HR' as FilterStageType,
-      icon: Users,
-      topBorderColor: 'border-t-indigo-600',
-      iconContainerClass: 'bg-indigo-50 text-indigo-700',
-    },
-    {
-      id: 'PENDING_MANAGER',
-      label: 'Pending with Manager',
-      count: metrics.pendingManager,
-      stage: 'PENDING_MANAGER' as FilterStageType,
+      id: 'EVAL_PENDING_MANAGER',
+      label: 'PENDING WITH MANAGER',
+      count: metrics.evalPendingManager,
+      stage: 'EVAL_PENDING_MANAGER' as FilterStageType,
       icon: Briefcase,
       topBorderColor: 'border-t-orange-500',
       iconContainerClass: 'bg-orange-50 text-orange-700',
     },
     {
-      id: 'PENDING_LNA',
-      label: 'Pending with LNA Team',
-      count: metrics.pendingLna,
-      stage: 'PENDING_LNA' as FilterStageType,
+      id: 'EVAL_PENDING_LNA',
+      label: 'PENDING WITH LNA',
+      count: metrics.evalPendingLna,
+      stage: 'EVAL_PENDING_LNA' as FilterStageType,
       icon: GraduationCap,
       topBorderColor: 'border-t-purple-600',
       iconContainerClass: 'bg-purple-50 text-purple-700',
     },
+  ];
+
+  const pdpCards = [
     {
-      id: 'PENDING_EMPLOYEE',
-      label: 'Pending with Employee',
-      count: metrics.pendingEmployee,
-      stage: 'PENDING_EMPLOYEE' as FilterStageType,
+      id: 'PDP_PENDING_MANAGER',
+      label: 'PENDING WITH MANAGER',
+      count: metrics.pdpPendingManager,
+      stage: 'PDP_PENDING_MANAGER' as FilterStageType,
+      icon: Briefcase,
+      topBorderColor: 'border-t-amber-500',
+      iconContainerClass: 'bg-amber-50 text-amber-700',
+    },
+    {
+      id: 'PDP_PENDING_LNA',
+      label: 'PENDING WITH LNA',
+      count: metrics.pdpPendingLna,
+      stage: 'PDP_PENDING_LNA' as FilterStageType,
+      icon: GraduationCap,
+      topBorderColor: 'border-t-indigo-600',
+      iconContainerClass: 'bg-indigo-50 text-indigo-700',
+    },
+    {
+      id: 'PDP_PENDING_SIGNOFF',
+      label: 'PENDING SIGN-OFF',
+      count: metrics.pdpPendingSignOff,
+      stage: 'PDP_PENDING_SIGNOFF' as FilterStageType,
       icon: UserCheck,
       topBorderColor: 'border-t-sky-500',
       iconContainerClass: 'bg-sky-50 text-sky-700',
     },
     {
-      id: 'ACKNOWLEDGED',
-      label: 'Acknowledged',
-      count: metrics.acknowledged,
-      stage: 'ACKNOWLEDGED' as FilterStageType,
+      id: 'PDP_ACKNOWLEDGED',
+      label: 'ACKNOWLEDGED',
+      count: metrics.pdpAcknowledged,
+      stage: 'PDP_ACKNOWLEDGED' as FilterStageType,
       icon: CheckCircle2,
       topBorderColor: 'border-t-emerald-600',
       iconContainerClass: 'bg-emerald-50 text-emerald-700',
@@ -455,11 +447,8 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
           <div>
             <h1 className="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2">
               <Layers className="w-5 h-5 text-[#C8A977]" />
-              <span>Professional Development Plan (PDP) – Executive Dashboard</span>
+              <span>Professional Development Plan (PDP) – Dashboard</span>
             </h1>
-            <p className="mt-0.5 text-xs text-slate-200 font-normal">
-              Real-time monitoring of submissions, bottlenecks, and stage distribution across the organization.
-            </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#C8A977] text-[#211E4E] shadow-2xs">
@@ -638,46 +627,102 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
         </div>
       </section>
 
-      {/* 2. Key Metrics Cards (2 Rows of 4 Cards - Compact Sleek Sizing) */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-        {cards.map((card) => {
-          const Icon = card.icon;
-          const isSelected = selectedFilterStage === card.stage;
-          return (
-            <button
-              key={card.id}
-              type="button"
-              onClick={() => setSelectedFilterStage(isSelected && card.stage !== 'ALL' ? 'ALL' : card.stage)}
-              className={`px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 border-t-[3px] ${card.topBorderColor} text-left transition-all cursor-pointer shadow-2xs hover:shadow-sm flex flex-col justify-between group ${
-                isSelected ? 'ring-2 ring-[#211E4E] shadow-xs bg-slate-50/50' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between gap-1.5 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                  {card.label}
-                </span>
-                <div
-                  className={`w-5.5 h-5.5 rounded-md flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${card.iconContainerClass}`}
+      {/* 2. Key Metrics Cards with Two Distinct Headings */}
+      <div className="space-y-4">
+        {/* Heading 1: Competency Evaluation */}
+        <section className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-2.5">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#211E4E]"></span>
+            <h2 className="text-xs sm:text-sm font-black text-[#211E4E] tracking-wider uppercase">
+              Competency Evaluation
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {evalCards.map((card) => {
+              const Icon = card.icon;
+              const isSelected = selectedFilterStage === card.stage;
+              return (
+                <button
+                  key={card.id}
+                  type="button"
+                  onClick={() =>
+                    setSelectedFilterStage(
+                      isSelected && card.stage !== 'ALL' ? 'ALL' : card.stage
+                    )
+                  }
+                  className={`px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 border-t-[3px] ${card.topBorderColor} text-left transition-all cursor-pointer shadow-2xs hover:shadow-sm flex flex-col justify-between group ${
+                    isSelected ? 'ring-2 ring-[#211E4E] shadow-xs bg-slate-50/50' : ''
+                  }`}
                 >
-                  <Icon className="w-3 h-3" />
-                </div>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <span className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-tight">
-                  {card.count}
-                </span>
-                {isSelected && (
-                  <span className="text-[9px] font-bold text-[#211E4E] bg-slate-100 px-1.5 py-0.2 rounded-full">
-                    Active Filter
-                  </span>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </section>
+                  <div className="flex items-center justify-between gap-1.5 mb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">
+                      {card.label}
+                    </span>
+                    <div
+                      className={`w-5.5 h-5.5 rounded-md flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${card.iconContainerClass}`}
+                    >
+                      <Icon className="w-3 h-3" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-tight">
+                      {card.count}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
-      {/* 3. Donut Charts (3-Column Layout: LNA Status, Competency Split, Active PDP Execution matching reference) */}
+        {/* Heading 2: PDP INITIATION */}
+        <section className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-2.5">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#C8A977]"></span>
+            <h2 className="text-xs sm:text-sm font-black text-[#211E4E] tracking-wider uppercase">
+              PDP INITIATION
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {pdpCards.map((card) => {
+              const Icon = card.icon;
+              const isSelected = selectedFilterStage === card.stage;
+              return (
+                <button
+                  key={card.id}
+                  type="button"
+                  onClick={() =>
+                    setSelectedFilterStage(
+                      isSelected && card.stage !== 'ALL' ? 'ALL' : card.stage
+                    )
+                  }
+                  className={`px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 border-t-[3px] ${card.topBorderColor} text-left transition-all cursor-pointer shadow-2xs hover:shadow-sm flex flex-col justify-between group ${
+                    isSelected ? 'ring-2 ring-[#211E4E] shadow-xs bg-slate-50/50' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1.5 mb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">
+                      {card.label}
+                    </span>
+                    <div
+                      className={`w-5.5 h-5.5 rounded-md flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${card.iconContainerClass}`}
+                    >
+                      <Icon className="w-3 h-3" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-tight">
+                      {card.count}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      {/* 3. Donut Charts (3-Column Layout: LNA Status, Competency Split, Active PDP Execution) */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
         {/* Chart 1: LNA Status Distribution */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-4.5 flex flex-col justify-between">
@@ -689,9 +734,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                   LNA Status Distribution
                 </h3>
               </div>
-              <span className="text-[11px] font-semibold text-slate-400">
-                {statusDistributionSlices.total} Total Submissions
-              </span>
             </div>
 
             {/* Centered Donut Chart with Interactive Hover Details */}
@@ -700,7 +742,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                 <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-2xs">
                   {renderDonutSlices('LNA_STATUS', statusDistributionSlices.slices, 68, 28)}
                 </svg>
-                {/* Center text: dynamic on hover, or clean standard without inner pill badge */}
+                {/* Center text: count without percentage */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2 transition-all">
                   {hoveredSlice?.chartId === 'LNA_STATUS' ? (
                     <>
@@ -710,17 +752,14 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                       <span className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
                         {hoveredSlice.count}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-500">
-                        {hoveredSlice.percentage}%
-                      </span>
                     </>
                   ) : (
                     <>
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        COMPLETION
+                        SUBMISSIONS
                       </span>
                       <span className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
-                        {statusDistributionSlices.approvedPct}%
+                        {statusDistributionSlices.total}
                       </span>
                     </>
                   )}
@@ -728,7 +767,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
               </div>
             </div>
 
-            {/* Details Table / Legend with Hover Support */}
+            {/* Details Table / Legend */}
             <div className="pt-2.5 border-t border-slate-100 space-y-1">
               {statusDistributionSlices.slices.map((slice) => {
                 const isHovered = hoveredSlice?.chartId === 'LNA_STATUS' && hoveredSlice?.label === slice.label;
@@ -752,9 +791,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                     </div>
                     <div className="flex items-center gap-5 shrink-0">
                       <span className="font-extrabold text-slate-900 text-xs">{slice.count}</span>
-                      <span className="font-semibold text-slate-400 text-xs w-8 text-right">
-                        {slice.percentage}%
-                      </span>
                     </div>
                   </div>
                 );
@@ -773,9 +809,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                   Competency Selections Split
                 </h3>
               </div>
-              <span className="text-[11px] font-semibold text-slate-400">
-                {competencySplitSlices.total} Total Competencies
-              </span>
             </div>
 
             {/* Centered Donut Chart with Interactive Hover Details */}
@@ -784,7 +817,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                 <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-2xs">
                   {renderDonutSlices('COMPETENCY_SPLIT', competencySplitSlices.slices, 68, 28)}
                 </svg>
-                {/* Center text: dynamic on hover, or clean standard without inner pill badge */}
+                {/* Center text: count without percentage */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2 transition-all">
                   {hoveredSlice?.chartId === 'COMPETENCY_SPLIT' ? (
                     <>
@@ -793,9 +826,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                       </span>
                       <span className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
                         {hoveredSlice.count}
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-500">
-                        {hoveredSlice.percentage}%
                       </span>
                     </>
                   ) : (
@@ -812,7 +842,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
               </div>
             </div>
 
-            {/* Details Table / Legend with Hover Support */}
+            {/* Details Table / Legend */}
             <div className="pt-2.5 border-t border-slate-100 space-y-1">
               {competencySplitSlices.slices.map((slice) => {
                 const isHovered = hoveredSlice?.chartId === 'COMPETENCY_SPLIT' && hoveredSlice?.label === slice.label;
@@ -836,9 +866,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                     </div>
                     <div className="flex items-center gap-5 shrink-0">
                       <span className="font-extrabold text-slate-900 text-xs">{slice.count}</span>
-                      <span className="font-semibold text-slate-400 text-xs w-8 text-right">
-                        {slice.percentage}%
-                      </span>
                     </div>
                   </div>
                 );
@@ -847,7 +874,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Chart 3: Active PDP Execution Distribution (Moved up into same row) */}
+        {/* Chart 3: Active PDP Execution Distribution */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-4.5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-slate-100">
@@ -857,9 +884,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                   Active PDP Execution Distribution
                 </h3>
               </div>
-              <span className="text-[11px] font-semibold text-slate-400">
-                {activeExecutionMetrics.total} Total Milestones
-              </span>
             </div>
 
             {/* Centered Donut Chart with Interactive Hover Details */}
@@ -868,7 +892,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                 <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-2xs">
                   {renderDonutSlices('ACTIVE_EXECUTION', activeExecutionMetrics.slices, 68, 28)}
                 </svg>
-                {/* Center text: dynamic on hover, or clean standard without inner pill badge */}
+                {/* Center text: count without percentage */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2 transition-all">
                   {hoveredSlice?.chartId === 'ACTIVE_EXECUTION' ? (
                     <>
@@ -878,17 +902,14 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                       <span className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
                         {hoveredSlice.count}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-500">
-                        {hoveredSlice.percentage}%
-                      </span>
                     </>
                   ) : (
                     <>
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        COMPLETION
+                        MILESTONES
                       </span>
                       <span className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
-                        {activeExecutionMetrics.completedPct}%
+                        {activeExecutionMetrics.total}
                       </span>
                     </>
                   )}
@@ -896,7 +917,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
               </div>
             </div>
 
-            {/* Details Table / Legend with Hover Support */}
+            {/* Details Table / Legend */}
             <div className="pt-2.5 border-t border-slate-100 space-y-1">
               {activeExecutionMetrics.slices.map((slice) => {
                 const isHovered = hoveredSlice?.chartId === 'ACTIVE_EXECUTION' && hoveredSlice?.label === slice.label;
@@ -920,9 +941,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                     </div>
                     <div className="flex items-center gap-5 shrink-0">
                       <span className="font-extrabold text-slate-900 text-xs">{slice.count}</span>
-                      <span className="font-semibold text-slate-400 text-xs w-8 text-right">
-                        {slice.percentage}%
-                      </span>
                     </div>
                   </div>
                 );
@@ -972,9 +990,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                   <span className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-tight">
                     {box.count}
                   </span>
-                  <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                    {box.pct}%
-                  </span>
                 </div>
               </button>
             );
@@ -985,7 +1000,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       {/* 5. Submissions Table & Filter Controls */}
       <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {/* Table Filters Bar */}
-        <div className="p-4 sm:p-5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 flex-1 max-w-md">
             <div className="relative w-full">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -999,47 +1014,17 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Division Filter */}
-            <select
-              value={selectedDivision}
-              onChange={(e) => setSelectedDivision(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white font-medium text-slate-700"
-            >
-              <option value="ALL">All Divisions</option>
-              {divisions.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-
-            {/* Department Filter */}
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white font-medium text-slate-700"
-            >
-              <option value="ALL">All Departments</option>
-              {departments.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-
+          <div className="flex items-center gap-2">
             {/* Reset Filters */}
-            {(selectedFilterStage !== 'ALL' || activeExecutionFilter !== 'ALL' || selectedDivision !== 'ALL' || selectedDepartment !== 'ALL' || searchQuery) && (
+            {(selectedFilterStage !== 'ALL' || activeExecutionFilter !== 'ALL' || searchQuery) && (
               <button
                 type="button"
                 onClick={() => {
                   setSelectedFilterStage('ALL');
                   setActiveExecutionFilter('ALL');
-                  setSelectedDivision('ALL');
-                  setSelectedDepartment('ALL');
                   setSearchQuery('');
                 }}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset</span>

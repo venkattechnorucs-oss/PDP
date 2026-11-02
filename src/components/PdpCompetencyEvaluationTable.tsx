@@ -40,6 +40,7 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
     submitEmployeeEvaluation,
     toggleCompetencySelection,
     updateCompetencyPriority,
+    updateCompetencyPhase,
     updateManagerObjective,
     submitManagerEvaluation,
     returnToEmployee,
@@ -162,7 +163,7 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                 }`}
               >
                 <option value="" disabled>
-                  Select Rating
+                  Select Proficiency Level
                 </option>
                 {PROFICIENCY_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
@@ -199,7 +200,7 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                   }`}
                 >
                   <option value="" disabled>
-                    Select Rating
+                    Select Proficiency Level
                   </option>
                   {PROFICIENCY_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
@@ -231,22 +232,26 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                     .map((c) => c.priorityRank as number)
                 );
                 const availablePriorities = [1, 2, 3, 4, 5].filter((rank) => !takenByOthers.has(rank));
+                const isDisabled = selectedCompetenciesCount >= 5 && !comp.priorityRank;
 
                 return (
                   <div className="flex items-center justify-center">
                     <select
                       value={comp.priorityRank || ''}
+                      disabled={isDisabled}
                       onChange={(e) => {
                         const val = e.target.value ? parseInt(e.target.value, 10) : undefined;
                         updateCompetencyPriority(comp.id, val);
                       }}
-                      className={`w-full text-xs font-bold py-1 px-1.5 rounded-lg border text-center transition-all cursor-pointer ${
-                        comp.priorityRank
-                          ? 'bg-[#211E4E] text-[#C8A977] border-[#C8A977] shadow-xs ring-1 ring-[#C8A977]/30'
-                          : 'bg-white text-slate-500 border-slate-300 hover:border-slate-400'
+                      className={`w-full text-xs font-bold py-1 px-1.5 rounded-lg border text-center transition-all ${
+                        isDisabled
+                          ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
+                          : comp.priorityRank
+                          ? 'bg-[#211E4E] text-[#C8A977] border-[#C8A977] shadow-xs ring-1 ring-[#C8A977]/30 cursor-pointer'
+                          : 'bg-white text-slate-500 border-slate-300 hover:border-slate-400 cursor-pointer'
                       }`}
                       title={
-                        availablePriorities.length === 0 && !comp.priorityRank
+                        isDisabled
                           ? 'All 5 priorities are already assigned to other competencies'
                           : 'Select Priority (1 to 5)'
                       }
@@ -324,7 +329,7 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                     Ideal Proficiency
                   </th>
                   <th className={`py-2.5 px-2 text-center border-r border-slate-700/60 ${showManagerColumn ? 'w-36' : 'w-44'}`}>
-                    Employee Evaluation
+                    Employee Assessment
                   </th>
                   {showManagerColumn && (
                     <th className="py-2.5 px-2 text-center w-36 border-r border-slate-700/60">
@@ -400,35 +405,59 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
       {/* 3. Development Objectives Section (Shown during Manager Review & HR Initiation) */}
       {showDevelopmentObjectives && (
         <section className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-xs">
-          <div className="bg-[#211E4E] text-white py-2.5 px-4 font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-            <Target className="w-4 h-4 text-[#C8A977]" />
-            <span>Development Objectives</span>
+          <div className="bg-[#211E4E] text-white py-2.5 px-4 font-bold text-xs uppercase tracking-wider flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-[#C8A977]" />
+              <span>Development Objectives</span>
+            </div>
+            {selectedList.length > 0 && (
+              <span className="text-[11px] font-bold text-[#C8A977]">
+                {selectedList.length} of 5 Priorities Configured
+              </span>
+            )}
           </div>
 
-          <div className="p-4 sm:p-5">
+          <div className="p-0">
             {selectedList.length === 0 ? (
-              <div className="p-6 bg-slate-50 rounded-xl border border-slate-200 text-center text-slate-500 text-xs italic">
+              <div className="p-6 bg-slate-50 text-center text-slate-500 text-xs italic">
                 No priority competencies selected yet. Choose Priority 1 through 5 in the Priority column above to configure development objectives.
               </div>
             ) : (
-              <div className="space-y-3.5">
-                {selectedList.map((comp, idx) => (
-                  <div
-                    key={comp.id}
-                    className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-start gap-3"
-                  >
-                    {/* Left: Competency Name & Category with Priority Rank */}
-                    <div className="md:w-5/12 shrink-0">
-                      <div className="flex items-start gap-2.5">
-                        <span className="px-2 py-0.5 rounded-md bg-[#211E4E] text-[#C8A977] font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs border border-[#C8A977]/30 whitespace-nowrap">
-                          Priority {comp.priorityRank || idx + 1}
-                        </span>
-                        <div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#211E4E]/90 text-white font-bold uppercase text-[11px] tracking-wider border-b border-slate-200 select-none">
+                      <th className="py-2.5 px-3 text-center w-24 border-r border-white/20">
+                        Priority
+                      </th>
+                      <th className="py-2.5 px-3.5 w-[28%] border-r border-white/20">
+                        Competencies
+                      </th>
+                      <th className="py-2.5 px-3.5 border-r border-white/20">
+                        Objectives
+                      </th>
+                      <th className="py-2.5 px-3 text-center w-40">
+                        Phase
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/80 bg-white">
+                    {selectedList.map((comp, idx) => (
+                      <tr key={comp.id} className="hover:bg-slate-50/70 transition-colors">
+                        {/* Column 1: Priority */}
+                        <td className="py-3 px-3 text-center align-middle border-r border-slate-200/80">
+                          <span className="inline-block px-2.5 py-1 rounded-md bg-[#211E4E] text-white font-mono font-bold text-xs shadow-2xs whitespace-nowrap">
+                            Priority {comp.priorityRank || idx + 1}
+                          </span>
+                        </td>
+
+                        {/* Column 2: Competencies */}
+                        <td className="py-3 px-3.5 align-middle border-r border-slate-200/80">
                           <div className="font-bold text-slate-900 text-xs leading-snug">
                             {comp.name}
                           </div>
                           <span
-                            className={`inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${
+                            className={`inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
                               comp.category === 'Behavioural'
                                 ? 'bg-[#211E4E]/10 text-[#211E4E] border border-[#211E4E]/30'
                                 : 'bg-[#C8A977]/25 text-[#211E4E] border border-[#C8A977]'
@@ -436,30 +465,50 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                           >
                             {comp.category}
                           </span>
-                        </div>
-                      </div>
-                    </div>
+                        </td>
 
-                    {/* Right: Objective Input / View */}
-                    <div className="flex-1 w-full">
-                      {isManagerEditing ? (
-                        <textarea
-                          rows={2}
-                          value={comp.managerObjective || ''}
-                          onChange={(e) => updateManagerObjective(comp.id, e.target.value)}
-                          placeholder={`Enter developmental objective for ${comp.name}...`}
-                          className="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#211E4E] focus:border-[#211E4E] shadow-2xs transition-all leading-relaxed"
-                        />
-                      ) : (
-                        <div className="text-xs text-slate-800 p-2.5 bg-white border border-slate-200 rounded-lg leading-relaxed font-normal">
-                          {comp.managerObjective || (
-                            <span className="text-slate-400 italic">No objective entered.</span>
+                        {/* Column 3: Objectives */}
+                        <td className="py-3 px-3.5 align-middle border-r border-slate-200/80">
+                          {isManagerEditing ? (
+                            <textarea
+                              rows={2}
+                              value={comp.managerObjective || ''}
+                              onChange={(e) => updateManagerObjective(comp.id, e.target.value)}
+                              placeholder={`Enter developmental objective for ${comp.name}...`}
+                              className="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#211E4E] focus:border-[#211E4E] shadow-2xs transition-all leading-relaxed resize-none"
+                            />
+                          ) : (
+                            <div className="text-xs text-slate-800 p-2.5 bg-slate-50/60 border border-slate-200 rounded-lg leading-relaxed font-normal">
+                              {comp.managerObjective || (
+                                <span className="text-slate-400 italic">No objective entered.</span>
+                              )}
+                            </div>
                           )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                        </td>
+
+                        {/* Column 4: Phase with 4 options: 3 Months, 6 Months, 1 Year, 2 Years */}
+                        <td className="py-3 px-3 text-center align-middle w-40">
+                          {isManagerEditing ? (
+                            <select
+                              value={comp.phase || '6 Months'}
+                              onChange={(e) => updateCompetencyPhase(comp.id, e.target.value)}
+                              className="w-full text-xs font-semibold py-2 px-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#211E4E]/20 focus:border-[#211E4E] cursor-pointer shadow-2xs"
+                            >
+                              <option value="3 Months">3 Months</option>
+                              <option value="6 Months">6 Months</option>
+                              <option value="1 Year">1 Year</option>
+                              <option value="2 Years">2 Years</option>
+                            </select>
+                          ) : (
+                            <span className="inline-block px-3 py-1 rounded-md bg-[#211E4E]/10 text-[#211E4E] font-bold text-xs border border-[#211E4E]/20">
+                              {comp.phase || '6 Months'}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -494,15 +543,6 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => returnToEmployee('Manager returned PDP for self-evaluation revision.')}
-                  className="px-4 py-2 border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Return</span>
-                </button>
-
                 <button
                   type="button"
                   onClick={submitManagerEvaluation}

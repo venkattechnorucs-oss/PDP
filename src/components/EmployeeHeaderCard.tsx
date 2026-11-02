@@ -24,7 +24,7 @@ export const getStatusBadgeInfo = (status: PdpStatus) => {
       };
     case 'PENDING_EMPLOYEE_EVALUATION':
       return {
-        label: 'Pending Employee Evaluation',
+        label: 'Pending Employee Assessment',
         bg: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
         dot: 'bg-amber-400 animate-pulse',
       };

@@ -4,13 +4,17 @@ import {
   ChevronDown,
   MessageSquare,
   Clock,
+  RotateCcw,
+  Send,
+  GraduationCap,
+  ShieldCheck,
 } from 'lucide-react';
-import { DevelopmentRoadmapItem, RoadmapSubRow } from '../types/pdp';
-import { DateRangeCalendarPicker } from './DateRangeCalendarPicker';
+import { usePdp } from '../context/PdpContext';
+import { DevelopmentRoadmapItem, RoadmapSubRow, CommentMessage } from '../types/pdp';
+import { calculatePhaseDates } from '../utils/phaseDateUtils';
 import { EditableActivityCombobox } from './EditableActivityCombobox';
 import { EditableTrainingPathCombobox } from './EditableTrainingPathCombobox';
 import { PdpCommentHistory } from './PdpCommentHistory';
-import { PdpCommentModal } from './PdpCommentModal';
 
 interface LnaCompetencyProcessViewProps {
   mode?: 'MANAGER' | 'LNA' | 'EMPLOYEE_SIGNOFF' | 'ACTIVE_PDP';
@@ -29,8 +33,11 @@ interface LnaCompetencyProcessViewProps {
 }
 
 const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
+  const selectedPhase = item.phase || '6 Months';
+  const r1Dates = calculatePhaseDates(selectedPhase, 1, '01/Jul/2026');
+
   const defaultTemplates = [
-    { rowNumber: 1, phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'ACTIVE' },
+    { rowNumber: 1, phase: selectedPhase, startDate: r1Dates.startDate, endDate: r1Dates.endDate, assignedDates: r1Dates.assignedDates, statusRemarks: 'ACTIVE' },
     { rowNumber: 2, phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'ACTIVE' },
     { rowNumber: 3, phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'ACTIVE' },
     { rowNumber: 4, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'ACTIVE' },
@@ -43,10 +50,16 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
     const found = existing.find((r) => r.rowNumber === i);
     const tmpl = defaultTemplates[i - 1];
     if (found) {
+      const effectivePhase = (i === 1 && item.phase) ? item.phase : (found.phase || tmpl.phase);
+      const dateInfo = calculatePhaseDates(effectivePhase, i, found.startDate || tmpl.startDate);
       result.push({
         ...tmpl,
         ...found,
         rowNumber: i,
+        phase: effectivePhase,
+        startDate: dateInfo.startDate,
+        endDate: dateInfo.endDate,
+        assignedDates: dateInfo.assignedDates,
         statusRemarks: found.statusRemarks || tmpl.statusRemarks,
       });
     } else {
@@ -82,9 +95,86 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
   onReturnToLnt,
   onOpenAcknowledgementModal,
 }) => {
+  const { employee, currentRole, addCommentMessage } = usePdp();
   const [activeCompIndex, setActiveCompIndex] = useState(0);
   const [activeStatusRow, setActiveStatusRow] = useState<number | null>(null);
-  const [commentModalRow, setCommentModalRow] = useState<RoadmapSubRow | null>(null);
+
+  // Active PDP expandable comments state (+ / - toggle per row)
+  const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  const [rowInputText, setRowInputText] = useState<Record<string, string>>({});
+  const [rowCommentsMap, setRowCommentsMap] = useState<Record<string, CommentMessage[]>>(() => {
+    try {
+      const saved = localStorage.getItem('pdp_active_row_comments');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return {};
+  });
+
+  const toggleComments = (rowNumber: number) => {
+    setExpandedComments((prev) => ({
+      ...prev,
+      [rowNumber]: !prev[rowNumber],
+    }));
+  };
+
+  const getRowComments = (compKey: string): CommentMessage[] => {
+    if (rowCommentsMap[compKey] && rowCommentsMap[compKey].length > 0) {
+      return rowCommentsMap[compKey];
+    }
+    return [
+      {
+        id: `seed-${compKey}`,
+        sender: 'employee',
+        senderName: employee.name || 'Vivekanandan',
+        text: 'Initiated active milestone tracking and progressing on planned developmental activities.',
+        timestamp: '19/Aug/2026',
+      },
+    ];
+  };
+
+  const handleSendRowComment = (competencyId: string, rowNumber: number) => {
+    const compKey = `${competencyId}-${rowNumber}`;
+    const text = (rowInputText[compKey] || '').trim();
+    if (!text) return;
+
+    const isEmp = currentRole === 'EMPLOYEE';
+    const nowStr = new Date()
+      .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      .replace(/ /g, '/');
+    const newMsg: CommentMessage = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      sender: isEmp ? 'employee' : 'manager',
+      senderName: isEmp
+        ? employee.name || 'Vivekanandan'
+        : employee.lineManager || 'Suresh Nair',
+      text,
+      timestamp: nowStr,
+    };
+
+    setRowCommentsMap((prev) => {
+      const current = prev[compKey] || getRowComments(compKey);
+      const updated = {
+        ...prev,
+        [compKey]: [...current, newMsg],
+      };
+      try {
+        localStorage.setItem('pdp_active_row_comments', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
+
+    addCommentMessage({
+      sender: isEmp ? 'employee' : 'manager',
+      senderName: newMsg.senderName,
+      text: `[Check-In Category ${rowNumber}] ${text}`,
+    });
+
+    setRowInputText((prev) => ({ ...prev, [compKey]: '' }));
+  };
 
   // Fallback safety if roadmap items are fewer than 5
   const validIndex = Math.min(Math.max(activeCompIndex, 0), Math.max(roadmapItems.length - 1, 0));
@@ -94,8 +184,8 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
 
   const currentRows = getFiveSubRows(activeItem);
 
-  // Milestone column is only shown in Manager and LNA modes. In Employee Sign-off and Active PDP, it is NOT needed.
-  const showMilestoneColumn = mode === 'MANAGER' || mode === 'LNA';
+  // Category column is shown across all modes for clean full-width 12-column alignment
+  const showMilestoneColumn = true;
 
   // Milestone 5 rule:
   // In Manager mode, always show so manager can optionally configure it.
@@ -192,328 +282,352 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
           </p>
         </div>
 
-        {/* 3. Column Header Row (Milestone, Development Activities / Projects *, Phase): Blue line */}
-        <div className="bg-[#211E4E] text-white text-[11px] font-bold uppercase tracking-wider py-2.5 px-4 border-b border-slate-300 hidden md:grid grid-cols-12 gap-3.5 items-center">
-          {/* Milestone Column Header (Only in Manager and LNA modes) */}
-          {showMilestoneColumn && (
-            <div className="col-span-2 text-left">Milestone</div>
-          )}
+        {/* 3. Structured HTML Table: Clean borders, perfect column alignment, and horizontal row separators */}
+        <div className="overflow-x-auto bg-white border-t border-slate-200/90">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-[#211E4E] text-white font-bold uppercase text-[11px] tracking-wider select-none border-b border-slate-300">
+                {/* Category Column */}
+                <th className="py-3 px-3.5 border-r border-white/20 w-32 whitespace-nowrap">
+                  Category
+                </th>
 
-          {/* Development Activities / Projects Header */}
-          <div
-            className={
-              mode === 'MANAGER'
-                ? 'col-span-7'
-                : mode === 'LNA'
-                ? 'col-span-4'
-                : mode === 'EMPLOYEE_SIGNOFF'
-                ? 'col-span-4'
-                : 'col-span-4'
-            }
-          >
-            Development Activities / Projects {mode === 'MANAGER' && <span className="text-red-400 font-bold">*</span>}
-          </div>
+                {/* Development Activities / Projects */}
+                <th className="py-3 px-3.5 border-r border-white/20">
+                  Development Activities / Projects {mode === 'MANAGER' && <span className="text-red-400 font-bold">*</span>}
+                </th>
 
-          {/* Learning / Training Path Header */}
-          {mode !== 'MANAGER' && (
-            <div
-              className={
-                mode === 'LNA'
-                  ? 'col-span-4'
-                  : mode === 'EMPLOYEE_SIGNOFF'
-                  ? 'col-span-3'
-                  : 'col-span-3'
-              }
-            >
-              Learning / Training Path {mode === 'LNA' && <span className="text-red-400 font-bold">*</span>}
-            </div>
-          )}
+                {/* Learning / Training Path */}
+                {mode !== 'MANAGER' && (
+                  <th className="py-3 px-3.5 border-r border-white/20">
+                    Learning / Training Path
+                  </th>
+                )}
 
-          {/* Phase Header */}
-          <div
-            className={
-              mode === 'MANAGER'
-                ? 'col-span-3'
-                : mode === 'LNA'
-                ? 'col-span-2'
-                : mode === 'EMPLOYEE_SIGNOFF'
-                ? 'col-span-2'
-                : 'col-span-2'
-            }
-          >
-            Phase
-          </div>
+                {/* Phase */}
+                <th className={`py-3 px-3 text-center w-36 whitespace-nowrap ${mode === 'ACTIVE_PDP' ? 'border-r border-white/20' : ''}`}>
+                  Phase
+                </th>
 
-          {/* Status Header (In EMPLOYEE_SIGNOFF and ACTIVE_PDP modes) */}
-          {mode === 'EMPLOYEE_SIGNOFF' && (
-            <div className="col-span-1 text-center">Status</div>
-          )}
-          {mode === 'ACTIVE_PDP' && (
-            <div className="col-span-2 text-center">Status</div>
-          )}
+                {/* Status (Only in ACTIVE_PDP mode) */}
+                {mode === 'ACTIVE_PDP' && (
+                  <th className="py-3 px-3 text-center w-40 whitespace-nowrap">
+                    Status
+                  </th>
+                )}
+              </tr>
+            </thead>
 
-          {/* Comments Header (In EMPLOYEE_SIGNOFF and ACTIVE_PDP modes) */}
-          {mode === 'EMPLOYEE_SIGNOFF' && (
-            <div className="col-span-2 text-center">Comments</div>
-          )}
-          {mode === 'ACTIVE_PDP' && (
-            <div className="col-span-1 text-center">Comments</div>
-          )}
-        </div>
+            <tbody className="divide-y divide-slate-200/90 bg-white">
+              {displayRows.map((row) => {
+                const isMandatory = row.rowNumber <= 4;
+                const currentStatus = normalizeActiveStatus(row.statusRemarks);
+                const compKey = `${activeItem.competencyId}-${row.rowNumber}`;
+                const rowComments = getRowComments(compKey);
+                const isExpanded = !!expandedComments[row.rowNumber];
 
-        {/* Milestone Rows */}
-        <div className="divide-y divide-slate-100">
-          {displayRows.map((row) => {
-            const isMandatory = row.rowNumber <= 4;
-            const currentStatus = normalizeActiveStatus(row.statusRemarks);
-
-            return (
-              <div
-                key={`milestone-${activeItem.competencyId}-${row.rowNumber}`}
-                className="p-3.5 sm:p-4 hover:bg-slate-50/60 transition-colors"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-center">
-                  {/* Milestone Label (Only in Manager & LNA modes, NO milestone column in Employee Sign-off or Active PDP) */}
-                  {showMilestoneColumn && (
-                    <div className="md:col-span-2 flex items-center">
-                      <span className="px-2.5 py-1 rounded bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200">
-                        Milestone {row.rowNumber} {isMandatory ? <span className="text-red-500 font-bold">*</span> : ''}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Column: Development Activities / Projects */}
-                  <div
-                    className={
-                      mode === 'MANAGER'
-                        ? 'md:col-span-7'
-                        : mode === 'LNA'
-                        ? 'md:col-span-4'
-                        : mode === 'EMPLOYEE_SIGNOFF'
-                        ? 'md:col-span-4'
-                        : 'md:col-span-4'
-                    }
-                  >
-                    <span className="md:hidden block text-[11px] font-bold text-slate-700 mb-1">
-                      Development Activities / Projects {isMandatory && mode === 'MANAGER' && '*'}
-                    </span>
-                    {mode === 'MANAGER' ? (
-                      <EditableActivityCombobox
-                        value={row.activity || ''}
-                        onChange={(newAct) =>
-                          updateRoadmapSubRow(
-                            activeItem.competencyId,
-                            row.rowNumber,
-                            'activity',
-                            newAct
-                          )
-                        }
-                        competencyId={activeItem.competencyId}
-                        rowNumber={row.rowNumber}
-                        placeholder="Select an activity option from dropdown or type your own..."
-                      />
-                    ) : (
-                      <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 text-xs text-slate-800 leading-relaxed min-h-[44px] flex items-center shadow-2xs">
-                        {row.activity && row.activity.trim().length > 0 ? (
-                          <span>{row.activity}</span>
-                        ) : (
-                          <span className="text-slate-400 italic">
-                            (No development activity specified by manager)
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Column: Learning / Training Path */}
-                  {mode !== 'MANAGER' && (
-                    <div
-                      className={
-                        mode === 'LNA'
-                          ? 'md:col-span-4'
-                          : mode === 'EMPLOYEE_SIGNOFF'
-                          ? 'md:col-span-3'
-                          : 'md:col-span-3'
-                      }
-                    >
-                      <span className="md:hidden block text-[11px] font-bold text-slate-700 mb-1">
-                        Learning / Training Path {isMandatory && mode === 'LNA' && '*'}
-                      </span>
-                      {mode === 'LNA' ? (
-                        <EditableTrainingPathCombobox
-                          value={row.trainingPath || ''}
-                          onChange={(newPath) =>
-                            updateRoadmapSubRow(
-                              activeItem.competencyId,
-                              row.rowNumber,
-                              'trainingPath',
-                              newPath
-                            )
-                          }
-                          competencyId={activeItem.competencyId}
-                          rowNumber={row.rowNumber}
-                          placeholder="Select course/certification from dropdown or type your own..."
-                        />
-                      ) : (
-                        <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 text-xs text-slate-800 leading-relaxed min-h-[44px] flex items-center shadow-2xs">
-                          {row.trainingPath && row.trainingPath !== 'Pending LNA Team' ? (
-                            <span>{row.trainingPath}</span>
-                          ) : (
-                            <span className="text-slate-400 italic">
-                              {row.trainingPath || 'Pending LNA Team'}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Column: Phase */}
-                  <div
-                    className={
-                      mode === 'MANAGER'
-                        ? 'md:col-span-3'
-                        : mode === 'LNA'
-                        ? 'md:col-span-2'
-                        : mode === 'EMPLOYEE_SIGNOFF'
-                        ? 'md:col-span-2'
-                        : 'md:col-span-2'
-                    }
-                  >
-                    <span className="md:hidden block text-[11px] font-bold text-slate-700 mb-1">
-                      Phase
-                    </span>
-                    {mode === 'MANAGER' ? (
-                      <div className="pt-0.5">
-                        <DateRangeCalendarPicker
-                          startDate={row.startDate}
-                          endDate={row.endDate}
-                          rowNumber={row.rowNumber}
-                          onSelectRange={(s, e, dur) => {
-                            updateRoadmapSubRow(activeItem.competencyId, row.rowNumber, 'startDate', s);
-                            updateRoadmapSubRow(activeItem.competencyId, row.rowNumber, 'endDate', e);
-                            if (dur) {
-                              updateRoadmapSubRow(activeItem.competencyId, row.rowNumber, 'phase', dur);
-                            }
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="p-2 rounded-lg border border-slate-200 bg-slate-50/70 text-xs text-slate-800 min-h-[44px] flex flex-col justify-center shadow-2xs text-left">
-                        <span className="font-bold text-slate-800 text-[11.5px]">{row.phase}</span>
-                        <span className="text-[10px] text-slate-500 font-mono">
-                          {row.startDate} – {row.endDate}
+                return (
+                  <React.Fragment key={`milestone-${activeItem.competencyId}-${row.rowNumber}`}>
+                    <tr className="hover:bg-slate-50/70 transition-colors border-b border-slate-200/80">
+                      {/* Column 1: Category */}
+                      <td className="py-3 px-3.5 align-middle border-r border-slate-200/80 w-32">
+                        <span className="inline-block px-2.5 py-1 rounded bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 whitespace-nowrap">
+                          Category {row.rowNumber} {isMandatory && mode === 'MANAGER' ? <span className="text-red-500 font-bold">*</span> : ''}
                         </span>
-                      </div>
-                    )}
-                  </div>
+                      </td>
 
-                  {/* Column: Status in EMPLOYEE_SIGNOFF */}
-                  {mode === 'EMPLOYEE_SIGNOFF' && (
-                    <div className="md:col-span-1 flex justify-center items-center text-center">
-                      <span className="md:hidden block text-[11px] font-bold text-slate-700 mr-2">Status:</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs whitespace-nowrap">
-                        <Clock className="w-2.5 h-2.5 text-amber-600" />
-                        <span>{row.statusRemarks || 'Scheduled'}</span>
-                      </span>
-                    </div>
-                  )}
+                      {/* Column 2: Development Activities / Projects */}
+                      <td className="py-3 px-3.5 align-middle border-r border-slate-200/80">
+                        {mode === 'MANAGER' ? (
+                          <EditableActivityCombobox
+                            value={row.activity || ''}
+                            onChange={(newAct) =>
+                              updateRoadmapSubRow(
+                                activeItem.competencyId,
+                                row.rowNumber,
+                                'activity',
+                                newAct
+                              )
+                            }
+                            competencyId={activeItem.competencyId}
+                            rowNumber={row.rowNumber}
+                            placeholder="Select an activity option from dropdown or type your own..."
+                          />
+                        ) : (
+                          <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 text-xs text-slate-800 leading-relaxed min-h-[44px] flex items-center shadow-2xs">
+                            {row.activity && row.activity.trim().length > 0 ? (
+                              <span>{row.activity}</span>
+                            ) : (
+                              <span className="text-slate-400 italic">
+                                (No development activity specified by manager)
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </td>
 
-                  {/* Column: Status (Only in ACTIVE_PDP mode) */}
-                  {mode === 'ACTIVE_PDP' && (
-                    <div className="md:col-span-2 flex justify-center relative">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setActiveStatusRow(activeStatusRow === row.rowNumber ? null : row.rowNumber)
-                        }
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-bold border shadow-2xs transition-colors cursor-pointer ${
-                          currentStatus === 'Completed'
-                            ? 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200'
-                            : currentStatus === 'In Progress'
-                            ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200'
-                            : 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
-                        }`}
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            currentStatus === 'Completed'
-                              ? 'bg-blue-600'
-                              : currentStatus === 'In Progress'
-                              ? 'bg-amber-500'
-                              : 'bg-emerald-600 animate-pulse'
-                          }`}
-                        />
-                        <span>{currentStatus}</span>
-                        <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-                      </button>
-
-                      {/* Dropdown for Status: strictly ACTIVE, In Progress, Completed */}
-                      {activeStatusRow === row.rowNumber && (
-                        <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-slate-200 rounded-lg shadow-lg p-1 min-w-[130px] animate-in fade-in zoom-in-95 duration-100">
-                          {(['ACTIVE', 'In Progress', 'Completed'] as const).map((st) => (
-                            <button
-                              key={st}
-                              type="button"
-                              onClick={() => {
+                      {/* Column 3: Learning / Training Path */}
+                      {mode !== 'MANAGER' && (
+                        <td className="py-3 px-3.5 align-middle border-r border-slate-200/80">
+                          {mode === 'LNA' ? (
+                            <textarea
+                              rows={2}
+                              value={row.trainingPath || ''}
+                              onChange={(e) =>
                                 updateRoadmapSubRow(
                                   activeItem.competencyId,
                                   row.rowNumber,
-                                  'statusRemarks',
-                                  st
-                                );
-                                setActiveStatusRow(null);
-                              }}
-                              className={`w-full text-left px-2.5 py-1.5 text-xs font-semibold rounded cursor-pointer ${
-                                currentStatus === st
-                                  ? 'bg-slate-100 text-[#211E4E] font-bold'
-                                  : 'hover:bg-slate-50 text-slate-700'
+                                  'trainingPath',
+                                  e.target.value
+                                )
+                              }
+                              placeholder={
+                                row.rowNumber <= 4
+                                  ? 'Enter learning / training course, certification, or program...'
+                                  : 'Optional: enter course or learning program...'
+                              }
+                              className="w-full text-xs p-2 rounded-lg border border-slate-300 bg-white hover:border-slate-400 focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] focus:outline-hidden text-slate-900 placeholder:text-slate-400 shadow-2xs transition-all leading-snug break-words resize-y min-h-[44px]"
+                            />
+                          ) : (
+                            <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 text-xs text-slate-800 leading-relaxed min-h-[44px] flex items-center shadow-2xs">
+                              {row.trainingPath && row.trainingPath !== 'Pending LNA Team' ? (
+                                <span>{row.trainingPath}</span>
+                              ) : (
+                                <span className="text-slate-400 italic">
+                                  {row.trainingPath || 'Pending LNA Team'}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      )}
+
+                      {/* Column 4: Phase */}
+                      <td className={`py-3 px-3 text-center align-middle w-36 ${mode === 'ACTIVE_PDP' ? 'border-r border-slate-200/80' : ''}`}>
+                        <div className="py-2 px-3 rounded-lg border border-[#211E4E]/20 bg-[#211E4E]/5 text-xs min-h-[42px] flex items-center justify-center shadow-2xs text-center mx-auto max-w-[130px]">
+                          <span className="font-bold text-[#211E4E] text-xs">
+                            {row.phase || '6 Months'}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Column 5: Status (Strictly under Status column in ACTIVE_PDP mode) */}
+                      {mode === 'ACTIVE_PDP' && (
+                        <td className="py-3 px-3 text-center align-middle w-40">
+                          <div className="relative inline-block">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setActiveStatusRow(activeStatusRow === row.rowNumber ? null : row.rowNumber)
+                              }
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border shadow-2xs transition-colors cursor-pointer ${
+                                currentStatus === 'Completed'
+                                  ? 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200'
+                                  : currentStatus === 'In Progress'
+                                  ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200'
+                                  : 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
                               }`}
                             >
-                              {st}
+                              <span
+                                className={`w-2 h-2 rounded-full ${
+                                  currentStatus === 'Completed'
+                                    ? 'bg-blue-600'
+                                    : currentStatus === 'In Progress'
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-600 animate-pulse'
+                                }`}
+                              />
+                              <span>{currentStatus}</span>
+                              <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                             </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
 
-                  {/* Column: Comments Link/Icon (In EMPLOYEE_SIGNOFF and ACTIVE_PDP modes) */}
-                  {(mode === 'EMPLOYEE_SIGNOFF' || mode === 'ACTIVE_PDP') && (
-                    <div
-                      className={`${
-                        mode === 'EMPLOYEE_SIGNOFF' ? 'md:col-span-2' : 'md:col-span-1'
-                      } flex justify-center items-center text-center`}
-                    >
-                      {mode === 'ACTIVE_PDP' ? (
-                        <button
-                          type="button"
-                          onClick={() => setCommentModalRow(row)}
-                          className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-[#211E4E] hover:text-[#C8A977] bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#211E4E]/30 transition-all cursor-pointer shadow-2xs group"
-                          title="View Comment History"
-                          aria-label="View Comment History"
-                        >
-                          <MessageSquare className="w-4 h-4 text-[#211E4E] group-hover:text-[#C8A977] transition-colors" />
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setCommentModalRow(row)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#211E4E] hover:text-[#C8A977] bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#211E4E]/30 transition-all cursor-pointer shadow-2xs group"
-                          title="View Comment History"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5 text-[#211E4E] group-hover:text-[#C8A977] transition-colors" />
-                          <span className="underline decoration-slate-300 group-hover:decoration-[#C8A977]">
-                            Comments
-                          </span>
-                        </button>
+                            {/* Dropdown for Status: strictly ACTIVE, In Progress, Completed */}
+                            {activeStatusRow === row.rowNumber && (
+                              <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-slate-200 rounded-lg shadow-lg p-1 min-w-[130px] animate-in fade-in zoom-in-95 duration-100">
+                                {(['ACTIVE', 'In Progress', 'Completed'] as const).map((st) => (
+                                  <button
+                                    key={st}
+                                    type="button"
+                                    onClick={() => {
+                                      updateRoadmapSubRow(
+                                        activeItem.competencyId,
+                                        row.rowNumber,
+                                        'statusRemarks',
+                                        st
+                                      );
+                                      setActiveStatusRow(null);
+                                    }}
+                                    className={`w-full text-left px-2.5 py-1.5 text-xs font-semibold rounded cursor-pointer ${
+                                      currentStatus === st
+                                        ? 'bg-slate-100 text-[#211E4E] font-bold'
+                                        : 'hover:bg-slate-50 text-slate-700'
+                                    }`}
+                                  >
+                                    {st}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </td>
                       )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                    </tr>
+
+                    {/* Expandable Comments/Check-In Sub-row (Only in ACTIVE_PDP mode, under each row) */}
+                    {mode === 'ACTIVE_PDP' && (
+                      <tr className="bg-slate-50/40 border-b border-slate-200">
+                        <td colSpan={5} className="p-3 sm:px-4 sm:py-3">
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => toggleComments(row.rowNumber)}
+                              className="inline-flex items-center gap-2 text-xs font-bold text-[#211E4E] hover:text-[#C8A977] px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200/90 transition-all cursor-pointer shadow-2xs group"
+                            >
+                              <span className="w-4 h-4 rounded-full bg-[#211E4E] text-white flex items-center justify-center font-mono font-bold text-xs group-hover:bg-[#C8A977] group-hover:text-[#211E4E] transition-colors leading-none">
+                                {isExpanded ? '−' : '+'}
+                              </span>
+                              <span className="tracking-wide text-[11.5px]">Comments</span>
+                            </button>
+
+                            {/* Expanded Thread & WhatsApp-style Typing Row: Sized to see at least 3 messages at a time */}
+                            {isExpanded && (
+                              <div className="mt-2.5 rounded-xl border border-slate-200/90 overflow-hidden bg-white shadow-xs animate-in fade-in duration-150">
+                                {/* Header banner */}
+                                <div className="bg-[#211E4E] px-4 py-2.5 flex items-center justify-between text-white border-b border-[#C8A977]/30">
+                                  <div className="flex items-center gap-2">
+                                    <MessageSquare className="w-4 h-4 text-[#C8A977]" />
+                                    <span className="text-xs font-bold tracking-wide">
+                                      Comments
+                                    </span>
+                                  </div>
+                                  <span className="text-[11px] text-slate-300 font-medium">
+                                    {rowComments.length} {rowComments.length === 1 ? 'Update' : 'Updates'}
+                                  </span>
+                                </div>
+
+                                {/* Thread: Spacious container (min-h-[290px] max-h-[420px]) so at least 3 messages are visible at a time */}
+                                <div
+                                  className="p-4 overflow-y-auto space-y-3.5 min-h-[290px] max-h-[420px]"
+                                  style={{
+                                    backgroundImage:
+                                      'radial-gradient(circle at 50% 50%, rgba(200, 169, 119, 0.15) 1px, transparent 1px)',
+                                    backgroundSize: '20px 20px',
+                                  }}
+                                >
+                                  {rowComments.length === 0 ? (
+                                    <div className="py-12 text-center text-xs text-slate-400 italic">
+                                      No comments or check-in updates yet for Category {row.rowNumber}. Type a message below.
+                                    </div>
+                                  ) : (
+                                    rowComments.map((msg) => {
+                                      const isEmp = msg.sender === 'employee';
+                                      const initials = msg.senderName
+                                        ? msg.senderName.slice(0, 2).toUpperCase()
+                                        : isEmp
+                                        ? 'VI'
+                                        : 'SN';
+                                      return (
+                                        <div
+                                          key={msg.id}
+                                          className={`flex items-start gap-3 ${
+                                            isEmp ? 'flex-row' : 'flex-row-reverse'
+                                          }`}
+                                        >
+                                          {/* Circular Avatar with Role Badge */}
+                                          <div className="relative shrink-0">
+                                            <div
+                                              className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shadow-2xs ${
+                                                isEmp
+                                                  ? 'bg-[#0F845C] text-white'
+                                                  : 'bg-[#211E4E] text-[#C8A977]'
+                                              }`}
+                                            >
+                                              {initials}
+                                            </div>
+                                            <div
+                                              className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-2xs ${
+                                                isEmp
+                                                  ? 'bg-white text-[#0F845C] border border-slate-200'
+                                                  : 'bg-white text-[#211E4E] border border-slate-200'
+                                              }`}
+                                            >
+                                              {isEmp ? (
+                                                <GraduationCap className="w-2.5 h-2.5" />
+                                              ) : (
+                                                <ShieldCheck className="w-2.5 h-2.5 text-[#211E4E]" />
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          {/* Bubble */}
+                                          <div
+                                            className={`p-3 max-w-[85%] sm:max-w-[75%] shadow-2xs rounded-2xl ${
+                                              isEmp
+                                                ? 'bg-[#dff5e6]/85 border border-[#b2e7c3] rounded-tl-xs'
+                                                : 'bg-white border border-slate-200 rounded-tr-xs'
+                                            }`}
+                                          >
+                                            <div className="flex items-center justify-between gap-3 pb-1 text-xs">
+                                              <span
+                                                className={`font-bold ${
+                                                  isEmp ? 'text-[#0F845C]' : 'text-[#211E4E]'
+                                                }`}
+                                              >
+                                                {msg.senderName}
+                                              </span>
+                                              <span className="text-[10px] text-slate-400 flex items-center gap-1 font-mono">
+                                                <Clock className="w-3 h-3 text-slate-400" />
+                                                {msg.timestamp}
+                                              </span>
+                                            </div>
+                                            <p className="text-xs text-slate-800 leading-relaxed font-normal whitespace-pre-wrap">
+                                              {msg.text}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })
+                                  )}
+                                </div>
+
+                                {/* WhatsApp-Style Input Bar & Send Button */}
+                                <div className="p-3 bg-slate-50 border-t border-slate-200/90 flex items-center gap-2.5">
+                                  <input
+                                    type="text"
+                                    value={rowInputText[compKey] || ''}
+                                    onChange={(e) => {
+                                      setRowInputText((prev) => ({ ...prev, [compKey]: e.target.value }));
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleSendRowComment(activeItem.competencyId, row.rowNumber);
+                                      }
+                                    }}
+                                    placeholder="Type a comment or check-in update..."
+                                    className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] shadow-2xs"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSendRowComment(activeItem.competencyId, row.rowNumber)}
+                                    disabled={!(rowInputText[compKey] || '').trim()}
+                                    className="w-8 h-8 rounded-full bg-[#0F845C] hover:bg-[#0a6646] disabled:bg-slate-300 text-white flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs shrink-0 active:scale-95"
+                                    title="Send comment"
+                                  >
+                                    <Send className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -536,32 +650,35 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
         </section>
       )}
 
-      {/* LNA Actions: Return to Manager button + Submit */}
+      {/* LNA Actions: Return to Manager button + Initiate + Comment box */}
       {mode === 'LNA' && (
-        <section className="bg-slate-50 rounded-xl border border-slate-200 p-3 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onReturnToManager}
-            className="px-4 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer"
-          >
-            Return
-          </button>
-          <button
-            type="button"
-            onClick={submitRoadmap}
-            disabled={!isComplete}
-            className={`px-8 py-2 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-xs ${
-              isComplete
-                ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white'
-                : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
-            }`}
-          >
-            Submit
-          </button>
-        </section>
+        <div className="space-y-4">
+          <PdpCommentHistory />
+          <section className="bg-slate-50 rounded-xl border border-slate-200 p-3 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onReturnToManager}
+              className="px-4 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer"
+            >
+              Return
+            </button>
+            <button
+              type="button"
+              onClick={submitRoadmap}
+              disabled={!isComplete}
+              className={`px-8 py-2 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-xs ${
+                isComplete
+                  ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white'
+                  : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
+              }`}
+            >
+              Initiate
+            </button>
+          </section>
+        </div>
       )}
 
-      {/* Employee Sign-off Comment History & Actions */}
+      {/* Employee Sign-off Comment History & Actions: Request Changes + Submit */}
       {mode === 'EMPLOYEE_SIGNOFF' && (
         <div className="space-y-4">
           <PdpCommentHistory />
@@ -569,16 +686,10 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
             <button
               type="button"
               onClick={onReturnToManager}
-              className="px-4 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer"
+              className="px-5 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
             >
-              Return to Manager
-            </button>
-            <button
-              type="button"
-              onClick={onReturnToLnt}
-              className="px-4 py-2 bg-white hover:bg-amber-50 text-amber-800 hover:text-amber-900 font-bold text-xs rounded-lg border border-amber-300 shadow-2xs transition-all cursor-pointer"
-            >
-              Return to LNT
+              <RotateCcw className="w-3.5 h-3.5 text-orange-600" />
+              <span>Request Changes</span>
             </button>
             <button
               type="button"
@@ -590,12 +701,6 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
           </section>
         </div>
       )}
-
-      {/* Modal Popup for Comment History on row link click */}
-      <PdpCommentModal
-        isOpen={!!commentModalRow}
-        onClose={() => setCommentModalRow(null)}
-      />
     </div>
   );
 };

@@ -49,6 +49,7 @@ interface PdpContextType {
   updateManagerEvaluation: (competencyId: string, level: ProficiencyLevel) => void;
   toggleCompetencySelection: (competencyId: string) => void;
   updateCompetencyPriority: (competencyId: string, priorityRank?: number) => void;
+  updateCompetencyPhase: (competencyId: string, phase: string) => void;
   updateManagerObjective: (competencyId: string, objective: string) => void;
   submitManagerEvaluation: () => { success: boolean; error?: string };
   returnToEmployee: (reason?: string) => void;
@@ -365,6 +366,37 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const updateCompetencyPhase = (competencyId: string, phase: string) => {
+    setCompetencies((prev) =>
+      prev.map((c) => (c.id === competencyId ? { ...c, phase } : c))
+    );
+
+    setRoadmapItems((prev) =>
+      prev.map((item) => {
+        if (item.competencyId !== competencyId) return item;
+        const currentRows = ensureFiveSubRows(item.rows);
+        const dateInfo = calculatePhaseDates(phase, 1, currentRows[0]?.startDate || '01/Jul/2026');
+        const updatedRows = currentRows.map((r) => {
+          if (r.rowNumber === 1) {
+            return {
+              ...r,
+              phase: dateInfo.duration,
+              startDate: dateInfo.startDate,
+              endDate: dateInfo.endDate,
+              assignedDates: dateInfo.assignedDates,
+            };
+          }
+          return r;
+        });
+        return {
+          ...item,
+          phase,
+          rows: updatedRows,
+        };
+      })
+    );
+  };
+
   const selectedCompetencies = competencies
     .filter((c) => c.isSelectedForPdp)
     .sort((a, b) => (a.priorityRank || 99) - (b.priorityRank || 99));
@@ -410,8 +442,11 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         rows: [],
       };
 
+      const chosenPhase = comp.phase || '6 Months';
+
       const baseRows: RoadmapSubRow[] = preset.rows.map((r) => {
-        const dateInfo = calculatePhaseDates(r.phase, r.rowNumber, r.startDate);
+        const rowPhase = r.rowNumber === 1 ? chosenPhase : r.phase;
+        const dateInfo = calculatePhaseDates(rowPhase, r.rowNumber, r.startDate);
         return {
           rowNumber: r.rowNumber,
           activity: r.activity || '',
@@ -433,10 +468,11 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         category: comp.category,
         priorityRank: comp.priorityRank,
         objective: comp.managerObjective || preset.objective || '',
+        phase: chosenPhase,
         rows,
         developmentActivities: rows[0]?.activity || '',
         learningTrainingPlan: 'Pending LNA Team',
-        phaseMonths: '24 Months (5 Milestones)',
+        phaseMonths: '24 Months (5 Categories)',
         statusRemarks: 'Planned for 2026/27 Cycle',
       };
     });
@@ -682,53 +718,17 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateRoadmapSubRow(competencyId, 1, 'trainingPath', trainingPlan);
   };
 
-  // 4 rows are mandatory (rows 1, 2, 3, 4), and the 5th row is optional
-  const isLnaPlanComplete =
-    roadmapItems.length === 5 &&
-    roadmapItems.every((r) => {
-      if (!r.rows || r.rows.length === 0) return false;
-      const mandatoryRows = r.rows.filter((row) => row.rowNumber >= 1 && row.rowNumber <= 4);
-      return (
-        mandatoryRows.length === 4 &&
-        mandatoryRows.every(
-          (row) =>
-            row.trainingPath &&
-            row.trainingPath.trim().length >= 3 &&
-            row.trainingPath !== 'Pending LNA Team'
-        )
-      );
-    });
+  // Learning / Training Path is not mandatory in LNA team
+  const isLnaPlanComplete = true;
 
   const submitLnaPlan = () => {
-    const incomplete = roadmapItems.filter((r) => {
-      if (!r.rows || r.rows.length === 0) return true;
-      const mandatoryRows = r.rows.filter((row) => row.rowNumber >= 1 && row.rowNumber <= 4);
-      return (
-        mandatoryRows.length !== 4 ||
-        !mandatoryRows.every(
-          (row) =>
-            row.trainingPath &&
-            row.trainingPath.trim().length >= 3 &&
-            row.trainingPath !== 'Pending LNA Team'
-        )
-      );
-    });
-    if (incomplete.length > 0) {
-      addToast(
-        'error',
-        'Incomplete Training Plan',
-        `Please assign formal Learning & Training interventions for Training Paths 1–4 (*) across all 5 competencies (${incomplete.length} pending).`
-      );
-      return { success: false, error: 'All 5 competencies require learning and training programs for Training Paths 1–4 (*).' };
-    }
-
     setStatus('PENDING_EMPLOYEE_ACKNOWLEDGEMENT');
     setCurrentRole('EMPLOYEE');
     logAction(
       'LNA_TEAM',
       'LNA & Training Solutions Lead',
       'Learning & Training Programs Assigned',
-      'LNA Team finalized certified training courses, workshops, and coaching interventions for all 5 development competencies.'
+      'LNA Team finalized learning courses, workshops, and coaching interventions for development competencies.'
     );
     addToast(
       'success',
@@ -857,6 +857,9 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const priorityRank = isSelected ? selectedIndex + 1 : undefined;
       const preset = COMPETENCY_4_ROW_PRESETS[c.id];
       const obj = isSelected ? (preset?.objective || '') : '';
+      const existingComp = competencies.find((old) => old.id === c.id);
+      const defaultPhases = ['3 Months', '6 Months', '1 Year', '2 Years', '1 Year'];
+      const chosenPhase = existingComp?.phase || (isSelected ? defaultPhases[selectedIndex] : undefined);
 
       return {
         ...c,
@@ -864,18 +867,21 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         managerEvaluation: mgrEval,
         isSelectedForPdp: isSelected,
         priorityRank,
-        managerObjective: obj,
+        managerObjective: existingComp?.managerObjective || obj,
+        phase: chosenPhase,
       };
     });
 
+    const defaultPhases = ['3 Months', '6 Months', '1 Year', '2 Years', '1 Year'];
     const mockRoadmaps: DevelopmentRoadmapItem[] = (isStage1 || isStage2)
       ? []
       : selectedIds.map((id, rankIdx) => {
           const comp = mockCompetencies.find((c) => c.id === id)!;
+          const selectedPhase = comp.phase || defaultPhases[rankIdx] || '6 Months';
           const preset = COMPETENCY_4_ROW_PRESETS[id] || {
             objective: '',
             rows: [
-              { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'Planned' },
+              { rowNumber: 1, activity: '', trainingPath: 'Pending LNA Team', phase: selectedPhase, startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'Planned' },
               { rowNumber: 2, activity: '', trainingPath: 'Pending LNA Team', phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
               { rowNumber: 3, activity: '', trainingPath: 'Pending LNA Team', phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
               { rowNumber: 4, activity: '', trainingPath: 'Pending LNA Team', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
@@ -885,7 +891,8 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const baseSubRows: RoadmapSubRow[] = preset.rows.map((r) => {
             const hasActivities = ['PDP_PLANNING_MANAGER', 'PENDING_LNA_TEAM', 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus);
             const hasTraining = ['PENDING_EMPLOYEE_ACKNOWLEDGEMENT', 'ACTIVE'].includes(targetStatus);
-            const dateInfo = calculatePhaseDates(r.phase, r.rowNumber, r.startDate);
+            const rowPhase = r.rowNumber === 1 ? selectedPhase : r.phase;
+            const dateInfo = calculatePhaseDates(rowPhase, r.rowNumber, r.startDate);
 
             return {
               rowNumber: r.rowNumber,
@@ -908,10 +915,11 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             category: comp.category,
             priorityRank: rankIdx + 1,
             objective: comp.managerObjective || preset.objective || '',
+            phase: selectedPhase,
             rows,
             developmentActivities: rows[0]?.activity || '',
             learningTrainingPlan: rows[0]?.trainingPath || 'Pending LNA Team',
-            phaseMonths: '24 Months (5 Milestones)',
+            phaseMonths: '24 Months (5 Categories)',
             statusRemarks: targetStatus === 'ACTIVE' ? 'Active In-Progress' : 'Scheduled for 2026/27 Cycle',
           };
         });
@@ -980,6 +988,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateManagerEvaluation,
         toggleCompetencySelection,
         updateCompetencyPriority,
+        updateCompetencyPhase,
         updateManagerObjective,
         submitManagerEvaluation,
         returnToEmployee,

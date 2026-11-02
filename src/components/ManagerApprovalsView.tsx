@@ -6,6 +6,7 @@ import {
   RotateCcw,
   Search,
   Eye,
+  AlertCircle,
 } from 'lucide-react';
 import { TEAM_SUBMISSIONS, TeamMemberSubmission } from '../data/teamSubmissionsData';
 
@@ -13,7 +14,7 @@ interface ManagerApprovalsViewProps {
   onReviewEmployee: (employee: TeamMemberSubmission) => void;
 }
 
-type FilterTab = 'ALL' | 'PENDING' | 'RETURNED' | 'APPROVED' | 'DELEGATION';
+type FilterTab = 'ALL' | 'NOT_STARTED' | 'PENDING' | 'RETURNED' | 'APPROVED' | 'DELEGATION';
 
 export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
   onReviewEmployee,
@@ -21,17 +22,19 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
 
-  // Exact metrics as shown in user screenshot: Pending: 4, Returned: 1, Approved: 11
+  // Metrics with Not Started before Pending as requested
   const metrics = useMemo(() => {
+    const notStarted = TEAM_SUBMISSIONS.filter((s) => s.status === 'NOT STARTED').length;
     const pending = TEAM_SUBMISSIONS.filter((s) => s.status === 'PENDING APPROVAL').length;
     const returned = TEAM_SUBMISSIONS.filter((s) => s.status === 'RETURNED').length;
     const approved = TEAM_SUBMISSIONS.filter((s) => s.status === 'APPROVED').length;
-    return { pending, returned, approved };
+    return { notStarted, pending, returned, approved };
   }, []);
 
   const filteredSubmissions = useMemo(() => {
     return TEAM_SUBMISSIONS.filter((sub) => {
       // Tab filter
+      if (activeFilter === 'NOT_STARTED' && sub.status !== 'NOT STARTED') return false;
       if (activeFilter === 'PENDING' && sub.status !== 'PENDING APPROVAL') return false;
       if (activeFilter === 'RETURNED' && sub.status !== 'RETURNED') return false;
       if (activeFilter === 'APPROVED' && sub.status !== 'APPROVED') return false;
@@ -60,8 +63,30 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
         </h1>
       </section>
 
-      {/* 2. Top Summary KPI Cards matching Image 1 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+      {/* 2. Top Summary KPI Cards: NOT STARTED box placed before PENDING */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+        {/* Card 0: Not Started */}
+        <div
+          onClick={() => setActiveFilter('NOT_STARTED')}
+          className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
+            activeFilter === 'NOT_STARTED'
+              ? 'border-[#211E4E] ring-2 ring-[#211E4E]/20 shadow-md'
+              : 'border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              NOT STARTED
+            </span>
+            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+              <AlertCircle className="w-4 h-4 text-slate-600" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-black text-slate-800 tracking-tight">
+            {metrics.notStarted}
+          </div>
+        </div>
+
         {/* Card 1: Pending */}
         <div
           onClick={() => setActiveFilter('PENDING')}
@@ -73,7 +98,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              PENDING
+              PENDING APPROVAL
             </span>
             <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200">
               <Clock className="w-4 h-4 text-amber-600" />
@@ -161,6 +186,17 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => setActiveFilter('NOT_STARTED')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+              activeFilter === 'NOT_STARTED'
+                ? 'bg-[#211E4E] text-white shadow-xs'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+            }`}
+          >
+            Not Started
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveFilter('PENDING')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
               activeFilter === 'PENDING'
@@ -168,7 +204,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
           >
-            Pending
+            Pending Approval
           </button>
           <button
             type="button"
@@ -249,6 +285,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                   const isApproved = sub.status === 'APPROVED';
                   const isPending = sub.status === 'PENDING APPROVAL';
                   const isReturned = sub.status === 'RETURNED';
+                  const isNotStarted = sub.status === 'NOT STARTED';
 
                   return (
                     <tr
@@ -284,6 +321,12 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
 
                       {/* Status Badge */}
                       <td className="py-3.5 px-4 text-center">
+                        {isNotStarted && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs whitespace-nowrap">
+                            <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
+                            <span>NOT STARTED</span>
+                          </span>
+                        )}
                         {isApproved && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs whitespace-nowrap">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -306,7 +349,16 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
 
                       {/* Action Button matching screenshot */}
                       <td className="py-3.5 px-4 text-center">
-                        {isApproved ? (
+                        {isNotStarted ? (
+                          <button
+                            type="button"
+                            onClick={() => onReviewEmployee(sub)}
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-slate-500" />
+                            <span>View Details</span>
+                          </button>
+                        ) : isApproved ? (
                           <button
                             type="button"
                             onClick={() => onReviewEmployee(sub)}

@@ -36,6 +36,7 @@ export interface CompetencyItem {
   isSelectedForPdp?: boolean;
   priorityRank?: number;
   managerObjective?: string;
+  phase?: string;
 }
 
 export interface RoadmapSubRow {
@@ -56,6 +57,7 @@ export interface DevelopmentRoadmapItem {
   category: CompetencyCategory;
   priorityRank?: number;
   objective: string;
+  phase?: string;
   rows: RoadmapSubRow[];
   // Backwards-compatible accessors
   developmentActivities?: string;

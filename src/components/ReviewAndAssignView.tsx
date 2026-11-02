@@ -64,7 +64,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              PENDING
+              PENDING APPROVAL
             </span>
             <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200">
               <Clock className="w-4 h-4 text-amber-600" />
@@ -135,7 +135,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
           >
-            Pending
+            Pending Approval
           </button>
           <button
             type="button"

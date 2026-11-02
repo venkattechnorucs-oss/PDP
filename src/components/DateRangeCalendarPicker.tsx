@@ -47,6 +47,7 @@ export function calculateDurationBetween(start: Date, end: Date): string {
   const months = Math.round(diffDays / 30.4375);
 
   if (months <= 1) return `${diffDays} Days`;
+  if (months >= 2 && months <= 4) return '3 Months';
   if (months >= 5 && months <= 7) return '6 Months';
   if (months >= 11 && months <= 13) return '1 Year';
   if (months >= 23 && months <= 25) return '2 Years';
@@ -145,8 +146,8 @@ export const DateRangeCalendarPicker: React.FC<DateRangeCalendarPickerProps> = (
     }
   };
 
-  // Preset button click (e.g. 6 Months, 1 Year, 2 Years from tempStart)
-  const applyPreset = (duration: '6 Months' | '1 Year' | '2 Years') => {
+  // Preset button click (e.g. 3 Months, 6 Months, 1 Year, 2 Years from tempStart)
+  const applyPreset = (duration: '3 Months' | '6 Months' | '1 Year' | '2 Years') => {
     const sStr = formatPdpDate(tempStart);
     const dateInfo = calculatePhaseDates(duration, rowNumber, sStr);
     const newEnd = parsePdpDate(dateInfo.endDate);
@@ -276,8 +277,8 @@ export const DateRangeCalendarPicker: React.FC<DateRangeCalendarPickerProps> = (
           </div>
 
           {/* Quick Presets - Compact */}
-          <div className="grid grid-cols-3 gap-1 mb-1">
-            {(['6 Months', '1 Year', '2 Years'] as const).map((preset) => (
+          <div className="grid grid-cols-4 gap-1 mb-1">
+            {(['3 Months', '6 Months', '1 Year', '2 Years'] as const).map((preset) => (
               <button
                 key={preset}
                 type="button"
