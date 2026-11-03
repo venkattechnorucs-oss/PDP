@@ -37,11 +37,11 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
   const r1Dates = calculatePhaseDates(selectedPhase, 1, '01/Jul/2026');
 
   const defaultTemplates = [
-    { rowNumber: 1, phase: selectedPhase, startDate: r1Dates.startDate, endDate: r1Dates.endDate, assignedDates: r1Dates.assignedDates, statusRemarks: 'ACTIVE' },
-    { rowNumber: 2, phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'ACTIVE' },
-    { rowNumber: 3, phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'ACTIVE' },
-    { rowNumber: 4, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'ACTIVE' },
-    { rowNumber: 5, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'ACTIVE' },
+    { rowNumber: 1, phase: selectedPhase, startDate: r1Dates.startDate, endDate: r1Dates.endDate, assignedDates: r1Dates.assignedDates, statusRemarks: 'Not Started' },
+    { rowNumber: 2, phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Not Started' },
+    { rowNumber: 3, phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Not Started' },
+    { rowNumber: 4, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Not Started' },
+    { rowNumber: 5, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Not Started' },
   ];
 
   const existing = item.rows || [];
@@ -78,11 +78,11 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
   return result;
 };
 
-// Normalize active PDP status to ensure it defaults strictly to ACTIVE
-const normalizeActiveStatus = (val?: string): 'ACTIVE' | 'In Progress' | 'Completed' => {
+// Normalize active PDP status to ensure it defaults strictly to 'Not Started'
+const normalizeActiveStatus = (val?: string): 'Not Started' | 'In Progress' | 'Completed' => {
   if (val === 'In Progress') return 'In Progress';
   if (val === 'Completed') return 'Completed';
-  return 'ACTIVE';
+  return 'Not Started';
 };
 
 export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> = ({
@@ -425,7 +425,7 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
                                   ? 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200'
                                   : currentStatus === 'In Progress'
                                   ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200'
-                                  : 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
                               }`}
                             >
                               <span
@@ -433,18 +433,18 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
                                   currentStatus === 'Completed'
                                     ? 'bg-blue-600'
                                     : currentStatus === 'In Progress'
-                                    ? 'bg-amber-500'
-                                    : 'bg-emerald-600 animate-pulse'
+                                    ? 'bg-amber-500 animate-pulse'
+                                    : 'bg-slate-400'
                                 }`}
                               />
                               <span>{currentStatus}</span>
                               <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                             </button>
 
-                            {/* Dropdown for Status: strictly ACTIVE, In Progress, Completed */}
+                            {/* Dropdown for Status: strictly Not Started, In Progress, Completed */}
                             {activeStatusRow === row.rowNumber && (
                               <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-slate-200 rounded-lg shadow-lg p-1 min-w-[130px] animate-in fade-in zoom-in-95 duration-100">
-                                {(['ACTIVE', 'In Progress', 'Completed'] as const).map((st) => (
+                                {(['Not Started', 'In Progress', 'Completed'] as const).map((st) => (
                                   <button
                                     key={st}
                                     type="button"
@@ -632,22 +632,25 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
       </section>
 
       {/* 3. FOOTER ACTIONS BASED ON STAGE */}
-      {/* Manager Submit */}
+      {/* Manager Submit + Comment History */}
       {mode === 'MANAGER' && (
-        <section className="bg-slate-50 rounded-xl border border-slate-200 p-3 flex justify-end">
-          <button
-            type="button"
-            onClick={submitRoadmap}
-            disabled={!isComplete}
-            className={`px-8 py-2 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-xs ${
-              isComplete
-                ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white'
-                : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
-            }`}
-          >
-            Submit
-          </button>
-        </section>
+        <div className="space-y-4">
+          <PdpCommentHistory />
+          <section className="bg-slate-50 rounded-xl border border-slate-200 p-3 flex justify-end">
+            <button
+              type="button"
+              onClick={submitRoadmap}
+              disabled={!isComplete}
+              className={`px-8 py-2.5 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-xs ${
+                isComplete
+                  ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white'
+                  : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
+              }`}
+            >
+              SUBMIT
+            </button>
+          </section>
+        </div>
       )}
 
       {/* LNA Actions: Return to Manager button + Initiate + Comment box */}
@@ -658,27 +661,28 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
             <button
               type="button"
               onClick={onReturnToManager}
-              className="px-4 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer"
+              className="px-5 py-2.5 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs uppercase tracking-wider rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
             >
-              Return
+              <RotateCcw className="w-3.5 h-3.5 text-orange-600" />
+              <span>RETURN</span>
             </button>
             <button
               type="button"
               onClick={submitRoadmap}
               disabled={!isComplete}
-              className={`px-8 py-2 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-xs ${
+              className={`px-8 py-2.5 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-xs ${
                 isComplete
                   ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white'
                   : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
               }`}
             >
-              Initiate
+              SUBMIT
             </button>
           </section>
         </div>
       )}
 
-      {/* Employee Sign-off Comment History & Actions: Request Changes + Submit */}
+      {/* Employee Sign-off Comment History & Actions: Request Changes + Sign-Off */}
       {mode === 'EMPLOYEE_SIGNOFF' && (
         <div className="space-y-4">
           <PdpCommentHistory />
@@ -686,17 +690,17 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
             <button
               type="button"
               onClick={onReturnToManager}
-              className="px-5 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-5 py-2.5 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs uppercase tracking-wider rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5 text-orange-600" />
-              <span>Request Changes</span>
+              <span>REQUEST CHANGES</span>
             </button>
             <button
               type="button"
               onClick={onOpenAcknowledgementModal}
-              className="px-7 py-2 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs rounded-lg shadow-sm transition-all cursor-pointer active:scale-98"
+              className="px-7 py-2.5 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm transition-all cursor-pointer active:scale-98"
             >
-              Submit
+              SIGN-OFF
             </button>
           </section>
         </div>

@@ -629,12 +629,12 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
 
       {/* 2. Key Metrics Cards with Two Distinct Headings */}
       <div className="space-y-4">
-        {/* Heading 1: Competency Evaluation */}
+        {/* Heading 1: Assessment Status */}
         <section className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-2.5">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <span className="w-2.5 h-2.5 rounded-full bg-[#211E4E]"></span>
             <h2 className="text-xs sm:text-sm font-black text-[#211E4E] tracking-wider uppercase">
-              Competency Evaluation
+              Assessment Status
             </h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
@@ -675,12 +675,12 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
           </div>
         </section>
 
-        {/* Heading 2: PDP INITIATION */}
+        {/* Heading 2: PDP Initiation Status */}
         <section className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-2.5">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <span className="w-2.5 h-2.5 rounded-full bg-[#C8A977]"></span>
             <h2 className="text-xs sm:text-sm font-black text-[#211E4E] tracking-wider uppercase">
-              PDP INITIATION
+              PDP Initiation Status
             </h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
@@ -950,13 +950,13 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
         </div>
       </section>
 
-      {/* 4. Active PDP Execution & Milestone Monitoring (Only Active, In Progress, and Completed clean boxes) */}
+      {/* 4. Active PDP Status */}
       <section className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-4.5 space-y-3">
         {/* Clean Header without redundant subtext or badge */}
         <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
           <h2 className="text-xs sm:text-sm font-black text-[#211E4E] tracking-tight uppercase">
-            Active PDP Execution & Milestone Monitoring
+            Active PDP Status
           </h2>
         </div>
 

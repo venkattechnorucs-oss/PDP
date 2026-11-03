@@ -30,9 +30,13 @@ export const PdpCommentHistory: React.FC<PdpCommentHistoryProps> = ({ className 
     currentRole === 'EMPLOYEE' && status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
   const isEmployeeEditing = isEmployeeEval || isEmployeeSignOff;
 
-  const isManagerEditing =
+  const isManagerReview =
     currentRole === 'MANAGER' && status === 'PENDING_MANAGER_REVIEW';
+  const isManagerRoadmap =
+    currentRole === 'MANAGER' && status === 'PDP_PLANNING_MANAGER';
+  const isManagerEditing = isManagerReview || isManagerRoadmap;
   const isReadOnly = !isEmployeeEditing && !isManagerEditing;
+  const isMandatory = !isReadOnly && status !== 'PDP_PLANNING_MANAGER';
 
   // Extract 2-letter uppercase initials from name
   const getInitials = (name: string): string => {
@@ -64,7 +68,9 @@ export const PdpCommentHistory: React.FC<PdpCommentHistoryProps> = ({ className 
     ? 'Development Thoughts / Comments'
     : isEmployeeEval
     ? 'Development Thoughts'
-    : isManagerMode
+    : isManagerRoadmap
+    ? 'Remarks / Comments (Optional)'
+    : isManagerReview
     ? 'REMARKS'
     : 'Development Thoughts / Remarks';
 
@@ -72,7 +78,9 @@ export const PdpCommentHistory: React.FC<PdpCommentHistoryProps> = ({ className 
     ? 'Enter your development thoughts, sign-off comments, or return feedback here...'
     : isEmployeeEval
     ? 'Enter your development thoughts, notes, or developmental remarks here...'
-    : isManagerMode
+    : isManagerRoadmap
+    ? 'Optional: enter remarks or developmental feedback here...'
+    : isManagerReview
     ? 'Enter remarks or developmental feedback here...'
     : 'This discussion thread is finalized and development thoughts are locked.';
 
@@ -185,7 +193,7 @@ export const PdpCommentHistory: React.FC<PdpCommentHistoryProps> = ({ className 
             className="block text-xs font-bold uppercase tracking-wider text-slate-800"
           >
             {inputLabel}
-            {!isReadOnly && <span className="text-red-500 font-bold ml-1">*</span>}
+            {isMandatory && <span className="text-red-500 font-bold ml-1">*</span>}
           </label>
 
           {/* Textarea */}

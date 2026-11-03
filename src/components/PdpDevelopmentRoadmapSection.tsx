@@ -493,13 +493,13 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                 type="button"
                 onClick={submitManagerRoadmap}
                 disabled={!isManagerRoadmapComplete}
-                className={`px-7 py-2 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-xs ${
+                className={`px-7 py-2 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-xs ${
                   isManagerRoadmapComplete
                     ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white shadow-xs'
                     : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
                 }`}
               >
-                Submit
+                SUBMIT
               </button>
             </div>
           )}
@@ -516,13 +516,13 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
                 type="button"
                 onClick={submitLnaPlan}
                 disabled={!isLnaPlanComplete}
-                className={`px-7 py-2 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-xs ${
+                className={`px-7 py-2 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-xs ${
                   isLnaPlanComplete
                     ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white shadow-xs'
                     : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
                 }`}
               >
-                Initiate
+                SUBMIT
               </button>
             </div>
           )}
@@ -533,17 +533,17 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
               <button
                 type="button"
                 onClick={() => returnToManager('Employee requested changes to the PDP roadmap')}
-                className="px-5 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2 bg-white hover:bg-orange-50 text-orange-700 hover:text-orange-800 font-bold text-xs uppercase tracking-wider rounded-lg border border-orange-300 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-orange-600" />
-                <span>Request Changes</span>
+                <span>REQUEST CHANGES</span>
               </button>
               <button
                 type="button"
                 onClick={onOpenAcknowledgementModal}
-                className="px-7 py-2 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs rounded-lg shadow-sm transition-all cursor-pointer active:scale-98"
+                className="px-7 py-2 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm transition-all cursor-pointer active:scale-98"
               >
-                Submit
+                SIGN-OFF
               </button>
             </div>
           )}

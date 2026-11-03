@@ -391,18 +391,17 @@ export const LnaPdpInitiationReviewView: React.FC<LnaPdpInitiationReviewViewProp
           className="px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-2xs border border-amber-600/40 text-amber-700 bg-amber-50 hover:bg-amber-100 active:scale-[0.99]"
         >
           <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
-          <span>Return</span>
+          <span>RETURN</span>
         </button>
 
-        {/* Submit Button */}
+        {/* Initiate Button */}
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="px-7 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md bg-[#211E4E] hover:bg-[#2e2a6d] text-white border border-[#C8A977]/30 active:scale-[0.99] disabled:opacity-50"
+          className="px-7 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md bg-[#211E4E] hover:bg-[#2e2a6d] text-white border border-[#C8A977]/30 active:scale-[0.99] disabled:opacity-50 text-center"
         >
-          <Send className="w-3.5 h-3.5 text-[#C8A977]" />
-          <span>Submit</span>
+          <span>INITIATE</span>
         </button>
       </div>
     </div>

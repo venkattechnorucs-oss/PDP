@@ -197,15 +197,15 @@ export const PdpCommentModal: React.FC<PdpCommentModalProps> = ({ isOpen, onClos
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 transition-all cursor-pointer shadow-2xs active:scale-[0.99]"
+              className="px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 transition-all cursor-pointer shadow-2xs active:scale-[0.99]"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-xl text-xs font-bold text-white bg-[#211E4E] hover:bg-[#161435] transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+              className="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-[#211E4E] hover:bg-[#161435] transition-all cursor-pointer shadow-xs active:scale-[0.99]"
             >
-              Submit
+              SUBMIT
             </button>
           </div>
         </form>

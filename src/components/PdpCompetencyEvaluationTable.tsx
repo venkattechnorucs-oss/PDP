@@ -378,23 +378,23 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                 <button
                   type="button"
                   onClick={resetEmployeeEvaluationForm}
-                  className="px-4 py-2 border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  className="px-4 py-2 border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Reset Form</span>
+                  <span>RESET FORM</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={submitEmployeeEvaluation}
                   disabled={!isEmployeeEvalComplete}
-                  className={`px-8 py-2.5 font-bold text-xs rounded-lg transition-all shadow-xs ${
+                  className={`px-8 py-2.5 font-bold text-xs uppercase tracking-wider rounded-lg transition-all shadow-xs ${
                     isEmployeeEvalComplete
                       ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white cursor-pointer'
                       : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
                   }`}
                 >
-                  Submit
+                  SUBMIT
                 </button>
               </div>
             </div>
@@ -547,13 +547,13 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                   type="button"
                   onClick={submitManagerEvaluation}
                   disabled={!isManagerEvalComplete}
-                  className={`px-7 py-2.5 font-bold text-xs rounded-lg transition-all cursor-pointer ${
+                  className={`px-7 py-2.5 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
                     isManagerEvalComplete
                       ? 'bg-[#211E4E] hover:bg-[#161435] active:scale-[0.99] text-white shadow-xs'
                       : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-75'
                   }`}
                 >
-                  Submit
+                  SUBMIT
                 </button>
               </div>
             </div>
@@ -566,27 +566,27 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => returnToEmployee('HR requested employee revisions.')}
-                  className="px-4 py-2 border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  className="px-4 py-2 border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Return to Employee</span>
+                  <span>RETURN TO EMPLOYEE</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => returnToManager('HR requested manager revisions on development objectives.')}
-                  className="px-4 py-2 border border-slate-300 bg-slate-100 hover:bg-slate-200 text-[#211E4E] font-bold text-xs rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  className="px-4 py-2 border border-slate-300 bg-slate-100 hover:bg-slate-200 text-[#211E4E] font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-[#211E4E]" />
-                  <span>Return to Manager</span>
+                  <span>RETURN TO MANAGER</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => initiatePdpByHr()}
-                  className="px-7 py-2.5 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs rounded-lg shadow-xs transition-all cursor-pointer active:scale-98"
+                  className="px-7 py-2.5 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-xs transition-all cursor-pointer active:scale-98"
                 >
-                  Initiate PDP
+                  INITIATE PDP
                 </button>
               </div>
             </div>
