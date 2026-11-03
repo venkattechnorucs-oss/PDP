@@ -41,6 +41,7 @@ export interface CompetencyItem {
 
 export interface RoadmapSubRow {
   rowNumber: number; // 1, 2, 3, 4, 5 (Rows 1-4 mandatory, Row 5 optional)
+  activityCategory?: string; // 28 Development Activity categories (Mentoring, On-the-Job, etc.)
   activity: string;
   trainingPath: string;
   phase: string;

@@ -14,6 +14,8 @@ import { DevelopmentRoadmapItem, RoadmapSubRow, CommentMessage } from '../types/
 import { calculatePhaseDates } from '../utils/phaseDateUtils';
 import { EditableActivityCombobox } from './EditableActivityCombobox';
 import { EditableTrainingPathCombobox } from './EditableTrainingPathCombobox';
+import { DevelopmentActivityDropdown } from './DevelopmentActivityDropdown';
+import { DEFAULT_ROW_ACTIVITIES } from '../data/developmentActivitiesData';
 import { PdpCommentHistory } from './PdpCommentHistory';
 
 interface LnaCompetencyProcessViewProps {
@@ -22,7 +24,7 @@ interface LnaCompetencyProcessViewProps {
   updateRoadmapSubRow: (
     competencyId: string,
     rowNumber: number,
-    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate' | 'endDate',
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate' | 'endDate' | 'activityCategory',
     value: string
   ) => void;
   submitRoadmap?: () => void;
@@ -37,11 +39,11 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
   const r1Dates = calculatePhaseDates(selectedPhase, 1, '01/Jul/2026');
 
   const defaultTemplates = [
-    { rowNumber: 1, phase: selectedPhase, startDate: r1Dates.startDate, endDate: r1Dates.endDate, assignedDates: r1Dates.assignedDates, statusRemarks: 'Not Started' },
-    { rowNumber: 2, phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Not Started' },
-    { rowNumber: 3, phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Not Started' },
-    { rowNumber: 4, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Not Started' },
-    { rowNumber: 5, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Not Started' },
+    { rowNumber: 1, activityCategory: DEFAULT_ROW_ACTIVITIES[1], phase: selectedPhase, startDate: r1Dates.startDate, endDate: r1Dates.endDate, assignedDates: r1Dates.assignedDates, statusRemarks: 'Not Started' },
+    { rowNumber: 2, activityCategory: DEFAULT_ROW_ACTIVITIES[2], phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Not Started' },
+    { rowNumber: 3, activityCategory: DEFAULT_ROW_ACTIVITIES[3], phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Not Started' },
+    { rowNumber: 4, activityCategory: DEFAULT_ROW_ACTIVITIES[4], phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Not Started' },
+    { rowNumber: 5, activityCategory: DEFAULT_ROW_ACTIVITIES[5], phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Not Started' },
   ];
 
   const existing = item.rows || [];
@@ -56,6 +58,7 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
         ...tmpl,
         ...found,
         rowNumber: i,
+        activityCategory: found.activityCategory || tmpl.activityCategory,
         phase: effectivePhase,
         startDate: dateInfo.startDate,
         endDate: dateInfo.endDate,
@@ -65,6 +68,7 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
     } else {
       result.push({
         rowNumber: i,
+        activityCategory: tmpl.activityCategory,
         activity: i === 1 ? (item.developmentActivities || '') : '',
         trainingPath: i === 1 ? (item.learningTrainingPlan || 'Pending LNA Team') : 'Pending LNA Team',
         phase: tmpl.phase,
@@ -170,7 +174,7 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
     addCommentMessage({
       sender: isEmp ? 'employee' : 'manager',
       senderName: newMsg.senderName,
-      text: `[Check-In Category ${rowNumber}] ${text}`,
+      text: `[Check-In S.No ${rowNumber}] ${text}`,
     });
 
     setRowInputText((prev) => ({ ...prev, [compKey]: '' }));
@@ -284,22 +288,27 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
 
         {/* 3. Structured HTML Table: Clean borders, perfect column alignment, and horizontal row separators */}
         <div className="overflow-x-auto bg-white border-t border-slate-200/90">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full table-fixed text-left text-xs border-collapse min-w-[900px]">
             <thead>
               <tr className="bg-[#211E4E] text-white font-bold uppercase text-[11px] tracking-wider select-none border-b border-slate-300">
-                {/* Category Column */}
-                <th className="py-3 px-3.5 border-r border-white/20 w-32 whitespace-nowrap">
-                  Category
+                {/* S.No Column */}
+                <th className="py-3 px-2 text-center border-r border-white/20 w-14 whitespace-nowrap">
+                  S.No
                 </th>
 
-                {/* Development Activities / Projects */}
+                {/* Development Activity Column */}
+                <th className="py-3 px-3 border-r border-white/20 w-72 sm:w-80 whitespace-nowrap">
+                  Development Activity {mode === 'MANAGER' && <span className="text-red-400 font-bold">*</span>}
+                </th>
+
+                {/* Description Column */}
                 <th className="py-3 px-3.5 border-r border-white/20">
-                  Development Activities / Projects {mode === 'MANAGER' && <span className="text-red-400 font-bold">*</span>}
+                  Description {mode === 'MANAGER' && <span className="text-red-400 font-bold">*</span>}
                 </th>
 
                 {/* Learning / Training Path */}
                 {mode !== 'MANAGER' && (
-                  <th className="py-3 px-3.5 border-r border-white/20">
+                  <th className="py-3 px-3.5 border-r border-white/20 w-64">
                     Learning / Training Path
                   </th>
                 )}
@@ -311,7 +320,7 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
 
                 {/* Status (Only in ACTIVE_PDP mode) */}
                 {mode === 'ACTIVE_PDP' && (
-                  <th className="py-3 px-3 text-center w-40 whitespace-nowrap">
+                  <th className="py-3 px-3 text-center w-36 whitespace-nowrap">
                     Status
                   </th>
                 )}
@@ -329,14 +338,39 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
                 return (
                   <React.Fragment key={`milestone-${activeItem.competencyId}-${row.rowNumber}`}>
                     <tr className="hover:bg-slate-50/70 transition-colors border-b border-slate-200/80">
-                      {/* Column 1: Category */}
-                      <td className="py-3 px-3.5 align-middle border-r border-slate-200/80 w-32">
-                        <span className="inline-block px-2.5 py-1 rounded bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 whitespace-nowrap">
-                          Category {row.rowNumber} {isMandatory && mode === 'MANAGER' ? <span className="text-red-500 font-bold">*</span> : ''}
+                      {/* Column 1: S.No */}
+                      <td className="py-3 px-2 text-center align-middle border-r border-slate-200/80 w-14">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#211E4E]/10 text-[#211E4E] font-bold text-xs">
+                          {row.rowNumber}
                         </span>
                       </td>
 
-                      {/* Column 2: Development Activities / Projects */}
+                      {/* Column 2: Development Activity */}
+                      <td className="py-3 px-2.5 align-middle border-r border-slate-200/80 w-72 sm:w-80 relative">
+                        {mode === 'MANAGER' ? (
+                          <DevelopmentActivityDropdown
+                            value={row.activityCategory || DEFAULT_ROW_ACTIVITIES[row.rowNumber] || 'Mentoring/Coaching'}
+                            onChange={(newCategory) =>
+                              updateRoadmapSubRow(
+                                activeItem.competencyId,
+                                row.rowNumber,
+                                'activityCategory',
+                                newCategory
+                              )
+                            }
+                            rowNumber={row.rowNumber}
+                            placeholder="Select Activity..."
+                          />
+                        ) : (
+                          <div className="p-2 rounded-lg border border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-800 leading-relaxed min-h-[42px] flex items-center shadow-2xs">
+                            <span className="font-bold text-[#211E4E] leading-snug break-words block">
+                              {row.activityCategory || DEFAULT_ROW_ACTIVITIES[row.rowNumber] || 'Mentoring/Coaching'}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Column 3: Description */}
                       <td className="py-3 px-3.5 align-middle border-r border-slate-200/80">
                         {mode === 'MANAGER' ? (
                           <EditableActivityCombobox
@@ -351,7 +385,8 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
                             }
                             competencyId={activeItem.competencyId}
                             rowNumber={row.rowNumber}
-                            placeholder="Select an activity option from dropdown or type your own..."
+                            activityCategory={row.activityCategory || DEFAULT_ROW_ACTIVITIES[row.rowNumber]}
+                            placeholder="Select a description sample from dropdown or type custom..."
                           />
                         ) : (
                           <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 text-xs text-slate-800 leading-relaxed min-h-[44px] flex items-center shadow-2xs">
@@ -359,7 +394,7 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
                               <span>{row.activity}</span>
                             ) : (
                               <span className="text-slate-400 italic">
-                                (No development activity specified by manager)
+                                (No description specified by manager)
                               </span>
                             )}
                           </div>
@@ -404,11 +439,34 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
 
                       {/* Column 4: Phase */}
                       <td className={`py-3 px-3 text-center align-middle w-36 ${mode === 'ACTIVE_PDP' ? 'border-r border-slate-200/80' : ''}`}>
-                        <div className="py-2 px-3 rounded-lg border border-[#211E4E]/20 bg-[#211E4E]/5 text-xs min-h-[42px] flex items-center justify-center shadow-2xs text-center mx-auto max-w-[130px]">
-                          <span className="font-bold text-[#211E4E] text-xs">
-                            {row.phase || '6 Months'}
-                          </span>
-                        </div>
+                        {mode === 'MANAGER' ? (
+                          <div className="relative max-w-[130px] mx-auto">
+                            <select
+                              value={row.phase || '6 Months'}
+                              onChange={(e) =>
+                                updateRoadmapSubRow(
+                                  activeItem.competencyId,
+                                  row.rowNumber,
+                                  'phase',
+                                  e.target.value
+                                )
+                              }
+                              className="w-full text-xs font-bold py-2.5 pl-3 pr-7 rounded-lg border border-slate-300 bg-white text-slate-800 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-[#211E4E]/20 focus:border-[#211E4E] cursor-pointer shadow-2xs appearance-none transition-colors"
+                            >
+                              <option value="3 Months">3 Months</option>
+                              <option value="6 Months">6 Months</option>
+                              <option value="1 Year">1 Year</option>
+                              <option value="2 Years">2 Years</option>
+                            </select>
+                            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          </div>
+                        ) : (
+                          <div className="py-2 px-3 rounded-lg border border-[#211E4E]/20 bg-[#211E4E]/5 text-xs min-h-[42px] flex items-center justify-center shadow-2xs text-center mx-auto max-w-[130px]">
+                            <span className="font-bold text-[#211E4E] text-xs">
+                              {row.phase || '6 Months'}
+                            </span>
+                          </div>
+                        )}
                       </td>
 
                       {/* Column 5: Status (Strictly under Status column in ACTIVE_PDP mode) */}
@@ -476,7 +534,7 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
                     {/* Expandable Comments/Check-In Sub-row (Only in ACTIVE_PDP mode, under each row) */}
                     {mode === 'ACTIVE_PDP' && (
                       <tr className="bg-slate-50/40 border-b border-slate-200">
-                        <td colSpan={5} className="p-3 sm:px-4 sm:py-3">
+                        <td colSpan={6} className="p-3 sm:px-4 sm:py-3">
                           <div>
                             <button
                               type="button"
@@ -516,7 +574,7 @@ export const LnaCompetencyProcessView: React.FC<LnaCompetencyProcessViewProps> =
                                 >
                                   {rowComments.length === 0 ? (
                                     <div className="py-12 text-center text-xs text-slate-400 italic">
-                                      No comments or check-in updates yet for Category {row.rowNumber}. Type a message below.
+                                      No comments or check-in updates yet for {row.activityCategory || `S.No ${row.rowNumber}`}. Type a message below.
                                     </div>
                                   ) : (
                                     rowComments.map((msg) => {

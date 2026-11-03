@@ -25,11 +25,11 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
   const r1Dates = calculatePhaseDates(selectedPhase, 1, '01/Jul/2026');
 
   const defaultTemplates = [
-    { rowNumber: 1, phase: selectedPhase, startDate: r1Dates.startDate, endDate: r1Dates.endDate, assignedDates: r1Dates.assignedDates, statusRemarks: item.statusRemarks || 'Scheduled' },
-    { rowNumber: 2, phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
-    { rowNumber: 3, phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
-    { rowNumber: 4, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
-    { rowNumber: 5, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
+    { rowNumber: 1, activityCategory: 'Mentoring/Coaching', phase: selectedPhase, startDate: r1Dates.startDate, endDate: r1Dates.endDate, assignedDates: r1Dates.assignedDates, statusRemarks: item.statusRemarks || 'Scheduled' },
+    { rowNumber: 2, activityCategory: 'On-the-Job Training', phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
+    { rowNumber: 3, activityCategory: 'Cross-Functional / Departmental Collaboration', phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
+    { rowNumber: 4, activityCategory: 'Stretch Assignments', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
+    { rowNumber: 5, activityCategory: 'Project Leadership Role', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
   ];
 
   const existing = item.rows || [];
@@ -44,6 +44,7 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
         ...tmpl,
         ...found,
         rowNumber: i,
+        activityCategory: found.activityCategory || tmpl.activityCategory,
         phase: effectivePhase,
         startDate: dateInfo.startDate,
         endDate: dateInfo.endDate,
@@ -53,6 +54,7 @@ const getFiveSubRows = (item: DevelopmentRoadmapItem): RoadmapSubRow[] => {
     } else {
       result.push({
         rowNumber: i,
+        activityCategory: tmpl.activityCategory,
         activity: i === 1 ? (item.developmentActivities || '') : '',
         trainingPath: i === 1 ? (item.learningTrainingPlan || 'Pending LNA Team') : 'Pending LNA Team',
         phase: tmpl.phase,
@@ -369,9 +371,32 @@ export const PdpDevelopmentRoadmapSection: React.FC<PdpDevelopmentRoadmapSection
 
                         {/* 5. Phase (Displays selected months or years, no calendar, no dates) */}
                         <td className="py-1 px-2 border-r border-slate-200/90 align-middle text-center">
-                          <span className="inline-block px-3 py-1.5 rounded-lg border border-[#211E4E]/20 bg-[#211E4E]/5 text-xs font-bold text-[#211E4E] shadow-2xs whitespace-nowrap">
-                            {row.phase || '6 Months'}
-                          </span>
+                          {isManagerPlanning ? (
+                            <div className="relative max-w-[120px] mx-auto">
+                              <select
+                                value={row.phase || '6 Months'}
+                                onChange={(e) =>
+                                  updateRoadmapSubRow(
+                                    item.competencyId,
+                                    row.rowNumber,
+                                    'phase',
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full text-xs font-bold py-1.5 pl-2.5 pr-6 rounded-lg border border-slate-300 bg-white text-slate-800 hover:border-slate-400 focus:outline-none focus:ring-1 focus:ring-[#211E4E] cursor-pointer shadow-2xs appearance-none"
+                              >
+                                <option value="3 Months">3 Months</option>
+                                <option value="6 Months">6 Months</option>
+                                <option value="1 Year">1 Year</option>
+                                <option value="2 Years">2 Years</option>
+                              </select>
+                              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            </div>
+                          ) : (
+                            <span className="inline-block px-3 py-1.5 rounded-lg border border-[#211E4E]/20 bg-[#211E4E]/5 text-xs font-bold text-[#211E4E] shadow-2xs whitespace-nowrap">
+                              {row.phase || '6 Months'}
+                            </span>
+                          )}
                         </td>
 
                         {/* 6. Status/Remarks (ACTIVE green dropdown on Active PDP, spacious text box in edit mode, clean pill in view mode) */}

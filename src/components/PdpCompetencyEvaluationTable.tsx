@@ -40,7 +40,6 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
     submitEmployeeEvaluation,
     toggleCompetencySelection,
     updateCompetencyPriority,
-    updateCompetencyPhase,
     updateManagerObjective,
     submitManagerEvaluation,
     returnToEmployee,
@@ -433,11 +432,8 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                       <th className="py-2.5 px-3.5 w-[28%] border-r border-white/20">
                         Competencies
                       </th>
-                      <th className="py-2.5 px-3.5 border-r border-white/20">
+                      <th className="py-2.5 px-3.5">
                         Objectives
-                      </th>
-                      <th className="py-2.5 px-3 text-center w-40">
-                        Phase
                       </th>
                     </tr>
                   </thead>
@@ -468,7 +464,7 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                         </td>
 
                         {/* Column 3: Objectives */}
-                        <td className="py-3 px-3.5 align-middle border-r border-slate-200/80">
+                        <td className="py-3 px-3.5 align-middle">
                           {isManagerEditing ? (
                             <textarea
                               rows={2}
@@ -483,26 +479,6 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                                 <span className="text-slate-400 italic">No objective entered.</span>
                               )}
                             </div>
-                          )}
-                        </td>
-
-                        {/* Column 4: Phase with 4 options: 3 Months, 6 Months, 1 Year, 2 Years */}
-                        <td className="py-3 px-3 text-center align-middle w-40">
-                          {isManagerEditing ? (
-                            <select
-                              value={comp.phase || '6 Months'}
-                              onChange={(e) => updateCompetencyPhase(comp.id, e.target.value)}
-                              className="w-full text-xs font-semibold py-2 px-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#211E4E]/20 focus:border-[#211E4E] cursor-pointer shadow-2xs"
-                            >
-                              <option value="3 Months">3 Months</option>
-                              <option value="6 Months">6 Months</option>
-                              <option value="1 Year">1 Year</option>
-                              <option value="2 Years">2 Years</option>
-                            </select>
-                          ) : (
-                            <span className="inline-block px-3 py-1 rounded-md bg-[#211E4E]/10 text-[#211E4E] font-bold text-xs border border-[#211E4E]/20">
-                              {comp.phase || '6 Months'}
-                            </span>
                           )}
                         </td>
                       </tr>

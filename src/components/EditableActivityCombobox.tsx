@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, X, Sparkles, Check } from 'lucide-react';
+import { ChevronDown, Check, Sparkles } from 'lucide-react';
+import { getSmartDescriptionsForActivity } from '../data/smartActivityDescriptionsData';
 import { COMPETENCY_4_ROW_PRESETS } from '../data/mockData';
 
-// General fallback activities if competency has custom suggestions
+// Fallback general activities if no custom category is provided
 const GENERAL_ACTIVITIES: string[] = [
   'Lead a cross-functional process improvement initiative to streamline workflows.',
   'Conduct operational risk assessments and implement preventative control measures.',
@@ -13,50 +14,12 @@ const GENERAL_ACTIVITIES: string[] = [
   'Pilot and evaluate new digital tools or methodologies to optimize asset productivity.',
 ];
 
-// Additional rich suggestions tailored to specific competency categories
-const EXTRA_SUGGESTIONS_BY_COMPETENCY: Record<string, string[]> = {
-  'comp-b-1': [ // Adaptability
-    'Lead change navigation sessions for team during new system rollouts.',
-    'Formulate contingency protocols for high-variance operational shifts.',
-    'Facilitate post-implementation retrospective to capture agility improvements.',
-  ],
-  'comp-b-2': [ // Teamwork & Collaboration
-    'Establish cross-departmental communication channels for multi-team projects.',
-    'Coordinate collaborative peer review sessions across operations and maintenance.',
-    'Lead joint task force to resolve inter-departmental scheduling bottlenecks.',
-  ],
-  'comp-b-3': [ // Result Orientation
-    'Implement weekly KPI tracking scorecard with root-cause variance analysis.',
-    'Drive efficiency sprint reducing turnaround milestone completion time by 15%.',
-    'Benchmark department deliverable quality against regional operational standards.',
-  ],
-  'comp-b-4': [ // Customer Centricity
-    'Establish a structured stakeholder feedback mechanism with monthly action reviews.',
-    'Conduct service quality audits to eliminate repetitive client or internal friction.',
-    'Author internal customer service standard guide for frontline operators.',
-  ],
-  'comp-b-5': [ // Effective Communication
-    'Deliver monthly executive project status briefings with concise data visualizations.',
-    'Standardize handover communication templates for shift supervisory teams.',
-    'Lead technical presentation series explaining complex system changes to non-technical teams.',
-  ],
-  'comp-b-6': [ // Accountability
-    'Implement a transparent responsibility matrix (RACI) across team workflows.',
-    'Establish self-auditing routines to verify deliverable compliance before deadlines.',
-    'Author escalation guidelines to swiftly address operational SLA deviations.',
-  ],
-  'comp-b-7': [ // Learning Agility
-    'Complete independent research on industry-leading automation tools and present findings.',
-    'Establish a quarterly skill gap review process with self-directed study milestones.',
-    'Pilot new software platform and train team members on core functionalities.',
-  ],
-};
-
 interface EditableActivityComboboxProps {
   value: string;
   onChange: (value: string) => void;
   competencyId: string;
   rowNumber: number;
+  activityCategory?: string;
   placeholder?: string;
 }
 
@@ -65,6 +28,7 @@ export const EditableActivityCombobox: React.FC<EditableActivityComboboxProps> =
   onChange,
   competencyId,
   rowNumber,
+  activityCategory,
   placeholder,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -86,15 +50,17 @@ export const EditableActivityCombobox: React.FC<EditableActivityComboboxProps> =
     };
   }, [isOpen]);
 
-  // Aggregate curated suggestions for this competency
+  // Aggregate SMART suggestions specific to the selected Development Activity
+  const smartDescriptions = getSmartDescriptionsForActivity(activityCategory);
+
+  // Fallback to presets only if no smart descriptions match
   const presetRows = COMPETENCY_4_ROW_PRESETS[competencyId]?.rows || [];
   const presetActivities = presetRows.map((r) => r.activity).filter(Boolean);
-  const extraActivities = EXTRA_SUGGESTIONS_BY_COMPETENCY[competencyId] || [];
 
-  // Combine and deduplicate
-  const suggestions = Array.from(
-    new Set([...presetActivities, ...extraActivities, ...GENERAL_ACTIVITIES])
-  ).slice(0, 8);
+  const suggestions: string[] =
+    smartDescriptions.length > 0
+      ? smartDescriptions
+      : Array.from(new Set([...presetActivities, ...GENERAL_ACTIVITIES])).slice(0, 5);
 
   const handleSelectOption = (option: string) => {
     onChange(option);
@@ -102,16 +68,8 @@ export const EditableActivityCombobox: React.FC<EditableActivityComboboxProps> =
   };
 
   return (
-    <div className="space-y-0.5 relative" ref={containerRef}>
-      {/* Top Label - Compact Activity label */}
-      <div className="text-[10.5px] font-semibold text-slate-700 flex items-center leading-tight">
-        Activity {rowNumber}
-        {rowNumber <= 4 && (
-          <span className="text-red-500 font-bold ml-0.5">*</span>
-        )}
-      </div>
-
-      {/* Editable Text Area with distinct visible dropdown button */}
+    <div className="relative w-full" ref={containerRef}>
+      {/* Editable Text Area with distinct visible dropdown trigger button */}
       <div className="relative">
         <textarea
           rows={2}
@@ -119,22 +77,20 @@ export const EditableActivityCombobox: React.FC<EditableActivityComboboxProps> =
           onChange={(e) => onChange(e.target.value)}
           placeholder={
             placeholder ||
-            (rowNumber <= 4
-              ? "Select an activity from dropdown or type your own..."
-              : "Optional: select or enter custom activity...")
+            'Select a description sample from dropdown or type your own...'
           }
-          className="w-full text-xs p-1.5 pr-8 rounded border border-slate-200 bg-white hover:border-slate-300 focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] focus:outline-hidden text-slate-900 placeholder:text-slate-400 shadow-2xs transition-all leading-snug break-words resize-y min-h-[36px]"
+          className="w-full text-xs p-2.5 pr-11 rounded-lg border border-slate-200 bg-white hover:border-slate-300 focus:border-[#211E4E] focus:ring-1 focus:ring-[#211E4E] focus:outline-hidden text-slate-900 placeholder:text-slate-400 shadow-2xs transition-all leading-relaxed break-words resize-none min-h-[46px]"
         />
 
-        {/* Distinct, clearly visible dropdown button */}
+        {/* Distinct, compact square dropdown toggle button positioned cleanly at top-right */}
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          title="Click to select from dropdown"
-          className={`absolute right-1 top-1 bottom-1 w-5.5 rounded flex items-center justify-center transition-all cursor-pointer border shadow-2xs ${
+          title="Click to select from SMART description samples"
+          className={`absolute right-2 top-2 w-7 h-7 rounded-md flex items-center justify-center transition-all cursor-pointer border shadow-2xs ${
             isOpen
               ? 'bg-[#211E4E] text-[#C8A977] border-[#211E4E]'
-              : 'bg-slate-100 hover:bg-[#211E4E] text-slate-600 hover:text-[#C8A977] border-slate-200 hover:border-[#211E4E]'
+              : 'bg-slate-50 hover:bg-[#211E4E] text-slate-500 hover:text-[#C8A977] border-slate-300 hover:border-[#211E4E]'
           }`}
         >
           <ChevronDown
@@ -145,16 +101,16 @@ export const EditableActivityCombobox: React.FC<EditableActivityComboboxProps> =
         </button>
       </div>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu showing the SMART description samples */}
       {isOpen && (
         <div
           className={`absolute z-50 left-0 right-0 ${
-            rowNumber >= 4 ? 'bottom-full mb-1' : 'top-full mt-1'
-          } bg-white border border-slate-300 rounded-lg shadow-xl p-1 text-left text-xs max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100`}
-          style={{ boxShadow: '0 10px 28px rgba(33, 30, 78, 0.16)' }}
+            rowNumber >= 4 ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          } bg-white border border-slate-300 rounded-xl shadow-xl overflow-hidden text-left text-xs max-h-[250px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100 scrollbar-thin`}
+          style={{ boxShadow: '0 12px 32px rgba(33, 30, 78, 0.18)' }}
         >
-          {/* Options List without dots, checkmarks or header */}
-          <div className="space-y-0.5">
+          {/* Options List directly without any header */}
+          <div className="divide-y divide-slate-100 py-1">
             {suggestions.map((option, idx) => {
               const isSelected = value.trim() === option.trim();
               return (
@@ -162,13 +118,18 @@ export const EditableActivityCombobox: React.FC<EditableActivityComboboxProps> =
                   key={idx}
                   type="button"
                   onClick={() => handleSelectOption(option)}
-                  className={`w-full text-left px-2.5 py-1.5 rounded transition-all cursor-pointer text-xs leading-snug ${
+                  className={`w-full text-left px-3.5 py-2.5 transition-all cursor-pointer text-xs leading-relaxed flex items-start gap-2.5 ${
                     isSelected
                       ? 'bg-[#211E4E] text-white font-medium shadow-2xs'
                       : 'hover:bg-[#211E4E]/5 hover:text-[#211E4E] text-slate-700'
                   }`}
                 >
-                  <span className="break-words">{option}</span>
+                  <span className="flex-1 break-words font-normal">
+                    {option}
+                  </span>
+                  {isSelected && (
+                    <Check className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#C8A977]" />
+                  )}
                 </button>
               );
             })}

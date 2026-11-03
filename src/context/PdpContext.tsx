@@ -61,7 +61,7 @@ interface PdpContextType {
   updateRoadmapSubRow: (
     competencyId: string,
     rowNumber: number,
-    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate' | 'endDate',
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate' | 'endDate' | 'activityCategory',
     value: string
   ) => void;
   updateRoadmapActivity: (competencyId: string, activities: string) => void;
@@ -95,11 +95,11 @@ const STORAGE_KEY = 'enterprise_pdp_state_v3';
 
 const ensureFiveSubRows = (existingRows: RoadmapSubRow[] = []): RoadmapSubRow[] => {
   const defaultTemplates = [
-    { rowNumber: 1, phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'Scheduled' },
-    { rowNumber: 2, phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
-    { rowNumber: 3, phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
-    { rowNumber: 4, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
-    { rowNumber: 5, phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Optional' },
+    { rowNumber: 1, activityCategory: 'Mentoring/Coaching', phase: '6 Months', startDate: '01/Jul/2026', endDate: '31/Dec/2026', assignedDates: 'From: 01/Jul/2026 To: 31/Dec/2026', statusRemarks: 'Scheduled' },
+    { rowNumber: 2, activityCategory: 'On-the-Job Training', phase: '6 Months', startDate: '01/Jan/2027', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jan/2027 To: 30/Jun/2027', statusRemarks: 'Planned' },
+    { rowNumber: 3, activityCategory: 'Cross-Functional / Departmental Collaboration', phase: '1 Year', startDate: '01/Jul/2026', endDate: '30/Jun/2027', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2027', statusRemarks: 'Planned' },
+    { rowNumber: 4, activityCategory: 'Stretch Assignments', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Planned' },
+    { rowNumber: 5, activityCategory: 'Project Leadership Role', phase: '2 Years', startDate: '01/Jul/2026', endDate: '30/Jun/2028', assignedDates: 'From: 01/Jul/2026 To: 30/Jun/2028', statusRemarks: 'Optional' },
   ];
 
   const result: RoadmapSubRow[] = [];
@@ -111,11 +111,13 @@ const ensureFiveSubRows = (existingRows: RoadmapSubRow[] = []): RoadmapSubRow[] 
         ...tmpl,
         ...found,
         rowNumber: i,
+        activityCategory: found.activityCategory || tmpl.activityCategory,
         statusRemarks: found.statusRemarks || tmpl.statusRemarks,
       });
     } else {
       result.push({
         rowNumber: i,
+        activityCategory: tmpl.activityCategory,
         activity: '',
         trainingPath: 'Pending LNA Team',
         phase: tmpl.phase,
@@ -602,7 +604,7 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateRoadmapSubRow = (
     competencyId: string,
     rowNumber: number,
-    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate' | 'endDate',
+    field: 'activity' | 'trainingPath' | 'phase' | 'statusRemarks' | 'startDate' | 'endDate' | 'activityCategory',
     value: string
   ) => {
     setRoadmapItems((prev) =>
@@ -692,9 +694,9 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addToast(
         'error',
         'Incomplete Development Roadmap',
-        `Please specify detailed Development Activities / Projects for Activities 1–4 (*) across all 5 competencies (${incomplete.length} incomplete).`
+        `Please specify detailed Descriptions for S.No 1–4 (*) across all 5 competencies (${incomplete.length} incomplete).`
       );
-      return { success: false, error: 'All 5 competencies require development activities for Activities 1–4 (*).' };
+      return { success: false, error: 'All 5 competencies require descriptions for S.No 1–4 (*).' };
     }
 
     setStatus('PENDING_LNA_TEAM');
