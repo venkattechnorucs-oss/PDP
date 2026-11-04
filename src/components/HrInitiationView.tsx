@@ -376,7 +376,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                         )}
                       </td>
 
-                      {/* Action Button: Review PDP */}
+                      {/* Action Button: View PDP */}
                       <td className="py-3.5 px-4 text-center">
                         <button
                           type="button"
@@ -384,7 +384,7 @@ export const HrInitiationView: React.FC<HrInitiationViewProps> = ({
                           className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap text-[#211E4E] bg-white border border-slate-300 hover:bg-[#211E4E] hover:text-white group"
                         >
                           <Eye className="w-3.5 h-3.5 text-[#C8A977] group-hover:text-[#C8A977]" />
-                          <span>Review PDP</span>
+                          <span>View PDP</span>
                         </button>
                       </td>
                     </tr>

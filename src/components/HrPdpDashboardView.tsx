@@ -72,13 +72,13 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       case 'EVAL_NOT_STARTED':
         return { label: 'Not Started', colorClass: 'bg-slate-100 text-slate-700 border-slate-300' };
       case 'EVAL_PENDING_MANAGER':
-        return { label: 'Pending with Manager (Evaluation)', colorClass: 'bg-orange-50 text-orange-700 border-orange-200' };
+        return { label: 'Pending with Manager Actions', colorClass: 'bg-orange-50 text-orange-700 border-orange-200' };
       case 'EVAL_PENDING_LNA':
-        return { label: 'Pending with LNA (Evaluation)', colorClass: 'bg-purple-50 text-purple-700 border-purple-200' };
+        return { label: 'Pending with PDP Initiation', colorClass: 'bg-purple-50 text-purple-700 border-purple-200' };
       case 'PDP_PENDING_MANAGER':
-        return { label: 'Pending with Manager (PDP)', colorClass: 'bg-amber-50 text-amber-700 border-amber-200' };
+        return { label: 'Pending with Manager Review', colorClass: 'bg-amber-50 text-amber-700 border-amber-200' };
       case 'PDP_PENDING_LNA':
-        return { label: 'Pending with LNA (PDP)', colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+        return { label: 'Pending with PDP Review', colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
       case 'PDP_PENDING_SIGNOFF':
         return { label: 'Pending Sign-Off', colorClass: 'bg-sky-50 text-sky-700 border-sky-200' };
       case 'PDP_ACKNOWLEDGED':
@@ -227,7 +227,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     },
     {
       id: 'EVAL_PENDING_MANAGER',
-      label: 'PENDING WITH MANAGER',
+      label: 'PENDING WITH MANAGER ACTIONS',
       count: metrics.evalPendingManager,
       stage: 'EVAL_PENDING_MANAGER' as FilterStageType,
       icon: Briefcase,
@@ -236,7 +236,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     },
     {
       id: 'EVAL_PENDING_LNA',
-      label: 'PENDING WITH LNA',
+      label: 'PENDING WITH PDP INITIATION',
       count: metrics.evalPendingLna,
       stage: 'EVAL_PENDING_LNA' as FilterStageType,
       icon: GraduationCap,
@@ -248,7 +248,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
   const pdpCards = [
     {
       id: 'PDP_PENDING_MANAGER',
-      label: 'PENDING WITH MANAGER',
+      label: 'PENDING WITH MANAGER REVIEW',
       count: metrics.pdpPendingManager,
       stage: 'PDP_PENDING_MANAGER' as FilterStageType,
       icon: Briefcase,
@@ -257,7 +257,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     },
     {
       id: 'PDP_PENDING_LNA',
-      label: 'PENDING WITH LNA',
+      label: 'PENDING WITH PDP REVIEW',
       count: metrics.pdpPendingLna,
       stage: 'PDP_PENDING_LNA' as FilterStageType,
       icon: GraduationCap,
@@ -654,8 +654,8 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                     isSelected ? 'ring-2 ring-[#211E4E] shadow-xs bg-slate-50/50' : ''
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-1.5 mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">
+                  <div className="flex items-start justify-between gap-1.5 mb-1 min-h-[28px]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">
                       {card.label}
                     </span>
                     <div
@@ -700,8 +700,8 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                     isSelected ? 'ring-2 ring-[#211E4E] shadow-xs bg-slate-50/50' : ''
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-1.5 mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">
+                  <div className="flex items-start justify-between gap-1.5 mb-1 min-h-[28px]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">
                       {card.label}
                     </span>
                     <div
@@ -1091,7 +1091,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#211E4E] hover:bg-[#161435] text-white shadow-2xs transition-all cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>Review PDP</span>
+                        <span>View PDP</span>
                       </button>
                     </td>
                   </tr>
