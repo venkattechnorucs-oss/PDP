@@ -41,7 +41,60 @@ export interface EmployeeDistribution {
   skipped?: boolean;
 }
 
+export interface MilestoneDeadline {
+  id: string;
+  title: string;
+  startDate: string;
+  deadline: string;
+}
+
+export const DEFAULT_MILESTONES: MilestoneDeadline[] = [
+  {
+    id: 'employee_submission',
+    title: 'Employee Submission',
+    startDate: '2026-08-01',
+    deadline: '2026-08-15',
+  },
+  {
+    id: 'manager_action',
+    title: 'Manager Action',
+    startDate: '2026-08-16',
+    deadline: '2026-08-31',
+  },
+  {
+    id: 'pdp_initiation',
+    title: 'PDP Initiation',
+    startDate: '2026-09-01',
+    deadline: '2026-09-15',
+  },
+  {
+    id: 'manager_review',
+    title: 'Manager Review',
+    startDate: '2026-09-16',
+    deadline: '2026-09-30',
+  },
+  {
+    id: 'lna_team_review',
+    title: 'LNA Team Review',
+    startDate: '2026-10-01',
+    deadline: '2026-10-15',
+  },
+  {
+    id: 'employee_signoff',
+    title: 'Employee Sign off',
+    startDate: '2026-10-16',
+    deadline: '2026-10-31',
+  },
+];
+
 const INITIAL_RELEASES: ReleaseRecord[] = [
+  {
+    id: 'REL-2026-002',
+    releaseDate: '09-11-2026',
+    successCount: 729,
+    failedCount: 0,
+    status: 'Completed',
+  },
   {
     id: 'REL-2026-001',
     releaseDate: '22-10-2026',
@@ -332,30 +385,79 @@ export const ReleaseHistoryView: React.FC = () => {
     );
   };
 
+  // Cycle Milestone Deadlines State (matching image_40786713.png and image_09056be9.png)
+  const [isDeadlineModalOpen, setIsDeadlineModalOpen] = useState(false);
+  const [overallDeadline, setOverallDeadline] = useState('2026-11-09');
+  const [milestones, setMilestones] = useState<MilestoneDeadline[]>(DEFAULT_MILESTONES);
+  const [tempMilestones, setTempMilestones] = useState<MilestoneDeadline[]>(DEFAULT_MILESTONES);
+
+  const handleOpenDeadlineModal = () => {
+    setTempMilestones(milestones);
+    setIsDeadlineModalOpen(true);
+  };
+
+  const handleTempDeadlineChange = (id: string, field: 'startDate' | 'deadline', value: string) => {
+    setTempMilestones((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const handleSaveMilestones = () => {
+    setMilestones(tempMilestones);
+    setIsDeadlineModalOpen(false);
+    addToast('success', 'Deadlines Updated', 'Cycle milestone deadlines have been updated successfully.');
+  };
+
+  const formatDateToDisplay = (dateStr: string) => {
+    if (!dateStr) return '';
+    if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts[0].length === 4) {
+        // YYYY-MM-DD -> DD-MM-YYYY
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+    return dateStr;
+  };
+
   // ==========================================
   // 1. DETAIL VIEW: RELEASE DISTRIBUTION
-  // (Matching image_1260a655.png)
+  // (Matching image_40786713.png & image_1260a655.png)
   // ==========================================
   if (selectedReleaseId) {
     return (
       <div className="space-y-4 max-w-[1720px] mx-auto pb-12">
-        {/* Top Dark Banner matching image_1260a655.png */}
-        <div className="bg-[#211E4E] rounded-xl px-6 py-4 text-white flex items-center gap-4 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setSelectedReleaseId(null)}
-            className="w-8 h-8 rounded-full bg-white text-[#211E4E] flex items-center justify-center hover:bg-slate-100 transition-colors cursor-pointer shadow-xs shrink-0"
-            title="Back to Release History"
-          >
-            <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-white leading-tight">
-              Release Distribution
-            </h1>
-            <p className="text-xs text-slate-300 font-medium mt-0.5">
-              {selectedReleaseId}
-            </p>
+        {/* Top Dark Banner matching image_40786713.png */}
+        <div className="bg-[#211E4E] rounded-xl px-6 py-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setSelectedReleaseId(null)}
+              className="w-8 h-8 rounded-full bg-white text-[#211E4E] flex items-center justify-center hover:bg-slate-100 transition-colors cursor-pointer shadow-xs shrink-0"
+              title="Back to Release History"
+            >
+              <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-white leading-tight">
+                Release Distribution
+              </h1>
+              <p className="text-xs text-[#C8A977] font-bold mt-0.5 tracking-wide">
+                {selectedReleaseId}
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side: Calendar Trigger (Opens Cycle Milestone Deadlines Popup) */}
+          <div className="flex items-center self-end sm:self-center">
+            <button
+              type="button"
+              onClick={handleOpenDeadlineModal}
+              className="w-8 h-8 rounded-full bg-white text-[#211E4E] flex items-center justify-center hover:bg-slate-100 transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95 shrink-0"
+              title="Cycle Milestone Deadlines"
+            >
+              <Calendar className="w-4 h-4 text-[#211E4E]" />
+            </button>
           </div>
         </div>
 
@@ -547,6 +649,104 @@ export const ReleaseHistoryView: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Cycle Milestone Deadlines Popup Modal (matching image_09056be9.png) */}
+        {isDeadlineModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[92vh]">
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5 text-[#211E4E]">
+                  <Calendar className="w-5 h-5 text-[#211E4E]" />
+                  <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-[#211E4E]">
+                    CYCLE MILESTONE DEADLINES
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDeadlineModalOpen(false)}
+                  className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Body: 3x2 Grid matching image_09056be9.png */}
+              <div className="p-6 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {tempMilestones.map((stage) => (
+                    <div
+                      key={stage.id}
+                      className="rounded-xl border border-slate-200 bg-white hover:border-[#211E4E]/30 p-3.5 shadow-2xs transition-all flex flex-col justify-between"
+                    >
+                      {/* Milestone Title */}
+                      <div className="text-sm font-bold text-[#211E4E] mb-2.5">
+                        {stage.title}
+                      </div>
+
+                      {/* Schedule Range Bar */}
+                      <div className="flex items-center gap-2 bg-slate-50/90 p-2 rounded-lg border border-slate-200/80">
+                        {/* Start Date */}
+                        <div className="flex-1 min-w-0">
+                          <label className="block text-[9.5px] uppercase font-bold tracking-wider text-slate-400 mb-1">
+                            START DATE
+                          </label>
+                          <div className="relative flex items-center bg-white border border-slate-200 rounded-md shadow-2xs overflow-hidden focus-within:ring-1.5 focus-within:ring-[#211E4E]/30 focus-within:border-[#211E4E]">
+                            <input
+                              type="date"
+                              value={stage.startDate}
+                              onChange={(e) => handleTempDeadlineChange(stage.id, 'startDate', e.target.value)}
+                              className="w-full text-xs font-semibold text-slate-700 bg-transparent px-2 py-1.5 focus:outline-none cursor-pointer"
+                            />
+                          </div>
+                        </div>
+
+                        <span className="text-slate-300 font-light text-sm self-end pb-1.5 select-none shrink-0">
+                          →
+                        </span>
+
+                        {/* Deadline */}
+                        <div className="flex-1 min-w-0">
+                          <label className="block text-[9.5px] uppercase font-bold tracking-wider text-slate-600 mb-1">
+                            DEADLINE
+                          </label>
+                          <div className="relative flex items-center bg-white border border-slate-300 rounded-md shadow-2xs overflow-hidden focus-within:ring-1.5 focus-within:ring-[#211E4E]/40 focus-within:border-[#211E4E]">
+                            <input
+                              type="date"
+                              value={stage.deadline}
+                              onChange={(e) => handleTempDeadlineChange(stage.id, 'deadline', e.target.value)}
+                              className="w-full text-xs font-bold text-[#211E4E] bg-transparent px-2 py-1.5 focus:outline-none cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Footer: Cancel and Update buttons */}
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsDeadlineModalOpen(false)}
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 transition-colors cursor-pointer shadow-2xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveMilestones}
+                  className="px-6 py-2 rounded-xl text-xs font-bold text-white bg-[#211E4E] hover:bg-[#322e6e] shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-md"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Update</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -30,9 +30,11 @@ type FilterStageType =
   | 'EVAL_TOTAL'
   | 'EVAL_NOT_STARTED'
   | 'EVAL_PENDING_MANAGER'
+  | 'EVAL_RETURNED_MANAGER'
   | 'EVAL_PENDING_LNA'
   | 'PDP_PENDING_MANAGER'
   | 'PDP_PENDING_LNA'
+  | 'PDP_RETURNED_LNA'
   | 'PDP_PENDING_SIGNOFF'
   | 'PDP_ACKNOWLEDGED';
 
@@ -56,13 +58,15 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     color: string;
   } | null>(null);
 
-  // Map employee to one of the 7 stages for filtering
+  // Map employee to one of the stages for filtering
   const getEmployeeStage = (sub: TeamMemberSubmission, idx: number): FilterStageType => {
     if (idx === 0 || idx === 7) return 'EVAL_NOT_STARTED';
-    if (idx === 3 || idx === 5) return 'EVAL_PENDING_MANAGER';
+    if (idx === 3) return 'EVAL_PENDING_MANAGER';
+    if (idx === 5) return 'EVAL_RETURNED_MANAGER';
     if (idx === 8 || idx === 13) return 'EVAL_PENDING_LNA';
     if (idx === 9 || idx === 14) return 'PDP_PENDING_MANAGER';
-    if (idx === 10 || idx === 15) return 'PDP_PENDING_LNA';
+    if (idx === 10) return 'PDP_PENDING_LNA';
+    if (idx === 15) return 'PDP_RETURNED_LNA';
     if (idx === 4 || idx === 11) return 'PDP_PENDING_SIGNOFF';
     return 'PDP_ACKNOWLEDGED';
   };
@@ -73,12 +77,16 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
         return { label: 'Not Started', colorClass: 'bg-slate-100 text-slate-700 border-slate-300' };
       case 'EVAL_PENDING_MANAGER':
         return { label: 'Pending with Manager Actions', colorClass: 'bg-orange-50 text-orange-700 border-orange-200' };
+      case 'EVAL_RETURNED_MANAGER':
+        return { label: 'Returned to Manager Actions', colorClass: 'bg-rose-50 text-rose-700 border-rose-200' };
       case 'EVAL_PENDING_LNA':
         return { label: 'Pending with PDP Initiation', colorClass: 'bg-purple-50 text-purple-700 border-purple-200' };
       case 'PDP_PENDING_MANAGER':
         return { label: 'Pending with Manager Review', colorClass: 'bg-amber-50 text-amber-700 border-amber-200' };
       case 'PDP_PENDING_LNA':
         return { label: 'Pending with PDP Review', colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+      case 'PDP_RETURNED_LNA':
+        return { label: 'Returned to LNA Team', colorClass: 'bg-orange-50 text-orange-700 border-orange-200' };
       case 'PDP_PENDING_SIGNOFF':
         return { label: 'Pending Sign-Off', colorClass: 'bg-sky-50 text-sky-700 border-sky-200' };
       case 'PDP_ACKNOWLEDGED':
@@ -92,9 +100,11 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
   const metrics = useMemo(() => {
     let evalNotStarted = 0;
     let evalPendingManager = 0;
+    let evalReturnedManager = 0;
     let evalPendingLna = 0;
     let pdpPendingManager = 0;
     let pdpPendingLna = 0;
+    let pdpReturnedLna = 0;
     let pdpPendingSignOff = 0;
     let pdpAcknowledged = 0;
 
@@ -102,9 +112,11 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       const stage = getEmployeeStage(sub, idx);
       if (stage === 'EVAL_NOT_STARTED') evalNotStarted++;
       else if (stage === 'EVAL_PENDING_MANAGER') evalPendingManager++;
+      else if (stage === 'EVAL_RETURNED_MANAGER') evalReturnedManager++;
       else if (stage === 'EVAL_PENDING_LNA') evalPendingLna++;
       else if (stage === 'PDP_PENDING_MANAGER') pdpPendingManager++;
       else if (stage === 'PDP_PENDING_LNA') pdpPendingLna++;
+      else if (stage === 'PDP_RETURNED_LNA') pdpReturnedLna++;
       else if (stage === 'PDP_PENDING_SIGNOFF') pdpPendingSignOff++;
       else if (stage === 'PDP_ACKNOWLEDGED') pdpAcknowledged++;
     });
@@ -115,9 +127,11 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       totalRequests,
       evalNotStarted,
       evalPendingManager,
+      evalReturnedManager,
       evalPendingLna,
       pdpPendingManager,
       pdpPendingLna,
+      pdpReturnedLna,
       pdpPendingSignOff,
       pdpAcknowledged,
     };
@@ -235,6 +249,15 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       iconContainerClass: 'bg-orange-50 text-orange-700',
     },
     {
+      id: 'EVAL_RETURNED_MANAGER',
+      label: 'RETURNED TO MANAGER ACTIONS',
+      count: metrics.evalReturnedManager,
+      stage: 'EVAL_RETURNED_MANAGER' as FilterStageType,
+      icon: RotateCcw,
+      topBorderColor: 'border-t-rose-500',
+      iconContainerClass: 'bg-rose-50 text-rose-700',
+    },
+    {
       id: 'EVAL_PENDING_LNA',
       label: 'PENDING WITH PDP INITIATION',
       count: metrics.evalPendingLna,
@@ -265,6 +288,15 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       iconContainerClass: 'bg-indigo-50 text-indigo-700',
     },
     {
+      id: 'PDP_RETURNED_LNA',
+      label: 'RETURNED TO LNA TEAM',
+      count: metrics.pdpReturnedLna,
+      stage: 'PDP_RETURNED_LNA' as FilterStageType,
+      icon: RotateCcw,
+      topBorderColor: 'border-t-orange-500',
+      iconContainerClass: 'bg-orange-50 text-orange-700',
+    },
+    {
       id: 'PDP_PENDING_SIGNOFF',
       label: 'PENDING SIGN-OFF',
       count: metrics.pdpPendingSignOff,
@@ -285,31 +317,76 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
   ];
 
   // Donut chart metrics aligned dynamically with TEAM_SUBMISSIONS
+  // Donut chart metrics covering all 9 lifecycle stages (Overall PDP Status Distribution)
   const statusDistributionSlices = useMemo(() => {
-    const total = TEAM_SUBMISSIONS.length;
-    const approved = TEAM_SUBMISSIONS.filter((s) => s.status === 'APPROVED').length;
-    const pending = TEAM_SUBMISSIONS.filter((s) => s.status === 'PENDING APPROVAL').length;
-    const returned = TEAM_SUBMISSIONS.filter((s) => s.status === 'RETURNED').length;
+    const total = metrics.totalRequests;
+    const items = [
+      {
+        stageKey: 'EVAL_NOT_STARTED',
+        label: 'Not Started',
+        count: metrics.evalNotStarted,
+        color: '#94A3B8', // slate-400
+      },
+      {
+        stageKey: 'EVAL_PENDING_MANAGER',
+        label: 'Pending with Manager Actions',
+        count: metrics.evalPendingManager,
+        color: '#F97316', // orange-500
+      },
+      {
+        stageKey: 'EVAL_RETURNED_MANAGER',
+        label: 'Returned to Manager Actions',
+        count: metrics.evalReturnedManager,
+        color: '#F43F5E', // rose-500
+      },
+      {
+        stageKey: 'EVAL_PENDING_LNA',
+        label: 'Pending with PDP Initiation',
+        count: metrics.evalPendingLna,
+        color: '#9333EA', // purple-600
+      },
+      {
+        stageKey: 'PDP_PENDING_MANAGER',
+        label: 'Pending with Manager Review',
+        count: metrics.pdpPendingManager,
+        color: '#F59E0B', // amber-500
+      },
+      {
+        stageKey: 'PDP_PENDING_LNA',
+        label: 'Pending with PDP Review',
+        count: metrics.pdpPendingLna,
+        color: '#4F46E5', // indigo-600
+      },
+      {
+        stageKey: 'PDP_RETURNED_LNA',
+        label: 'Returned to LNA Team',
+        count: metrics.pdpReturnedLna,
+        color: '#EA580C', // orange-600
+      },
+      {
+        stageKey: 'PDP_PENDING_SIGNOFF',
+        label: 'Pending Sign-Off',
+        count: metrics.pdpPendingSignOff,
+        color: '#0EA5E9', // sky-500
+      },
+      {
+        stageKey: 'PDP_ACKNOWLEDGED',
+        label: 'Acknowledged',
+        count: metrics.pdpAcknowledged,
+        color: '#059669', // emerald-600
+      },
+    ];
 
-    const approvedPct = Math.round((approved / total) * 100);
-    const pendingPct = Math.round((pending / total) * 100);
-    const returnedPct = 100 - approvedPct - pendingPct;
+    const slices = items.map((item) => ({
+      ...item,
+      percentage: total > 0 ? Math.round((item.count / total) * 100) : 0,
+    }));
 
     return {
       total,
-      approved,
-      pending,
-      returned,
-      approvedPct,
-      pendingPct,
-      returnedPct,
-      slices: [
-        { label: 'SUBMITTED', count: approved, percentage: approvedPct, color: '#059669' },
-        { label: 'PENDING', count: pending, percentage: pendingPct, color: '#211E4E' },
-        { label: 'RETURNED', count: returned, percentage: returnedPct, color: '#D97706' },
-      ],
+      slices,
     };
-  }, []);
+  }, [metrics]);
 
   const competencySplitSlices = useMemo(() => {
     // Aligns with overall competency log split: 11 Behavioral (41%), 16 Functional (59%), total 27
@@ -401,15 +478,18 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
   ) => {
     const circumference = 2 * Math.PI * radius;
     let accumulatedAngle = 0;
-    const gap = 4.5;
+    const activeSlices = slices.filter((s) => s.count > 0);
+    const totalCount = activeSlices.reduce((sum, s) => sum + s.count, 0);
+    const gap = activeSlices.length > 1 ? (activeSlices.length > 5 ? 2.5 : 4) : 0;
 
-    return slices.map((slice, idx) => {
+    return activeSlices.map((slice, idx) => {
       const isHovered = hoveredSlice?.chartId === chartId && hoveredSlice?.label === slice.label;
       const isAnyHoveredInChart = hoveredSlice?.chartId === chartId;
-      const sliceLen = Math.max(0, (slice.percentage / 100) * circumference - gap);
+      const ratio = totalCount > 0 ? slice.count / totalCount : 0;
+      const sliceLen = Math.max(0, ratio * circumference - gap);
       const strokeDasharray = `${sliceLen} ${circumference - sliceLen}`;
       const strokeDashoffset = -accumulatedAngle;
-      accumulatedAngle += (slice.percentage / 100) * circumference;
+      accumulatedAngle += ratio * circumference;
 
       return (
         <circle
@@ -433,7 +513,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
           onMouseEnter={() => setHoveredSlice({ chartId, ...slice })}
           onMouseLeave={() => setHoveredSlice(null)}
         >
-          <title>{`${slice.label}: ${slice.count} (${slice.percentage}%)`}</title>
+          <title>{`${slice.label}: ${slice.count} (${Math.round(ratio * 100)}%)`}</title>
         </circle>
       );
     });
@@ -637,7 +717,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
               Assessment Status
             </h2>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
             {evalCards.map((card) => {
               const Icon = card.icon;
               const isSelected = selectedFilterStage === card.stage;
@@ -683,7 +763,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
               PDP Initiation Status
             </h2>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
             {pdpCards.map((card) => {
               const Icon = card.icon;
               const isSelected = selectedFilterStage === card.stage;
@@ -724,39 +804,48 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
 
       {/* 3. Donut Charts (3-Column Layout: LNA Status, Competency Split, Active PDP Execution) */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
-        {/* Chart 1: LNA Status Distribution */}
+        {/* Chart 1: Overall PDP Status Distribution */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-4.5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#211E4E]"></span>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                  LNA Status Distribution
+                  Overall PDP Status Distribution
                 </h3>
               </div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                All Stages
+              </span>
             </div>
 
             {/* Centered Donut Chart with Interactive Hover Details */}
             <div className="flex justify-center items-center py-2 sm:py-2.5">
               <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
                 <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-2xs">
-                  {renderDonutSlices('LNA_STATUS', statusDistributionSlices.slices, 68, 28)}
+                  {renderDonutSlices('OVERALL_PDP_STATUS', statusDistributionSlices.slices, 68, 28)}
                 </svg>
-                {/* Center text: count without percentage */}
+                {/* Center text: Total Requests or Hovered Stage Details */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2 transition-all">
-                  {hoveredSlice?.chartId === 'LNA_STATUS' ? (
+                  {hoveredSlice?.chartId === 'OVERALL_PDP_STATUS' ? (
                     <>
-                      <span className="text-[9px] font-bold uppercase tracking-wider truncate max-w-[100px]" style={{ color: hoveredSlice.color }}>
+                      <span
+                        className="text-[9px] font-extrabold uppercase tracking-wider truncate max-w-[110px]"
+                        style={{ color: hoveredSlice.color }}
+                      >
                         {hoveredSlice.label}
                       </span>
                       <span className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
                         {hoveredSlice.count}
                       </span>
+                      <span className="text-[10px] font-bold text-slate-500">
+                        {hoveredSlice.percentage}%
+                      </span>
                     </>
                   ) : (
                     <>
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        SUBMISSIONS
+                        TOTAL REQUESTS
                       </span>
                       <span className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
                         {statusDistributionSlices.total}
@@ -768,33 +857,68 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
             </div>
 
             {/* Details Table / Legend */}
-            <div className="pt-2.5 border-t border-slate-100 space-y-1">
-              {statusDistributionSlices.slices.map((slice) => {
-                const isHovered = hoveredSlice?.chartId === 'LNA_STATUS' && hoveredSlice?.label === slice.label;
-                return (
-                  <div
-                    key={slice.label}
-                    onMouseEnter={() => setHoveredSlice({ chartId: 'LNA_STATUS', ...slice })}
-                    onMouseLeave={() => setHoveredSlice(null)}
-                    className={`flex items-center justify-between text-xs py-0.5 px-1.5 rounded-lg transition-colors cursor-pointer ${
-                      isHovered ? 'bg-slate-100/90 font-bold' : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: slice.color }}
-                      ></span>
-                      <span className="font-semibold text-slate-700 text-xs truncate">
-                        {slice.label}
-                      </span>
+            <div className="pt-2 border-t border-slate-100">
+              {/* Total Requests Row */}
+              <div
+                onClick={() => setSelectedFilterStage('ALL')}
+                className="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-slate-100/90 font-bold text-[#211E4E] border border-slate-200/80 mb-1 cursor-pointer hover:bg-slate-200/70 transition-colors"
+                title="Click to view all requests"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#211E4E]"></span>
+                  <span className="text-[11px] font-bold">Total Requests</span>
+                </div>
+                <span className="font-black text-xs text-[#211E4E]">{statusDistributionSlices.total}</span>
+              </div>
+
+              {/* 9 Lifecycle Stages */}
+              <div className="space-y-0.5 max-h-[220px] overflow-y-auto pr-1">
+                {statusDistributionSlices.slices.map((slice) => {
+                  const isHovered =
+                    hoveredSlice?.chartId === 'OVERALL_PDP_STATUS' &&
+                    hoveredSlice?.label === slice.label;
+                  const isSelected = selectedFilterStage === slice.stageKey;
+                  return (
+                    <div
+                      key={slice.label}
+                      onMouseEnter={() =>
+                        setHoveredSlice({ chartId: 'OVERALL_PDP_STATUS', ...slice })
+                      }
+                      onMouseLeave={() => setHoveredSlice(null)}
+                      onClick={() =>
+                        setSelectedFilterStage(
+                          isSelected ? 'ALL' : (slice.stageKey as FilterStageType)
+                        )
+                      }
+                      className={`flex items-center justify-between text-xs py-1 px-1.5 rounded-lg transition-colors cursor-pointer ${
+                        isHovered
+                          ? 'bg-slate-100/90 font-bold'
+                          : isSelected
+                          ? 'bg-slate-100 font-bold border border-slate-300'
+                          : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: slice.color }}
+                        ></span>
+                        <span className="font-medium text-slate-700 text-[11px] truncate">
+                          {slice.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-[10px] text-slate-400 font-semibold">
+                          {slice.percentage}%
+                        </span>
+                        <span className="font-extrabold text-slate-900 text-[11.5px] min-w-[18px] text-right">
+                          {slice.count}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-5 shrink-0">
-                      <span className="font-extrabold text-slate-900 text-xs">{slice.count}</span>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

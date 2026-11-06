@@ -18,9 +18,72 @@ import {
   Send,
   X,
   AlertCircle,
+  AlertTriangle,
+  RotateCcw,
+  ArrowRight,
   Sparkles,
 } from 'lucide-react';
 import { usePdp } from '../context/PdpContext';
+
+export interface StageDeadlineConfig {
+  id: string;
+  step: number;
+  title: string;
+  role: string;
+  startDate: string;
+  deadline: string;
+}
+
+export const DEFAULT_STAGE_DEADLINES: StageDeadlineConfig[] = [
+  {
+    id: 'employee_submission',
+    step: 1,
+    title: 'Employee Submission',
+    role: 'Employee',
+    startDate: '2026-08-01',
+    deadline: '2026-08-15',
+  },
+  {
+    id: 'manager_action',
+    step: 2,
+    title: 'Manager Action',
+    role: 'Line Manager',
+    startDate: '2026-08-16',
+    deadline: '2026-08-31',
+  },
+  {
+    id: 'pdp_initiation',
+    step: 3,
+    title: 'PDP Initiation',
+    role: 'HR & LNA',
+    startDate: '2026-09-01',
+    deadline: '2026-09-15',
+  },
+  {
+    id: 'manager_review',
+    step: 4,
+    title: 'Manager Review',
+    role: 'Line Manager',
+    startDate: '2026-09-16',
+    deadline: '2026-09-30',
+  },
+  {
+    id: 'lna_team_review',
+    step: 5,
+    title: 'LNA Team Review',
+    role: 'LNA Specialist',
+    startDate: '2026-10-01',
+    deadline: '2026-10-15',
+  },
+  {
+    id: 'employee_signoff',
+    step: 6,
+    title: 'Employee Sign off',
+    role: 'Employee',
+    startDate: '2026-10-16',
+    deadline: '2026-10-31',
+  },
+];
 
 export interface EmployeeMasterRecord {
   sNo: number;
@@ -298,7 +361,11 @@ export const EMPLOYEE_MASTER_DATA: EmployeeMasterRecord[] = [
   },
 ];
 
-export const EmployeeMasterView: React.FC = () => {
+export interface EmployeeMasterViewProps {
+  onNavigateToReleaseHistory?: () => void;
+}
+
+export const EmployeeMasterView: React.FC<EmployeeMasterViewProps> = ({ onNavigateToReleaseHistory }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFunction, setSelectedFunction] = useState('All Functions');
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
@@ -362,6 +429,44 @@ export const EmployeeMasterView: React.FC = () => {
     count: number;
   } | null>(null);
   const releaseMenuRef = useRef<HTMLDivElement>(null);
+
+  // 6 Workflow Stage Deadlines configuration
+  const [stageDeadlines, setStageDeadlines] = useState<StageDeadlineConfig[]>(DEFAULT_STAGE_DEADLINES);
+
+  const handleDeadlineChange = (id: string, field: 'startDate' | 'deadline', value: string) => {
+    setStageDeadlines((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  // Compute release stats according to PDP release status logic shown in notice popup
+  const releaseStats = useMemo(() => {
+    if (!confirmModal) {
+      return { totalEmployees: 16, excluded: 4, alreadyReleased: 3, goingToRelease: 9 };
+    }
+    if (confirmModal.mode === 'all') {
+      const total = EMPLOYEE_MASTER_DATA.length;
+      const excluded = 4; // Excluded due to nationality
+      const alreadyReleased = 3; // Already released in active cycle
+      const goingToRelease = Math.max(0, total - excluded - alreadyReleased);
+      return {
+        totalEmployees: total,
+        excluded,
+        alreadyReleased,
+        goingToRelease,
+      };
+    }
+    const count = confirmModal.count;
+    const excluded = count > 3 ? 1 : 0;
+    const alreadyReleased = count > 2 ? 1 : 0;
+    const goingToRelease = Math.max(0, count - excluded - alreadyReleased);
+    return {
+      totalEmployees: count,
+      excluded,
+      alreadyReleased,
+      goingToRelease: goingToRelease > 0 ? goingToRelease : count,
+    };
+  }, [confirmModal]);
 
   // Close release menu on click outside
   useEffect(() => {
@@ -838,78 +943,178 @@ export const EmployeeMasterView: React.FC = () => {
         </div>
       </div>
 
-      {/* Release Confirmation Modal */}
+      {/* PDP Release Status Notice Modal with 6 Workflow Milestone Deadlines */}
       {confirmModal && confirmModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(33,30,78,0.35)] border border-slate-200/90 max-w-4xl w-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="bg-[#211E4E] text-white p-5 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-[#17143B] via-[#211E4E] to-[#2D2866] text-white px-5 py-3 flex items-center justify-between shrink-0 shadow-sm">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#C8A977] text-[#211E4E] flex items-center justify-center font-bold">
-                  <Send className="w-4 h-4" />
+                <div className="w-7 h-7 rounded-lg bg-amber-400/15 border border-amber-400/30 text-amber-300 flex items-center justify-center shadow-inner">
+                  <AlertTriangle className="w-4 h-4 text-amber-300" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">
-                    Confirm PDP Cycle Release
+                  <h3 className="text-sm sm:text-base font-bold text-white tracking-wide">
+                    PDP Release Status Notice
                   </h3>
-                  <p className="text-[11px] text-slate-300">
-                    Cycle Year: 2026 – 2027
-                  </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setConfirmModal(null)}
                 className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                title="Close"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-5 space-y-4 text-xs">
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">Release Scope:</span>
-                  <span className="font-extrabold text-[#211E4E] uppercase tracking-wide">
-                    {confirmModal.mode === 'all' ? 'All Employees' : 'Selected Employees'}
-                  </span>
+            {/* Modal Body - Designed to fit seamlessly without scrolling on full screen */}
+            <div className="px-5 py-3.5 space-y-3 overflow-y-auto max-h-[calc(92vh-100px)]">
+              {/* Yellow / Amber Notice Banner */}
+              <div className="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200/80 border-l-4 border-l-amber-500 flex items-start gap-2.5 shadow-2xs">
+                <AlertTriangle className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-[#92400E] font-medium leading-relaxed">
+                  Only UAE National employees are eligible for PDP release.{' '}
+                  <strong>{releaseStats.excluded} employees excluded</strong> due to nationality. PDP has already been released for{' '}
+                  <strong>{releaseStats.alreadyReleased} employees</strong> in the active cycle.
+                </p>
+              </div>
+
+              {/* 3 Stat KPI Cards in a row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Total Employees */}
+                <div className="relative overflow-hidden rounded-lg border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-2.5 text-center shadow-xs">
+                  <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-[#211E4E] to-[#433E65]" />
+                  <div className="text-2xl font-black text-[#211E4E] tracking-tight">
+                    {releaseStats.totalEmployees}
+                  </div>
+                  <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                    Total Employees
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">Target Count:</span>
-                  <span className="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
-                    {confirmModal.count} Employees
-                  </span>
+
+                {/* Already Released */}
+                <div className="relative overflow-hidden rounded-lg border border-sky-200/80 bg-gradient-to-b from-sky-50/40 to-white p-2.5 text-center shadow-xs">
+                  <div className="absolute top-0 inset-x-0 h-0.5 bg-[#0284C7]" />
+                  <div className="text-2xl font-black text-[#0284C7] tracking-tight">
+                    {releaseStats.alreadyReleased}
+                  </div>
+                  <div className="text-[11px] font-semibold text-sky-800 mt-0.5">
+                    Already Released
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">Release Reference ID:</span>
-                  <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    REL-2026-002
-                  </span>
+
+                {/* Going to Release Now */}
+                <div className="relative overflow-hidden rounded-lg border border-emerald-200/80 bg-gradient-to-b from-emerald-50/40 to-white p-2.5 text-center shadow-xs">
+                  <div className="absolute top-0 inset-x-0 h-0.5 bg-[#16A34A]" />
+                  <div className="text-2xl font-black text-[#16A34A] tracking-tight">
+                    {releaseStats.goingToRelease}
+                  </div>
+                  <div className="text-[11px] font-semibold text-emerald-800 mt-0.5">
+                    Going to Release Now
+                  </div>
                 </div>
               </div>
 
-              <p className="text-slate-600 leading-relaxed text-[11.5px]">
-                Initiating this release will distribute the Professional Development Plan to the specified employee(s) and notify their Line Managers.
-              </p>
+              {/* 6 Milestone Deadlines Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-200/80">
+                  <Calendar className="w-3.5 h-3.5 text-[#211E4E]" />
+                  <h4 className="text-xs font-bold text-[#211E4E] uppercase tracking-wider">
+                    Cycle Milestone Deadlines
+                  </h4>
+                </div>
+
+                {/* Grid of 6 Unique Connected Deadlines Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {stageDeadlines.map((stage) => (
+                    <div
+                      key={stage.id}
+                      className="rounded-lg border border-slate-200/90 bg-white hover:border-[#211E4E]/40 hover:shadow-2xs transition-all duration-150 p-2 flex flex-col justify-between group shadow-2xs"
+                    >
+                      {/* Card Title - Clean text heading without vertical icon */}
+                      <div className="mb-1.5 pb-1 border-b border-slate-100">
+                        <span className="text-xs font-bold text-[#211E4E] tracking-tight">
+                          {stage.title}
+                        </span>
+                      </div>
+
+                      {/* Integrated Date Range Bar */}
+                      <div className="flex items-center gap-1.5 bg-slate-50/90 p-1 rounded-md border border-slate-200/80 group-hover:border-slate-300 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <label className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 mb-0.5">
+                            Start Date
+                          </label>
+                          <input
+                            type="date"
+                            value={stage.startDate}
+                            onChange={(e) => handleDeadlineChange(stage.id, 'startDate', e.target.value)}
+                            className="w-full text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#211E4E]/30 focus:border-[#211E4E] cursor-pointer shadow-2xs"
+                          />
+                        </div>
+
+                        <span className="text-slate-300 font-light text-xs self-end pb-0.5 select-none shrink-0">
+                          →
+                        </span>
+
+                        <div className="flex-1 min-w-0">
+                          <label className="block text-[9px] uppercase font-bold tracking-wider text-slate-600 mb-0.5">
+                            Deadline
+                          </label>
+                          <input
+                            type="date"
+                            value={stage.deadline}
+                            onChange={(e) => handleDeadlineChange(stage.id, 'deadline', e.target.value)}
+                            className="w-full text-xs font-bold text-[#211E4E] bg-white border border-slate-300 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#211E4E]/40 focus:border-[#211E4E] cursor-pointer shadow-2xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Release History Notice Banner */}
+              <div className="rounded-lg border border-sky-100 bg-gradient-to-r from-sky-50/80 to-slate-50/50 p-2.5 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2 text-xs text-slate-700">
+                  <RotateCcw className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                  <span>
+                    See full details in <strong className="font-bold text-[#211E4E]">PDP Release History</strong>.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmModal(null);
+                    if (onNavigateToReleaseHistory) {
+                      onNavigateToReleaseHistory();
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0284C7] hover:text-[#0369A1] transition-colors cursor-pointer group"
+                >
+                  <span>Release History</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                </button>
+              </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setConfirmModal(null)}
-                className="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                className="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-800 transition-colors cursor-pointer shadow-2xs"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleExecuteRelease}
-                className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#059669] hover:bg-[#047857] shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-5 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-[#211E4E] to-[#433E65] hover:from-[#17143B] hover:to-[#363255] shadow-xs flex items-center gap-1.5 transition-all cursor-pointer hover:shadow-md"
               >
-                <Check className="w-3.5 h-3.5" />
-                <span>Confirm Release</span>
+                <Send className="w-3.5 h-3.5 rotate-45" />
+                <span>Release</span>
               </button>
             </div>
           </div>

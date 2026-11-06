@@ -1,33 +1,39 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Eye, Users, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Eye, Users, CheckCircle2, Clock, RotateCcw } from 'lucide-react';
 import { TEAM_SUBMISSIONS, TeamMemberSubmission } from '../data/teamSubmissionsData';
 
 interface ReviewAndAssignViewProps {
   onReviewEmployee: (submission: TeamMemberSubmission) => void;
 }
 
+type FilterTab = 'ALL' | 'PENDING' | 'RETURNED' | 'ASSIGNED';
+
 export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
   onReviewEmployee,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'ALL' | 'PENDING' | 'ASSIGNED'>('ALL');
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
 
   const metrics = useMemo(() => {
     let pending = 0;
+    let returned = 0;
     let assigned = 0;
     TEAM_SUBMISSIONS.forEach((sub) => {
       if (sub.status === 'APPROVED') {
         assigned++;
+      } else if (sub.status === 'RETURNED') {
+        returned++;
       } else {
         pending++;
       }
     });
-    return { pending, assigned };
+    return { pending, returned, assigned };
   }, []);
 
   const filteredMembers = useMemo(() => {
     return TEAM_SUBMISSIONS.filter((sub) => {
-      if (activeFilter === 'PENDING' && sub.status === 'APPROVED') return false;
+      if (activeFilter === 'PENDING' && (sub.status === 'APPROVED' || sub.status === 'RETURNED')) return false;
+      if (activeFilter === 'RETURNED' && sub.status !== 'RETURNED') return false;
       if (activeFilter === 'ASSIGNED' && sub.status !== 'APPROVED') return false;
 
       if (searchQuery.trim()) {
@@ -51,8 +57,8 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
         </h1>
       </section>
 
-      {/* 2. Top Summary KPI Cards: Pending and Assigned */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+      {/* 2. Top Summary KPI Cards: Pending, Returned (Center), and Assigned */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
         {/* Card 1: Pending */}
         <div
           onClick={() => setActiveFilter(activeFilter === 'PENDING' ? 'ALL' : 'PENDING')}
@@ -75,7 +81,29 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
           </div>
         </div>
 
-        {/* Card 2: Assigned */}
+        {/* Card 2: Center Tile - Returned to Manager Review */}
+        <div
+          onClick={() => setActiveFilter(activeFilter === 'RETURNED' ? 'ALL' : 'RETURNED')}
+          className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
+            activeFilter === 'RETURNED'
+              ? 'border-[#211E4E] ring-2 ring-[#211E4E]/20 shadow-md'
+              : 'border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              RETURNED TO MANAGER REVIEW
+            </span>
+            <div className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center border border-rose-200">
+              <RotateCcw className="w-4 h-4 text-rose-600" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-black text-rose-600 tracking-tight">
+            {metrics.returned}
+          </div>
+        </div>
+
+        {/* Card 3: Assigned */}
         <div
           onClick={() => setActiveFilter(activeFilter === 'ASSIGNED' ? 'ALL' : 'ASSIGNED')}
           className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
@@ -136,6 +164,17 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
             }`}
           >
             Pending Approval
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter('RETURNED')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+              activeFilter === 'RETURNED'
+                ? 'bg-[#211E4E] text-white shadow-xs'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+            }`}
+          >
+            Returned to Manager Review
           </button>
           <button
             type="button"
@@ -238,6 +277,11 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs whitespace-nowrap">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                             <span>ASSIGNED</span>
+                          </span>
+                        ) : sub.status === 'RETURNED' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs whitespace-nowrap">
+                            <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
+                            <span>RETURNED</span>
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs whitespace-nowrap">

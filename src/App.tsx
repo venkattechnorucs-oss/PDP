@@ -377,7 +377,7 @@ const MainAppContent: React.FC = () => {
             <>
               {!isReviewingEmployee ? (
                 activeTab === 'employee_master' ? (
-                  <EmployeeMasterView />
+                  <EmployeeMasterView onNavigateToReleaseHistory={() => setActiveTab('release_history')} />
                 ) : activeTab === 'functional_master' ? (
                   <FunctionalMasterView />
                 ) : activeTab === 'competency_master' ? (
@@ -426,13 +426,13 @@ const MainAppContent: React.FC = () => {
                 activeTab === 'hr_initiation' ? (
                   <HrInitiationView
                     onReviewEmployee={handleReviewFromLna}
-                    title="Personal Development Plan (PDP) – Initiation"
+                    title="Professional Development Plan (PDP) – Initiation"
                     subtitle="Review and initiate organizational employee PDP submissions."
                   />
                 ) : (
                   <HrInitiationView
                     onReviewEmployee={handleReviewFromLna}
-                    title="Personal Development Plan (PDP) – LNA Training Plan"
+                    title="Professional Development Plan (PDP) – LNA Training Plan"
                     subtitle="Filter organizational employee submissions and assign tailored learning courses, certifications, and development milestones."
                   />
                 )

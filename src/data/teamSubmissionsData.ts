@@ -135,7 +135,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     functionDept: 'Store Operations',
     grade: '7',
     date: '10/Aug/2026',
-    status: 'PENDING APPROVAL',
+    status: 'RETURNED',
     pdpStage: 'PENDING_MANAGER_REVIEW',
     avatarInitials: 'SB',
     lineManager: 'Suresh Nair',
