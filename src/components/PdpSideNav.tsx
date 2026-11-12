@@ -66,13 +66,6 @@ export const PdpSideNav: React.FC<PdpSideNavProps> = ({
   const isReviewAndAssignActive = activeTab === 'review_and_assign';
   const isMyApprovalsActive = isPendingActionsActive || isReviewAndAssignActive;
 
-  const [isApprovalsExpanded, setIsApprovalsExpanded] = React.useState<boolean>(true);
-
-  React.useEffect(() => {
-    if (isMyApprovalsActive) {
-      setIsApprovalsExpanded(true);
-    }
-  }, [isMyApprovalsActive]);
 
   const isHrDashboardActive = activeTab === 'hr_dashboard';
   const isHrInitiationActive = activeTab === 'hr_initiation' || activeTab === 'pdp';
@@ -187,92 +180,30 @@ export const PdpSideNav: React.FC<PdpSideNavProps> = ({
               </div>
             )}
 
-            {/* My Approvals (for Manager) with Sub Menu */}
+            {/* My Approvals (for Manager only) - Direct click navigates immediately */}
             {currentRole === 'manager' && (
-              <div className="space-y-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsApprovalsExpanded((prev) => !prev);
-                    if (!isMyApprovalsActive && onSelectTab) {
-                      onSelectTab('pending_actions');
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer text-left font-bold ${
-                    isMyApprovalsActive
-                      ? 'bg-[#211E4E] text-white shadow-xs'
-                      : 'text-[#211E4E] hover:text-[#C8A977] hover:bg-[#211E4E]/5'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <CheckSquare
-                      className={`w-4 h-4 ${isMyApprovalsActive ? 'text-white' : 'text-[#211E4E]'} shrink-0`}
-                      strokeWidth={2}
-                    />
-                    <span>My Approvals</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {pendingApprovalsCount > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-[#E5484D] text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
-                        {pendingApprovalsCount}
-                      </span>
-                    )}
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        isApprovalsExpanded ? 'rotate-180' : ''
-                      } ${isMyApprovalsActive ? 'text-white/80' : 'text-slate-400'}`}
-                    />
-                  </div>
-                </button>
-
-                {/* Sub-divisions under My Approvals */}
-                {isApprovalsExpanded && (
-                  <div className="pl-3.5 ml-2 border-l-2 border-slate-200 space-y-1 pt-0.5 animate-in fade-in duration-150">
-                    {/* Sub-division 1: Pending Actions */}
-                    <button
-                      type="button"
-                      onClick={() => onSelectTab && onSelectTab('pending_actions')}
-                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer text-left font-bold ${
-                        isPendingActionsActive
-                          ? 'bg-[#211E4E]/10 text-[#211E4E] font-extrabold border-l-2 border-[#211E4E]'
-                          : 'text-slate-600 hover:text-[#211E4E] hover:bg-slate-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <Clock
-                          className={`w-3.5 h-3.5 ${
-                            isPendingActionsActive ? 'text-[#211E4E]' : 'text-slate-400'
-                          } shrink-0`}
-                        />
-                        <span className="truncate">Pending Actions</span>
-                      </div>
-                      {pendingApprovalsCount > 0 && (
-                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#E5484D]/10 text-[#E5484D]">
-                          {pendingApprovalsCount}
-                        </span>
-                      )}
-                    </button>
-
-                    {/* Sub-division 2: Review & Assign */}
-                    <button
-                      type="button"
-                      onClick={() => onSelectTab && onSelectTab('review_and_assign')}
-                      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer text-left font-bold ${
-                        isReviewAndAssignActive
-                          ? 'bg-[#211E4E]/10 text-[#211E4E] font-extrabold border-l-2 border-[#211E4E]'
-                          : 'text-slate-600 hover:text-[#211E4E] hover:bg-slate-100'
-                      }`}
-                    >
-                      <FileCheck
-                        className={`w-3.5 h-3.5 ${
-                          isReviewAndAssignActive ? 'text-[#211E4E]' : 'text-slate-400'
-                        } shrink-0`}
-                      />
-                      <span className="truncate">Review & Assign</span>
-                    </button>
-                  </div>
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('pending_actions')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer text-left font-bold ${
+                  isMyApprovalsActive
+                    ? 'bg-[#211E4E] text-white shadow-xs'
+                    : 'text-[#211E4E] hover:text-[#C8A977] hover:bg-[#211E4E]/5'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <CheckSquare
+                    className={`w-4 h-4 ${isMyApprovalsActive ? 'text-[#C8A977]' : 'text-[#211E4E]'} shrink-0`}
+                    strokeWidth={2}
+                  />
+                  <span>My Approvals</span>
+                </div>
+                {pendingApprovalsCount > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-[#E5484D] text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                    {pendingApprovalsCount}
+                  </span>
                 )}
-              </div>
+              </button>
             )}
           </div>
         )}

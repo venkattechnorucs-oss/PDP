@@ -33,7 +33,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '8',
     date: '15 Jan 2026',
     status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    pdpStage: 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT',
     avatarInitials: 'RK',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -53,7 +53,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '7',
     date: '18/Aug/2026',
     status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    pdpStage: 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT',
     hasDelegation: true,
     avatarInitials: 'PS',
     lineManager: 'Suresh Nair',
@@ -74,7 +74,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '6',
     date: '15 Jan 2026',
     status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    pdpStage: 'PENDING_HR_INITIATION',
     avatarInitials: 'AK',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -115,7 +115,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '9',
     date: '16/Aug/2026',
     status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    pdpStage: 'PENDING_LNA_TEAM',
     hasDelegation: true,
     avatarInitials: 'TH',
     lineManager: 'Suresh Nair',
@@ -176,7 +176,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '7',
     date: '12/Aug/2026',
     status: 'PENDING APPROVAL',
-    pdpStage: 'PENDING_MANAGER_REVIEW',
+    pdpStage: 'PDP_PLANNING_MANAGER',
     avatarInitials: 'RK',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -196,7 +196,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '8',
     date: '14/Aug/2026',
     status: 'PENDING APPROVAL',
-    pdpStage: 'PENDING_MANAGER_REVIEW',
+    pdpStage: 'PDP_PLANNING_MANAGER',
     avatarInitials: 'MH',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -216,7 +216,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '9',
     date: '11 Jan 2026',
     status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    pdpStage: 'PENDING_HR_INITIATION',
     avatarInitials: 'KA',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -276,7 +276,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '7',
     date: '15 Jan 2026',
     status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    pdpStage: 'PENDING_LNA_TEAM',
     avatarInitials: 'ZR',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -295,8 +295,8 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     functionDept: 'Supply Chain',
     grade: '6',
     date: '16 Jan 2026',
-    status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    status: 'RETURNED',
+    pdpStage: 'PDP_PLANNING_MANAGER',
     avatarInitials: 'NH',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -316,7 +316,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '7',
     date: '17 Jan 2026',
     status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    pdpStage: 'PENDING_LNA_TEAM',
     avatarInitials: 'LB',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -336,7 +336,7 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     grade: '8',
     date: '18 Jan 2026',
     status: 'APPROVED',
-    pdpStage: 'ACTIVE',
+    pdpStage: 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT',
     avatarInitials: 'SM',
     lineManager: 'Suresh Nair',
     lineManagerTitle: 'Operations Manager',
@@ -347,6 +347,54 @@ export const TEAM_SUBMISSIONS: TeamMemberSubmission[] = [
     email: 'sultan.maamari@enterprise.com',
   },
 ];
+
+export type ManagerActionStage =
+  | 'NOT_STARTED'
+  | 'PENDING_MANAGER_ACTIONS'
+  | 'RETURNED_MANAGER_ACTIONS'
+  | 'PENDING_PDP_INITIATION'
+  | 'PENDING_MANAGER_REVIEW'
+  | 'RETURNED_MANAGER_REVIEW'
+  | 'PENDING_LNA_TEAM'
+  | 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT'
+  | 'ACTIVE'
+  | 'PENDING_EMPLOYEE';
+
+export const getSubmissionCategory = (sub: TeamMemberSubmission): ManagerActionStage => {
+  if (sub.status === 'NOT STARTED') return 'NOT_STARTED';
+
+  if (sub.status === 'RETURNED') {
+    if (sub.pdpStage === 'PDP_PLANNING_MANAGER') return 'RETURNED_MANAGER_REVIEW';
+    return 'RETURNED_MANAGER_ACTIONS';
+  }
+
+  if (sub.pdpStage === 'PENDING_MANAGER_REVIEW') {
+    return 'PENDING_MANAGER_ACTIONS';
+  }
+
+  if (sub.pdpStage === 'PENDING_HR_INITIATION') {
+    return 'PENDING_PDP_INITIATION';
+  }
+
+  if (sub.pdpStage === 'PDP_PLANNING_MANAGER') {
+    return 'PENDING_MANAGER_REVIEW';
+  }
+
+  if (sub.pdpStage === 'PENDING_LNA_TEAM') {
+    return 'PENDING_LNA_TEAM';
+  }
+
+  if (sub.pdpStage === 'ACTIVE') {
+    return 'ACTIVE';
+  }
+
+  if (sub.pdpStage === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT') {
+    return 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
+  }
+
+  if (sub.status === 'APPROVED') return 'PENDING_PDP_INITIATION';
+  return 'PENDING_MANAGER_ACTIONS';
+};
 
 export const toEmployeeProfile = (sub: TeamMemberSubmission): EmployeeProfile => ({
   id: sub.id,

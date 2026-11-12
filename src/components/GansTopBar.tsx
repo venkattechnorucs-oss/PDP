@@ -22,9 +22,15 @@ const STAGES: { key: PdpStatus; label: string; num: number }[] = [
   { key: 'HR_VIEW', label: 'HR', num: 4 },
 ];
 
-interface GansTopBarProps {}
+interface GansTopBarProps {
+  activeStage?: PdpStatus;
+  onSelectStagePreset?: (stage: PdpStatus) => void;
+}
 
-export const GansTopBar: React.FC<GansTopBarProps> = () => {
+export const GansTopBar: React.FC<GansTopBarProps> = ({
+  activeStage,
+  onSelectStagePreset,
+}) => {
   const { status, resetAllData, loadStagePreset, employee } = usePdp();
   const [showPresetsMenu, setShowPresetsMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -40,14 +46,15 @@ export const GansTopBar: React.FC<GansTopBarProps> = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const effectiveStatus = activeStage || status;
   const currentStageObj =
-    status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' || status === 'ACTIVE'
+    effectiveStatus === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' || effectiveStatus === 'ACTIVE'
       ? STAGES.find((s) => s.key === 'PENDING_EMPLOYEE_EVALUATION')
-      : status === 'PDP_PLANNING_MANAGER'
+      : effectiveStatus === 'PDP_PLANNING_MANAGER'
       ? STAGES.find((s) => s.key === 'PENDING_MANAGER_REVIEW')
-      : status === 'PENDING_HR_INITIATION'
+      : effectiveStatus === 'PENDING_HR_INITIATION'
       ? STAGES.find((s) => s.key === 'HR_VIEW')
-      : STAGES.find((s) => s.key === status);
+      : STAGES.find((s) => s.key === effectiveStatus);
 
   return (
     <header className="w-full sticky top-0 z-40 select-none shadow-xs print:hidden">
@@ -162,7 +169,11 @@ export const GansTopBar: React.FC<GansTopBarProps> = () => {
                       <button
                         key={s.key}
                         onClick={() => {
-                          loadStagePreset(s.key);
+                          if (onSelectStagePreset) {
+                            onSelectStagePreset(s.key);
+                          } else {
+                            loadStagePreset(s.key);
+                          }
                           setShowPresetsMenu(false);
                         }}
                         className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-colors flex items-center justify-between group cursor-pointer ${

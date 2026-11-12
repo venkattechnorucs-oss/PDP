@@ -4,12 +4,14 @@ import { TEAM_SUBMISSIONS, TeamMemberSubmission } from '../data/teamSubmissionsD
 
 interface ReviewAndAssignViewProps {
   onReviewEmployee: (submission: TeamMemberSubmission) => void;
+  hideBanner?: boolean;
 }
 
 type FilterTab = 'ALL' | 'PENDING' | 'RETURNED' | 'ASSIGNED';
 
 export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
   onReviewEmployee,
+  hideBanner = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
@@ -51,15 +53,17 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
   return (
     <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200 font-sans">
       {/* 1. Header Banner */}
-      <section className="bg-[#211E4E] rounded-2xl p-6 sm:p-7 shadow-[0_8px_30px_rgb(33,30,78,0.05)] border border-white/80 text-white">
-        <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-          Review & Assign – Development Roadmap
-        </h1>
-      </section>
+      {!hideBanner && (
+        <section className="bg-[#211E4E] rounded-2xl p-6 sm:p-7 shadow-[0_8px_30px_rgb(33,30,78,0.05)] border border-white/80 text-white">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+            Review & Assign – Development Roadmap
+          </h1>
+        </section>
+      )}
 
       {/* 2. Top Summary KPI Cards: Pending, Returned (Center), and Assigned */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
-        {/* Card 1: Pending */}
+        {/* Card 1: Pending with Manager Review */}
         <div
           onClick={() => setActiveFilter(activeFilter === 'PENDING' ? 'ALL' : 'PENDING')}
           className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
@@ -70,7 +74,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              PENDING APPROVAL
+              PENDING WITH MANAGER REVIEW
             </span>
             <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200">
               <Clock className="w-4 h-4 text-amber-600" />
@@ -103,7 +107,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
           </div>
         </div>
 
-        {/* Card 3: Assigned */}
+        {/* Card 3: Pending with Employee */}
         <div
           onClick={() => setActiveFilter(activeFilter === 'ASSIGNED' ? 'ALL' : 'ASSIGNED')}
           className={`bg-white rounded-2xl p-5 border shadow-xs transition-all cursor-pointer ${
@@ -114,7 +118,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              ASSIGNED
+              PENDING WITH LNA TEAM
             </span>
             <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -163,7 +167,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
           >
-            Pending Approval
+            Pending with Manager Review
           </button>
           <button
             type="button"
@@ -185,7 +189,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
           >
-            Assigned
+            Pending with LNA Team
           </button>
         </div>
       </div>
@@ -276,7 +280,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
                         {isAssigned ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs whitespace-nowrap">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>ASSIGNED</span>
+                            <span>PENDING WITH LNA TEAM</span>
                           </span>
                         ) : sub.status === 'RETURNED' ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs whitespace-nowrap">
@@ -286,7 +290,7 @@ export const ReviewAndAssignView: React.FC<ReviewAndAssignViewProps> = ({
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs whitespace-nowrap">
                             <Clock className="w-3.5 h-3.5 text-amber-700" />
-                            <span>PENDING</span>
+                            <span>PENDING WITH MANAGER REVIEW</span>
                           </span>
                         )}
                       </td>

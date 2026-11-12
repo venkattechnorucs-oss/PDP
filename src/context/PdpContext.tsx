@@ -79,7 +79,7 @@ interface PdpContextType {
   sendReminder: (targetRole: Role, recipientName: string) => void;
   resetAllData: () => void;
   loadStagePreset: (targetStatus: PdpStatus) => void;
-  selectEmployeeForReview: (sub: TeamMemberSubmission, targetStatus?: PdpStatus) => void;
+  selectEmployeeForReview: (sub: TeamMemberSubmission, targetStatus?: PdpStatus, keepRole?: Role) => void;
   
   // Helper queries
   selectedCompetenciesCount: number;
@@ -943,10 +943,13 @@ export const PdpProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     else if (targetStatus === 'HR_VIEW') setCurrentRole('HR_ADMIN');
   };
 
-  const selectEmployeeForReview = (sub: TeamMemberSubmission, targetStatus?: PdpStatus) => {
+  const selectEmployeeForReview = (sub: TeamMemberSubmission, targetStatus?: PdpStatus, keepRole?: Role) => {
     setEmployee(toEmployeeProfile(sub));
     const nextStatus = targetStatus || (sub.status === 'APPROVED' ? 'PENDING_HR_INITIATION' : 'PENDING_MANAGER_REVIEW');
     loadStagePreset(nextStatus);
+    if (keepRole) {
+      setCurrentRole(keepRole);
+    }
   };
 
   const updateManagerRemarks = (remarks: string) => {
