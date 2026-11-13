@@ -405,7 +405,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           </div>
         </div>
 
-        {/* Card 5: PENDING WITH LNA REVIEW */}
+        {/* Card 5: LNA REVIEW */}
         <div
           onClick={() =>
             setActiveFilter(
@@ -422,7 +422,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
         >
           <div>
             <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#0284c7] uppercase leading-tight">
-              PENDING WITH LNA REVIEW
+              LNA REVIEW
             </div>
             <div className="text-[19px] sm:text-[20px] font-bold text-[#0284c7] leading-tight mt-0.5">
               {metrics.pendingLnaTeam}
@@ -430,7 +430,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           </div>
         </div>
 
-        {/* Card 6: EMPLOYEE ACK. */}
+        {/* Card 6: EMPLOYEE SIGN-OFF */}
         <div
           onClick={() =>
             setActiveFilter(
@@ -449,7 +449,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
         >
           <div>
             <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#047857] uppercase leading-tight">
-              EMPLOYEE ACK.
+              EMPLOYEE SIGN-OFF
             </div>
             <div className="text-[19px] sm:text-[20px] font-bold text-[#059669] leading-tight mt-0.5">
               {metrics.pendingEmployeeAcknowledgement}
