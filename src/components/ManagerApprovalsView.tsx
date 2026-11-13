@@ -231,24 +231,24 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
         </h1>
       </section>
 
-      {/* 2. Top Status Cards - Matching User Design in Compact Size with Thin Border Line */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+      {/* 2. Top Status Cards - Compact Pastel Badges Matching LNA Team Sizing */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {/* Card 1: NOT STARTED */}
         <div
           onClick={() =>
             setActiveFilter(activeFilter === 'NOT_STARTED' ? 'ALL' : 'NOT_STARTED')
           }
-          className={`rounded-xl py-2 px-3 sm:py-2.5 sm:px-3.5 transition-all cursor-pointer flex flex-col justify-between select-none border ${
+          className={`rounded-xl py-2 px-3 transition-all cursor-pointer flex flex-col justify-between select-none border ${
             activeFilter === 'NOT_STARTED'
               ? 'bg-[#e2e8f0] border-slate-500 ring-1 ring-slate-400/40 shadow-xs'
               : 'bg-[#f1f5f9] border-slate-200/90 hover:border-slate-300 hover:bg-[#e9edf3]'
           }`}
         >
           <div>
-            <div className="text-[11px] font-semibold tracking-wide text-[#475569] uppercase leading-tight">
+            <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#475569] uppercase leading-tight">
               NOT STARTED
             </div>
-            <div className="text-[20px] sm:text-[22px] font-bold text-[#0f172a] leading-tight mt-0.5">
+            <div className="text-[19px] sm:text-[20px] font-bold text-[#0f172a] leading-tight mt-0.5">
               {metrics.notStarted}
             </div>
           </div>
@@ -261,7 +261,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
               activeFilter === 'MANAGER_ACTIONS' ? 'ALL' : 'MANAGER_ACTIONS'
             )
           }
-          className={`rounded-xl py-2 px-3 sm:py-2.5 sm:px-3.5 transition-all cursor-pointer flex flex-col justify-between select-none border ${
+          className={`rounded-xl py-2 px-3 transition-all cursor-pointer flex flex-col justify-between select-none border ${
             activeFilter === 'MANAGER_ACTIONS' ||
             activeFilter === 'PENDING_MANAGER_ACTIONS' ||
             activeFilter === 'RETURNED_MANAGER_ACTIONS'
@@ -270,14 +270,14 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           }`}
         >
           <div>
-            <div className="text-[11px] font-semibold tracking-wide text-[#9a3412] uppercase leading-tight">
+            <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#9a3412] uppercase leading-tight">
               MANAGER ACTIONS
             </div>
-            <div className="text-[20px] sm:text-[22px] font-bold text-[#c2410c] leading-tight mt-0.5">
+            <div className="text-[19px] sm:text-[20px] font-bold text-[#c2410c] leading-tight mt-0.5">
               {metrics.managerActionsTotal}
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-[10px] sm:text-[10.5px] font-medium text-[#9a3412] mt-0.5">
+          <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#9a3412] mt-0.5">
             <span
               onClick={(e) => {
                 e.stopPropagation();
@@ -326,7 +326,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                 : 'PDP_INITIATION'
             )
           }
-          className={`rounded-xl py-2 px-3 sm:py-2.5 sm:px-3.5 transition-all cursor-pointer flex flex-col justify-between select-none border ${
+          className={`rounded-xl py-2 px-3 transition-all cursor-pointer flex flex-col justify-between select-none border ${
             activeFilter === 'PDP_INITIATION' ||
             activeFilter === 'PENDING_PDP_INITIATION'
               ? 'bg-[#dbeafe] border-[#2563eb] ring-1 ring-blue-400/40 shadow-xs'
@@ -334,10 +334,10 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           }`}
         >
           <div>
-            <div className="text-[11px] font-semibold tracking-wide text-[#1d4ed8] uppercase leading-tight">
+            <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#1d4ed8] uppercase leading-tight">
               PDP INITIATION
             </div>
-            <div className="text-[20px] sm:text-[22px] font-bold text-[#2563eb] leading-tight mt-0.5">
+            <div className="text-[19px] sm:text-[20px] font-bold text-[#2563eb] leading-tight mt-0.5">
               {metrics.pendingPdpInitiation}
             </div>
           </div>
@@ -350,7 +350,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
               activeFilter === 'MANAGER_REVIEW' ? 'ALL' : 'MANAGER_REVIEW'
             )
           }
-          className={`rounded-xl py-2 px-3 sm:py-2.5 sm:px-3.5 transition-all cursor-pointer flex flex-col justify-between select-none border ${
+          className={`rounded-xl py-2 px-3 transition-all cursor-pointer flex flex-col justify-between select-none border ${
             activeFilter === 'MANAGER_REVIEW' ||
             activeFilter === 'PENDING_MANAGER_REVIEW' ||
             activeFilter === 'RETURNED_MANAGER_REVIEW'
@@ -359,14 +359,14 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           }`}
         >
           <div>
-            <div className="text-[11px] font-semibold tracking-wide text-[#7e22ce] uppercase leading-tight">
+            <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#7e22ce] uppercase leading-tight">
               MANAGER REVIEW
             </div>
-            <div className="text-[20px] sm:text-[22px] font-bold text-[#9333ea] leading-tight mt-0.5">
+            <div className="text-[19px] sm:text-[20px] font-bold text-[#9333ea] leading-tight mt-0.5">
               {metrics.managerReviewTotal}
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-[10px] sm:text-[10.5px] font-medium text-[#7e22ce] mt-0.5">
+          <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#7e22ce] mt-0.5">
             <span
               onClick={(e) => {
                 e.stopPropagation();
@@ -405,7 +405,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           </div>
         </div>
 
-        {/* Card 5: LNA TEAM */}
+        {/* Card 5: PENDING WITH LNA REVIEW */}
         <div
           onClick={() =>
             setActiveFilter(
@@ -414,17 +414,17 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                 : 'LNA_TEAM'
             )
           }
-          className={`rounded-xl py-2 px-3 sm:py-2.5 sm:px-3.5 transition-all cursor-pointer flex flex-col justify-between select-none border ${
+          className={`rounded-xl py-2 px-3 transition-all cursor-pointer flex flex-col justify-between select-none border ${
             activeFilter === 'LNA_TEAM' || activeFilter === 'PENDING_LNA_TEAM'
               ? 'bg-[#e0f2fe] border-[#0284c7] ring-1 ring-sky-400/40 shadow-xs'
               : 'bg-[#f0f9ff] border-sky-200/90 hover:border-sky-300 hover:bg-[#e0f2fe]'
           }`}
         >
           <div>
-            <div className="text-[11px] font-semibold tracking-wide text-[#0284c7] uppercase leading-tight">
-              LNA TEAM
+            <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#0284c7] uppercase leading-tight">
+              PENDING WITH LNA REVIEW
             </div>
-            <div className="text-[20px] sm:text-[22px] font-bold text-[#0284c7] leading-tight mt-0.5">
+            <div className="text-[19px] sm:text-[20px] font-bold text-[#0284c7] leading-tight mt-0.5">
               {metrics.pendingLnaTeam}
             </div>
           </div>
@@ -440,7 +440,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                 : 'EMPLOYEE_ACK'
             )
           }
-          className={`rounded-xl py-2 px-3 sm:py-2.5 sm:px-3.5 transition-all cursor-pointer flex flex-col justify-between select-none border ${
+          className={`rounded-xl py-2 px-3 transition-all cursor-pointer flex flex-col justify-between select-none border ${
             activeFilter === 'EMPLOYEE_ACK' ||
             activeFilter === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT'
               ? 'bg-[#dcfce7] border-[#059669] ring-1 ring-emerald-400/40 shadow-xs'
@@ -448,10 +448,10 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
           }`}
         >
           <div>
-            <div className="text-[11px] font-semibold tracking-wide text-[#047857] uppercase leading-tight">
+            <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#047857] uppercase leading-tight">
               EMPLOYEE ACK.
             </div>
-            <div className="text-[20px] sm:text-[22px] font-bold text-[#059669] leading-tight mt-0.5">
+            <div className="text-[19px] sm:text-[20px] font-bold text-[#059669] leading-tight mt-0.5">
               {metrics.pendingEmployeeAcknowledgement}
             </div>
           </div>
@@ -677,7 +677,7 @@ export const ManagerApprovalsView: React.FC<ManagerApprovalsViewProps> = ({
                         {category === 'PENDING_LNA_TEAM' && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-300 shadow-2xs whitespace-nowrap">
                             <Clock className="w-3.5 h-3.5 text-sky-600" />
-                            <span>PENDING WITH LNA TEAM</span>
+                            <span>PENDING WITH LNA REVIEW</span>
                           </span>
                         )}
                         {category === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' && (

@@ -18,7 +18,7 @@ import { YasHoldingLogo } from './YasHoldingLogo';
 const STAGES: { key: PdpStatus; label: string; num: number }[] = [
   { key: 'PENDING_EMPLOYEE_EVALUATION', label: 'Employee', num: 1 },
   { key: 'PENDING_MANAGER_REVIEW', label: 'Manager', num: 2 },
-  { key: 'PENDING_LNA_TEAM', label: 'LNA Team', num: 3 },
+  { key: 'PENDING_LNA_TEAM', label: 'LNA', num: 3 },
   { key: 'HR_VIEW', label: 'HR', num: 4 },
 ];
 

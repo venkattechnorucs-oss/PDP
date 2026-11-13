@@ -9,6 +9,8 @@ import { PdpEmployeeAcknowledgmentModal } from './components/PdpEmployeeAcknowle
 import { PdpSideNav, NavTabType } from './components/PdpSideNav';
 import { ManagerApprovalsView } from './components/ManagerApprovalsView';
 import { HrInitiationView } from './components/HrInitiationView';
+import { LnaTeamView } from './components/LnaTeamView';
+import { LnaPdpInitiationReviewView } from './components/LnaPdpInitiationReviewView';
 import { HrPdpDashboardView } from './components/HrPdpDashboardView';
 import { EmployeeMasterView } from './components/EmployeeMasterView';
 import { FunctionalMasterView } from './components/FunctionalMasterView';
@@ -17,7 +19,7 @@ import { ReleaseHistoryView } from './components/ReleaseHistoryView';
 import { DelegationView } from './components/DelegationView';
 import { ReportsView } from './components/ReportsView';
 import { ToastContainer } from './components/ToastContainer';
-import { ArrowLeft, Clock, FileCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Clock, FileCheck, CheckCircle2, AlertCircle, GraduationCap } from 'lucide-react';
 import { PdpStatus } from './types/pdp';
 import {
   TEAM_SUBMISSIONS,
@@ -194,6 +196,44 @@ const MainAppContent: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleReviewFromLnaTeam = (
+    sub: TeamMemberSubmission,
+    targetStage?: PdpStatus
+  ) => {
+    const category = getSubmissionCategory(sub);
+    let effectiveStage: PdpStatus = targetStage || 'PENDING_LNA_TEAM';
+
+    if (!targetStage) {
+      if (category === 'PENDING_PDP_INITIATION') {
+        effectiveStage = 'PENDING_HR_INITIATION';
+      } else if (category === 'PENDING_LNA_TEAM') {
+        effectiveStage = 'PENDING_LNA_TEAM';
+      } else if (category === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT') {
+        effectiveStage = 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT';
+      } else if (category === 'ACTIVE') {
+        effectiveStage = 'ACTIVE';
+      } else if (
+        category === 'PENDING_MANAGER_REVIEW' ||
+        category === 'RETURNED_MANAGER_REVIEW'
+      ) {
+        effectiveStage = 'PDP_PLANNING_MANAGER';
+      } else if (
+        category === 'PENDING_MANAGER_ACTIONS' ||
+        category === 'RETURNED_MANAGER_ACTIONS'
+      ) {
+        effectiveStage = 'PENDING_MANAGER_REVIEW';
+      } else {
+        effectiveStage = 'PENDING_EMPLOYEE_EVALUATION';
+      }
+    }
+
+    selectEmployeeForReview(sub, effectiveStage, 'LNA_TEAM');
+    setAppRole('lna');
+    setActiveTab('lna_plan');
+    setIsReviewingEmployee(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-[#f4f7fa] text-slate-800 flex flex-col font-sans">
       {/* Top SharePoint & Talent Management Header Bar */}
@@ -212,12 +252,12 @@ const MainAppContent: React.FC = () => {
 
       {/* Main Layout Area with Side Navigation */}
       <div className="flex-1 flex w-full">
-        {/* Side Navigation Bar with My PDP & Pending Actions (for Manager) / PDP Initiation (for HR) */}
+        {/* Side Navigation Bar with My PDP & Pending Actions (for Manager) / Pending Actions (for LNA) */}
         <PdpSideNav
           currentRole={appRole}
           activeTab={activeTab}
           onSelectTab={handleSelectSideNavTab}
-          pendingApprovalsCount={6}
+          pendingApprovalsCount={appRole === 'lna' ? 5 : 6}
         />
 
         {/* Main Document Body */}
@@ -378,7 +418,7 @@ const MainAppContent: React.FC = () => {
                           {status === 'PENDING_LNA_TEAM' && (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-900 border border-sky-300 shadow-2xs">
                               <Clock className="w-3.5 h-3.5 text-sky-700" />
-                              <span>Status: Pending with LNA Team</span>
+                              <span>Status: Pending with LNA Review</span>
                             </span>
                           )}
                           {status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' && (
@@ -496,20 +536,71 @@ const MainAppContent: React.FC = () => {
             </>
           )}
 
-          {/* ================= 4. LNA ROLE VIEW ================= */}
+          {/* ================= 4. LNA ROLE VIEW (Merged PDP Initiation & LNA Training Plan) ================= */}
           {appRole === 'lna' && (
             <>
-              {activeTab === 'lna_plan' ? (
-                /* LNA Training Plan view */
-                <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200">
-                  <PdpEmployeeInfoSection />
-                  <PdpDevelopmentRoadmapSection
-                    onOpenAcknowledgementModal={() => {}}
-                  />
-                </div>
+              {!isReviewingEmployee ? (
+                <LnaTeamView onReviewEmployee={handleReviewFromLnaTeam} />
+              ) : status === 'PENDING_HR_INITIATION' ? (
+                <LnaPdpInitiationReviewView
+                  onBack={() => {
+                    setIsReviewingEmployee(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                />
               ) : (
-                /* PDP Initiation sub-division */
-                <HrInitiationView onReviewEmployee={handleReviewFromHrInitiation} />
+                <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsReviewingEmployee(false);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="inline-flex items-center gap-2 text-xs font-bold text-[#211E4E] hover:text-[#C8A977] px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer self-start"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back to LNA Actions</span>
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      {status === 'PENDING_LNA_TEAM' && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-900 border border-sky-300 shadow-2xs">
+                          <GraduationCap className="w-3.5 h-3.5 text-sky-700" />
+                          <span>LNA Training Plan: Assign Learning &amp; Training Paths</span>
+                        </span>
+                      )}
+                      {status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-900 border border-emerald-300 shadow-2xs">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>Status: Pending with Employee Acknowledgement</span>
+                        </span>
+                      )}
+                      {status === 'ACTIVE' && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-900 border border-teal-300 shadow-2xs">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-700" />
+                          <span>Status: Active PDP Roadmap</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <PdpEmployeeInfoSection />
+
+                  {(status === 'PENDING_LNA_TEAM' ||
+                    status === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT' ||
+                    status === 'ACTIVE') && (
+                    <PdpDevelopmentRoadmapSection
+                      onOpenAcknowledgementModal={() => {}}
+                    />
+                  )}
+
+                  {(status === 'PENDING_MANAGER_REVIEW' ||
+                    status === 'PDP_PLANNING_MANAGER' ||
+                    status === 'PENDING_EMPLOYEE_EVALUATION') && (
+                    <PdpCompetencyEvaluationTable />
+                  )}
+                </div>
               )}
             </>
           )}
