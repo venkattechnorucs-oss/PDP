@@ -42,9 +42,6 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
     updateCompetencyPriority,
     updateManagerObjective,
     submitManagerEvaluation,
-    returnToEmployee,
-    returnToManager,
-    initiatePdpByHr,
     selectedCompetenciesCount,
     isEmployeeEvalComplete,
     isManagerEvalComplete,
@@ -54,8 +51,6 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
     currentRole === 'EMPLOYEE' && status === 'PENDING_EMPLOYEE_EVALUATION';
   const isManagerEditing =
     currentRole === 'MANAGER' && status === 'PENDING_MANAGER_REVIEW';
-  const isHrInitiating =
-    currentRole === 'HR_ADMIN' && status === 'PENDING_HR_INITIATION';
 
   const showManagerColumn =
     status !== 'PENDING_EMPLOYEE_EVALUATION' && status !== 'NOT_STARTED';
@@ -63,16 +58,19 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
   const showPriorityColumn =
     status !== 'PENDING_EMPLOYEE_EVALUATION' && status !== 'NOT_STARTED';
 
-  // Only show 14 Competencies Proficiency Evaluation during Employee Evaluation and Manager Review (NOT in HR Initiation as requested)
+  // Show 14 Competencies Proficiency Evaluation during Employee Evaluation, Manager Review, and read-only HR View
   const showEvaluationTable =
     status === 'PENDING_EMPLOYEE_EVALUATION' ||
     status === 'PENDING_MANAGER_REVIEW' ||
-    status === 'NOT_STARTED';
+    status === 'NOT_STARTED' ||
+    status === 'HR_VIEW';
 
-  // Development Objectives shown during Manager Review and HR Initiation
+  // Development Objectives shown during Manager Review, HR Initiation, and read-only HR View
   const showDevelopmentObjectives =
     showPriorityColumn &&
-    (status === 'PENDING_MANAGER_REVIEW' || status === 'PENDING_HR_INITIATION');
+    (status === 'PENDING_MANAGER_REVIEW' ||
+      status === 'PENDING_HR_INITIATION' ||
+      status === 'HR_VIEW');
 
   if (!showEvaluationTable && !showDevelopmentObjectives) return null;
 
@@ -491,8 +489,10 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
         </section>
       )}
 
-      {/* 4. Manager Review & HR Initiation: Comment History BELOW Development Objectives */}
-      {(status === 'PENDING_MANAGER_REVIEW' || status === 'PENDING_HR_INITIATION') && (
+      {/* 4. Manager Review, HR Initiation & HR Read-Only View: Comment History BELOW Development Objectives */}
+      {(status === 'PENDING_MANAGER_REVIEW' ||
+        status === 'PENDING_HR_INITIATION' ||
+        status === 'HR_VIEW') && (
         <div className="space-y-4">
           <PdpCommentHistory />
 
@@ -530,39 +530,6 @@ export const PdpCompetencyEvaluationTable: React.FC = () => {
                   }`}
                 >
                   SUBMIT
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* HR Review & Initiation Footer with Return to Employee, Return to Manager, and Initiate PDP */}
-          {isHrInitiating && (
-            <div className="p-3.5 bg-white border border-slate-200/90 rounded-xl shadow-xs flex items-center justify-end gap-3">
-              <div className="flex items-center gap-2.5 flex-wrap justify-end">
-                <button
-                  type="button"
-                  onClick={() => returnToEmployee('HR requested employee revisions.')}
-                  className="px-4 py-2 border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
-                  <span>RETURN TO EMPLOYEE</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => returnToManager('HR requested manager revisions on development objectives.')}
-                  className="px-4 py-2 border border-slate-300 bg-slate-100 hover:bg-slate-200 text-[#211E4E] font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-[#211E4E]" />
-                  <span>RETURN TO MANAGER</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => initiatePdpByHr()}
-                  className="px-7 py-2.5 bg-[#211E4E] hover:bg-[#161435] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-xs transition-all cursor-pointer active:scale-98"
-                >
-                  INITIATE PDP
                 </button>
               </div>
             </div>

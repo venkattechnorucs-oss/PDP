@@ -27,8 +27,10 @@ interface LnaTeamViewProps {
 type LnaFilterTab =
   | 'ALL'
   | 'PDP_INITIATION'
-  | 'PENDING_LNA_REVIEW'
   | 'RETURNED_MANAGER_ACTIONS'
+  | 'LNA_REVIEW'
+  | 'PENDING_LNA_REVIEW'
+  | 'RETURNED_LNA_REVIEW'
   | 'RETURNED_MANAGER_REVIEW'
   | 'PENDING_EMP_SIGNOFF';
 
@@ -52,10 +54,14 @@ export const LnaTeamView: React.FC<LnaTeamViewProps> = ({ onReviewEmployee }) =>
       else if (cat === 'PENDING_EMPLOYEE_ACKNOWLEDGEMENT') pendingEmpSignOff++;
     });
 
+    const returnedLnaReview = returnedManagerActions + returnedManagerReview;
+
     return {
       pdpInitiation,
-      pendingLnaReview,
       returnedManagerActions,
+      pendingLnaReview,
+      returnedLnaReview,
+      lnaReviewTotal: pendingLnaReview + returnedLnaReview,
       returnedManagerReview,
       pendingEmpSignOff,
       total: TEAM_SUBMISSIONS.length,
@@ -80,12 +86,27 @@ export const LnaTeamView: React.FC<LnaTeamViewProps> = ({ onReviewEmployee }) =>
       if (activeFilter === 'PDP_INITIATION' && cat !== 'PENDING_PDP_INITIATION') {
         return false;
       }
+      if (
+        activeFilter === 'RETURNED_MANAGER_ACTIONS' &&
+        cat !== 'RETURNED_MANAGER_ACTIONS'
+      ) {
+        return false;
+      }
+      if (
+        activeFilter === 'LNA_REVIEW' &&
+        cat !== 'PENDING_LNA_TEAM' &&
+        cat !== 'RETURNED_MANAGER_ACTIONS' &&
+        cat !== 'RETURNED_MANAGER_REVIEW'
+      ) {
+        return false;
+      }
       if (activeFilter === 'PENDING_LNA_REVIEW' && cat !== 'PENDING_LNA_TEAM') {
         return false;
       }
       if (
-        activeFilter === 'RETURNED_MANAGER_ACTIONS' &&
-        cat !== 'RETURNED_MANAGER_ACTIONS'
+        activeFilter === 'RETURNED_LNA_REVIEW' &&
+        cat !== 'RETURNED_MANAGER_ACTIONS' &&
+        cat !== 'RETURNED_MANAGER_REVIEW'
       ) {
         return false;
       }
@@ -150,9 +171,9 @@ export const LnaTeamView: React.FC<LnaTeamViewProps> = ({ onReviewEmployee }) =>
         </h1>
       </section>
 
-      {/* 2. Top Status Cards - Exact Sequence & Labels */}
+      {/* 2. Top Status Cards - All 5 Cards with Pending/Returned Breakdowns */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-        {/* Card 1: PENDING WITH PDP INITIATION */}
+        {/* Card 1: PDP INITIATION */}
         <div
           onClick={() =>
             setActiveFilter(
@@ -167,11 +188,28 @@ export const LnaTeamView: React.FC<LnaTeamViewProps> = ({ onReviewEmployee }) =>
         >
           <div>
             <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#1d4ed8] uppercase leading-tight">
-              PENDING WITH PDP INITIATION
+              PDP INITIATION
             </div>
             <div className="text-[19px] sm:text-[20px] font-bold text-[#2563eb] leading-tight mt-0.5">
               {metrics.pdpInitiation}
             </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#1d4ed8] mt-0.5">
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveFilter(
+                  activeFilter === 'PDP_INITIATION' ? 'ALL' : 'PDP_INITIATION'
+                );
+              }}
+              className={`hover:underline cursor-pointer ${
+                activeFilter === 'PDP_INITIATION'
+                  ? 'font-bold underline text-[#1e3a8a]'
+                  : ''
+              }`}
+            >
+              Pending
+            </span>
           </div>
         </div>
 
@@ -200,26 +238,63 @@ export const LnaTeamView: React.FC<LnaTeamViewProps> = ({ onReviewEmployee }) =>
           </div>
         </div>
 
-        {/* Card 3: PENDING WITH LNA REVIEW */}
+        {/* Card 3: LNA REVIEW */}
         <div
           onClick={() =>
-            setActiveFilter(
-              activeFilter === 'PENDING_LNA_REVIEW' ? 'ALL' : 'PENDING_LNA_REVIEW'
-            )
+            setActiveFilter(activeFilter === 'LNA_REVIEW' ? 'ALL' : 'LNA_REVIEW')
           }
           className={`rounded-xl py-2 px-3 transition-all cursor-pointer flex flex-col justify-between select-none border ${
-            activeFilter === 'PENDING_LNA_REVIEW'
+            activeFilter === 'LNA_REVIEW' ||
+            activeFilter === 'PENDING_LNA_REVIEW' ||
+            activeFilter === 'RETURNED_LNA_REVIEW'
               ? 'bg-[#e0f2fe] border-[#0284c7] ring-1 ring-sky-400/40 shadow-xs'
               : 'bg-[#f0f9ff] border-sky-200/90 hover:border-sky-300 hover:bg-[#e0f2fe]'
           }`}
         >
           <div>
             <div className="text-[10px] sm:text-[10.5px] font-semibold tracking-normal text-[#0284c7] uppercase leading-tight">
-              PENDING WITH LNA REVIEW
+              LNA REVIEW
             </div>
             <div className="text-[19px] sm:text-[20px] font-bold text-[#0284c7] leading-tight mt-0.5">
-              {metrics.pendingLnaReview}
+              {metrics.lnaReviewTotal}
             </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#0284c7] mt-0.5">
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveFilter(
+                  activeFilter === 'PENDING_LNA_REVIEW'
+                    ? 'ALL'
+                    : 'PENDING_LNA_REVIEW'
+                );
+              }}
+              className={`hover:underline cursor-pointer ${
+                activeFilter === 'PENDING_LNA_REVIEW'
+                  ? 'font-bold underline text-[#0369a1]'
+                  : ''
+              }`}
+            >
+              {metrics.pendingLnaReview} Pending
+            </span>
+            <span>·</span>
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveFilter(
+                  activeFilter === 'RETURNED_LNA_REVIEW'
+                    ? 'ALL'
+                    : 'RETURNED_LNA_REVIEW'
+                );
+              }}
+              className={`hover:underline cursor-pointer ${
+                activeFilter === 'RETURNED_LNA_REVIEW'
+                  ? 'font-bold underline text-[#0369a1]'
+                  : ''
+              }`}
+            >
+              {metrics.returnedLnaReview} Returned
+            </span>
           </div>
         </div>
 

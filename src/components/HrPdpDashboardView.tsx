@@ -12,10 +12,6 @@ import {
   GraduationCap,
   Layers,
   UserCheck,
-  PlayCircle,
-  Target,
-  Activity,
-  Flame,
   Filter,
   ChevronDown,
 } from 'lucide-react';
@@ -42,7 +38,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
   onReviewEmployee,
 }) => {
   const [selectedFilterStage, setSelectedFilterStage] = useState<FilterStageType>('ALL');
-  const [activeExecutionFilter, setActiveExecutionFilter] = useState<'ALL' | 'ACTIVE' | 'IN_PROGRESS' | 'COMPLETED'>('ALL');
   const [selectedEntity, setSelectedEntity] = useState<string>('ALL');
   const [selectedDivision, setSelectedDivision] = useState<string>('ALL');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('ALL');
@@ -84,13 +79,13 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       case 'PDP_PENDING_MANAGER':
         return { label: 'Pending with Manager Review', colorClass: 'bg-amber-50 text-amber-700 border-amber-200' };
       case 'PDP_PENDING_LNA':
-        return { label: 'Pending with PDP Review', colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+        return { label: 'Pending with LNA Team', colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
       case 'PDP_RETURNED_LNA':
         return { label: 'Returned to LNA Team', colorClass: 'bg-orange-50 text-orange-700 border-orange-200' };
       case 'PDP_PENDING_SIGNOFF':
-        return { label: 'Pending Sign-Off', colorClass: 'bg-sky-50 text-sky-700 border-sky-200' };
+        return { label: 'Pending with Emp Sign-Off', colorClass: 'bg-sky-50 text-sky-700 border-sky-200' };
       case 'PDP_ACKNOWLEDGED':
-        return { label: 'Acknowledged', colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        return { label: 'Active', colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
       default:
         return { label: 'In Progress', colorClass: 'bg-slate-100 text-slate-700 border-slate-300' };
     }
@@ -159,7 +154,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     setSearchBy('Employee');
     setSearchQuery('');
     setSelectedFilterStage('ALL');
-    setActiveExecutionFilter('ALL');
   };
 
   // Filtered employees
@@ -197,11 +191,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
           }
         }
 
-        // Active Execution Filter
-        if (activeExecutionFilter !== 'ALL') {
-          if (sub.computedStage !== 'PDP_ACKNOWLEDGED') return false;
-        }
-
         // Search By: Employee vs Manager
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
@@ -218,7 +207,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
         }
         return true;
       });
-  }, [selectedEntity, selectedDivision, selectedDepartment, selectedPosition, selectedStatus, selectedFilterStage, activeExecutionFilter, searchBy, searchQuery]);
+  }, [selectedEntity, selectedDivision, selectedDepartment, selectedPosition, selectedStatus, selectedFilterStage, searchBy, searchQuery]);
 
   const evalCards = [
     {
@@ -280,7 +269,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     },
     {
       id: 'PDP_PENDING_LNA',
-      label: 'PENDING WITH PDP REVIEW',
+      label: 'PENDING WITH LNA TEAM',
       count: metrics.pdpPendingLna,
       stage: 'PDP_PENDING_LNA' as FilterStageType,
       icon: GraduationCap,
@@ -298,7 +287,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     },
     {
       id: 'PDP_PENDING_SIGNOFF',
-      label: 'PENDING SIGN-OFF',
+      label: 'PENDING WITH EMP SIGN-OFF',
       count: metrics.pdpPendingSignOff,
       stage: 'PDP_PENDING_SIGNOFF' as FilterStageType,
       icon: UserCheck,
@@ -307,7 +296,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
     },
     {
       id: 'PDP_ACKNOWLEDGED',
-      label: 'ACKNOWLEDGED',
+      label: 'ACTIVE',
       count: metrics.pdpAcknowledged,
       stage: 'PDP_ACKNOWLEDGED' as FilterStageType,
       icon: CheckCircle2,
@@ -353,7 +342,7 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       },
       {
         stageKey: 'PDP_PENDING_LNA',
-        label: 'Pending with PDP Review',
+        label: 'Pending with LNA Team',
         count: metrics.pdpPendingLna,
         color: '#4F46E5', // indigo-600
       },
@@ -365,13 +354,13 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       },
       {
         stageKey: 'PDP_PENDING_SIGNOFF',
-        label: 'Pending Sign-Off',
+        label: 'Pending with Emp Sign-Off',
         count: metrics.pdpPendingSignOff,
         color: '#0EA5E9', // sky-500
       },
       {
         stageKey: 'PDP_ACKNOWLEDGED',
-        label: 'Acknowledged',
+        label: 'Active',
         count: metrics.pdpAcknowledged,
         color: '#059669', // emerald-600
       },
@@ -408,66 +397,6 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
       ],
     };
   }, []);
-
-  // Active PDP Execution Metrics (Active, In Progress, Completed development milestones)
-  const activeExecutionMetrics = useMemo(() => {
-    // 48 Total Milestones across active/approved employee development roadmaps
-    const active = 22;
-    const inProgress = 17;
-    const completed = 9;
-    const total = active + inProgress + completed; // 48
-    const activePct = Math.round((active / total) * 100); // 46%
-    const inProgressPct = Math.round((inProgress / total) * 100); // 35%
-    const completedPct = 100 - activePct - inProgressPct; // 19%
-
-    return {
-      total,
-      active,
-      inProgress,
-      completed,
-      activePct,
-      inProgressPct,
-      completedPct,
-      slices: [
-        { label: 'Active', count: active, percentage: activePct, color: '#059669' },
-        { label: 'In Progress', count: inProgress, percentage: inProgressPct, color: '#D97706' },
-        { label: 'Completed', count: completed, percentage: completedPct, color: '#2563EB' },
-      ],
-    };
-  }, []);
-
-  const executionBoxes = [
-    {
-      id: 'EXEC_ACTIVE',
-      statusKey: 'ACTIVE' as const,
-      label: 'Active',
-      count: activeExecutionMetrics.active,
-      pct: activeExecutionMetrics.activePct,
-      color: 'border-t-emerald-600',
-      iconContainer: 'bg-emerald-50 text-emerald-700',
-      icon: PlayCircle,
-    },
-    {
-      id: 'EXEC_IN_PROGRESS',
-      statusKey: 'IN_PROGRESS' as const,
-      label: 'In Progress',
-      count: activeExecutionMetrics.inProgress,
-      pct: activeExecutionMetrics.inProgressPct,
-      color: 'border-t-amber-500',
-      iconContainer: 'bg-amber-50 text-amber-700',
-      icon: Clock,
-    },
-    {
-      id: 'EXEC_COMPLETED',
-      statusKey: 'COMPLETED' as const,
-      label: 'Completed',
-      count: activeExecutionMetrics.completed,
-      pct: activeExecutionMetrics.completedPct,
-      color: 'border-t-blue-600',
-      iconContainer: 'bg-blue-50 text-blue-700',
-      icon: CheckCircle2,
-    },
-  ];
 
   // Helper to render SVG Donut segments with clean gaps and interactive hover
   const renderDonutSlices = (
@@ -802,8 +731,8 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
         </section>
       </div>
 
-      {/* 3. Donut Charts (3-Column Layout: LNA Status, Competency Split, Active PDP Execution) */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+      {/* 3. Donut Charts (2-Column Layout: Overall PDP Status, Competency Split) */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
         {/* Chart 1: Overall PDP Status Distribution */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-4.5 flex flex-col justify-between">
           <div>
@@ -998,130 +927,9 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Chart 3: Active PDP Execution Distribution */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-4.5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                  Active PDP Execution Distribution
-                </h3>
-              </div>
-            </div>
-
-            {/* Centered Donut Chart with Interactive Hover Details */}
-            <div className="flex justify-center items-center py-2 sm:py-2.5">
-              <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
-                <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-2xs">
-                  {renderDonutSlices('ACTIVE_EXECUTION', activeExecutionMetrics.slices, 68, 28)}
-                </svg>
-                {/* Center text: count without percentage */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2 transition-all">
-                  {hoveredSlice?.chartId === 'ACTIVE_EXECUTION' ? (
-                    <>
-                      <span className="text-[9px] font-bold uppercase tracking-wider truncate max-w-[100px]" style={{ color: hoveredSlice.color }}>
-                        {hoveredSlice.label}
-                      </span>
-                      <span className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
-                        {hoveredSlice.count}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        MILESTONES
-                      </span>
-                      <span className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
-                        {activeExecutionMetrics.total}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Details Table / Legend */}
-            <div className="pt-2.5 border-t border-slate-100 space-y-1">
-              {activeExecutionMetrics.slices.map((slice) => {
-                const isHovered = hoveredSlice?.chartId === 'ACTIVE_EXECUTION' && hoveredSlice?.label === slice.label;
-                return (
-                  <div
-                    key={slice.label}
-                    onMouseEnter={() => setHoveredSlice({ chartId: 'ACTIVE_EXECUTION', ...slice })}
-                    onMouseLeave={() => setHoveredSlice(null)}
-                    className={`flex items-center justify-between text-xs py-0.5 px-1.5 rounded-lg transition-colors cursor-pointer ${
-                      isHovered ? 'bg-slate-100/90 font-bold' : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: slice.color }}
-                      ></span>
-                      <span className="font-semibold text-slate-700 text-xs truncate">
-                        {slice.label}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-5 shrink-0">
-                      <span className="font-extrabold text-slate-900 text-xs">{slice.count}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
       </section>
 
-      {/* 4. Active PDP Status */}
-      <section className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-4.5 space-y-3">
-        {/* Clean Header without redundant subtext or badge */}
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-          <h2 className="text-xs sm:text-sm font-black text-[#211E4E] tracking-tight uppercase">
-            Active PDP Status
-          </h2>
-        </div>
-
-        {/* 3 Clean Stat Boxes matching the top cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          {executionBoxes.map((box) => {
-            const Icon = box.icon;
-            const isSelected = activeExecutionFilter === box.statusKey;
-            return (
-              <button
-                key={box.id}
-                type="button"
-                onClick={() =>
-                  setActiveExecutionFilter(isSelected ? 'ALL' : box.statusKey)
-                }
-                className={`px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 border-t-[3px] ${box.color} text-left transition-all cursor-pointer shadow-2xs hover:shadow-sm flex flex-col justify-between group ${
-                  isSelected ? 'ring-2 ring-[#211E4E] bg-slate-50/70 shadow-xs' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1.5 mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                    {box.label}
-                  </span>
-                  <div
-                    className={`w-5.5 h-5.5 rounded-md flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${box.iconContainer}`}
-                  >
-                    <Icon className="w-3 h-3" />
-                  </div>
-                </div>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-tight">
-                    {box.count}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 5. Submissions Table & Filter Controls */}
+      {/* 4. Submissions Table & Filter Controls */}
       <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {/* Table Filters Bar */}
         <div className="p-4 sm:p-5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -1140,12 +948,11 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
 
           <div className="flex items-center gap-2">
             {/* Reset Filters */}
-            {(selectedFilterStage !== 'ALL' || activeExecutionFilter !== 'ALL' || searchQuery) && (
+            {(selectedFilterStage !== 'ALL' || searchQuery) && (
               <button
                 type="button"
                 onClick={() => {
                   setSelectedFilterStage('ALL');
-                  setActiveExecutionFilter('ALL');
                   setSearchQuery('');
                 }}
                 className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl cursor-pointer"
@@ -1163,9 +970,10 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
             <thead>
               <tr className="bg-[#1C1844] text-white font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Employee</th>
-                <th className="py-3 px-4">Department & Division</th>
+                <th className="py-3 px-4">Designation</th>
+                <th className="py-3 px-4">Department</th>
                 <th className="py-3 px-4">Line Manager</th>
-                <th className="py-3 px-4 text-center">Stage</th>
+                <th className="py-3 px-4 text-center">Status</th>
                 <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
@@ -1181,26 +989,27 @@ export const HrPdpDashboardView: React.FC<HrPdpDashboardViewProps> = ({
                         <div className="w-8 h-8 rounded-full bg-[#211E4E] text-[#C8A977] font-bold text-xs flex items-center justify-center shrink-0">
                           {emp.avatarInitials}
                         </div>
-                        <div>
-                          <div className="font-bold text-slate-900 text-xs">{emp.name}</div>
-                          <div className="text-[11px] text-slate-500">{emp.position}</div>
-                        </div>
+                        <div className="font-bold text-slate-900 text-xs">{emp.name}</div>
                       </div>
                     </td>
 
-                    {/* Department & Division */}
+                    {/* Designation */}
                     <td className="py-3 px-4">
-                      <div className="text-slate-800 font-medium text-xs">{emp.department}</div>
-                      <div className="text-[11px] text-slate-400">{emp.division}</div>
+                      <div className="text-slate-700 font-medium text-xs">{emp.position}</div>
                     </td>
 
-                    {/* Manager */}
+                    {/* Department */}
+                    <td className="py-3 px-4">
+                      <div className="text-slate-800 font-medium text-xs">{emp.department}</div>
+                    </td>
+
+                    {/* Line Manager */}
                     <td className="py-3 px-4">
                       <div className="text-slate-800 font-medium text-xs">{emp.lineManager}</div>
                       <div className="text-[11px] text-slate-400">{emp.lineManagerTitle}</div>
                     </td>
 
-                    {/* Stage */}
+                    {/* Status */}
                     <td className="py-3 px-4 text-center">
                       <span className={`inline-block px-2.5 py-1 rounded-full text-[10.5px] font-bold border ${stageInfo.colorClass}`}>
                         {stageInfo.label}

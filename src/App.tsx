@@ -190,7 +190,7 @@ const MainAppContent: React.FC = () => {
   };
 
   const handleReviewFromHrInitiation = (sub: TeamMemberSubmission) => {
-    selectEmployeeForReview(sub, 'PENDING_HR_INITIATION', 'HR_ADMIN');
+    selectEmployeeForReview(sub, 'HR_VIEW', 'HR_ADMIN');
     setAppRole('hr');
     setIsReviewingEmployee(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
